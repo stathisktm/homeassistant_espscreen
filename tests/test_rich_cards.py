@@ -159,6 +159,23 @@ class SecondLine(unittest.TestCase):
         self.assertEqual(message('entity:not an entity'), {})
         self.assertEqual(message('text:Klaar om 7'), {})
 
+    def test_the_screen_is_told_in_a_shape_it_already_reads(self):
+        """No firmware learns the new choice: the screen gets the finished line in `x.s` (or `x.sm`), and the option
+        says in the shape every firmware with a chosen line reads that the line was chosen by hand. With nothing to
+        say, the option stays as the app stored it, which such a firmware ignores, so the screen says the line it
+        works out itself, as the editor's card does."""
+
+        def wire(sub, extra):
+            message = {'o': {'sub': sub}, 'x': extra}
+            ha_catalogue.subtitle_wire(message)
+            return message['o']['sub']
+        self.assertEqual(wire('entity:sensor.outside', {'s': '12.4 °C'}), 'attr:x')
+        self.assertEqual(wire('entity:sensor.outside#temperature', {'sm': 1789967311}), 'attr:x')
+        self.assertEqual(wire('entity:sensor.outside', {}), 'entity:sensor.outside')
+        self.assertEqual(wire('entity:sensor.outside', {'w': 'On'}), 'entity:sensor.outside')
+        for sub in ('auto', 'none', 'text:Klaar om 7', 'attr:brightness'):
+            self.assertEqual(wire(sub, {'s': 'anything'}), sub)
+
     def test_a_number_is_written_as_home_assistant_writes_an_attributes_number(self):
         """computeAttributeValueToParts of Home Assistant's frontend (GitHub #241): a formatter for a few attributes,
         formatNumber (at most two decimals, a half away from zero), then the unit of the attribute for its domain, the
@@ -258,7 +275,7 @@ class SecondLine(unittest.TestCase):
 
 
 @unittest.skipUnless(test_portal.HAS_AIOHTTP, 'Run using .venv-portal/bin/python for server tests')
-class SecondLineFollow(unittest.TestCase):
+class SecondLineFollow(unittest.IsolatedAsyncioTestCase):
     """A line made of another entity follows that entity (app 0.4.90): the sync loop sends a tile again when one of the
     entities it reads changes, and the line is in that list."""
 
@@ -271,3 +288,24 @@ class SecondLineFollow(unittest.TestCase):
         self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'entity:sensor.inside'}}), ())
         self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'attr:temperature'}}), ())
         self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'none'}}), ())
+
+    async def test_a_tile_sends_the_line_of_another_entity_in_a_shape_the_screen_reads(self):
+        from manager_fixtures import with_screen_grid
+        from server import Manager
+        import test_scaling
+        with tempfile.TemporaryDirectory() as tmp:
+            ha = test_scaling.fake_ha(firmware='0.2.50')
+            ha.states['sensor.inside'] = {'state': '21.5', 'attributes': {'unit_of_measurement': '°C', 'friendly_name': 'Inside'}}
+            ha.states['sensor.outside'] = {'state': '12.4', 'attributes': {'unit_of_measurement': '°C', 'friendly_name': 'Outside'}}
+            manager = Manager(with_screen_grid(ha), Path(tmp) / 'screens.json')
+            manager.save('text.screen', {'title': 'Hall', 'tiles': [
+                {'entity': 'sensor.inside', 'name': '', 'options': {'sub': 'entity:sensor.outside'}}]})
+            message = await manager.tile_message(0, manager.layouts['text.screen']['tiles'][0])
+            self.assertEqual(message['x']['s'], '12.4 °C')
+            self.assertEqual(message['o']['sub'], 'attr:x', 'the shape every firmware with a chosen line reads')
+            # The other entity away: no line goes, and the option stays one every such firmware ignores, so the screen
+            # says the line it works out itself, as the editor's card does.
+            del ha.states['sensor.outside']
+            gone = await manager.tile_message(0, manager.layouts['text.screen']['tiles'][0])
+            self.assertNotIn('s', gone.get('x') or {})
+            self.assertEqual(gone['o']['sub'], 'entity:sensor.outside')

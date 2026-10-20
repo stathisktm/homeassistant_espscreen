@@ -2924,6 +2924,7 @@ class Manager:
         for key,value in ha_catalogue.subtitle_message(tile,state,getattr(self.ha,'units',None),entry,getattr(self.ha,'state_words',None),
                                                       states=getattr(self.ha,'states',None),registry=self.registry_index(),tz=getattr(self.ha,'time_zone',None)).items():
             message.setdefault('x',{})[key]=value
+        ha_catalogue.subtitle_wire(message)
         if tile['entity'].startswith('sensor.') and hasattr(self.ha,'history'):
             hours=tile.get('options',{}).get('history_hours',24)
             entry=self.histories.get((tile['entity'],hours))

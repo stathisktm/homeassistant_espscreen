@@ -502,6 +502,17 @@ def subtitle_lines(entity_id, state, units=None, entry=None, words=None):
     return lines
 
 
+def subtitle_wire(message):
+    """A second line of another entity as the screen is told it (app 0.4.90). The screen never learns the choice: it
+    gets the finished line in `x.s` (or `x.sm`, a moment), and the option says, in the one shape every firmware with a
+    chosen line reads, that the line was chosen by hand - a value of the tile's entity. Without a line to send (that
+    entity is away) the option stays as stored, which such a firmware ignores, and the screen says the line it works
+    out itself, as the editor's card does."""
+    line, options = message.get('x') or {}, message.get('o') or {}
+    if (line.get('s') or line.get('sm')) and isinstance(options.get('sub'), str) and options['sub'].startswith('entity:'):
+        options['sub'] = 'attr:x'
+
+
 def subtitle_message(tile, state, units=None, entry=None, words=None, states=None, registry=None, tz=None):
     """What a tile's chosen second line adds to its state message: `s` for a finished line, `sm` for a moment in
     time. Empty when the tile says the line itself, says nothing, or says words of its own - the screen holds

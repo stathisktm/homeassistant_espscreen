@@ -6,8 +6,8 @@
   humidity of the room sensor next to it, a light's tile the door it belongs to, a scene's tile the temperature outside.
   The app writes the line as it writes the screen's own lines (a number with its unit, Home Assistant's word, seconds for
   a moment in time), the line follows that entity while Home Assistant reports it, and it costs the same tile memory as
-  a value of the tile's own entity. No firmware update is needed: the screen is sent the finished line, as it already is
-  for a value of the tile's entity.
+  a value of the tile's own entity. No firmware update is needed: the screen gets the finished line under the shape it
+  already reads as a line chosen by hand, so a screen that never heard of the new choice says it too.
 - **Greek.** The editor, the app's messages and the screens speak Greek: a new `el.json`, and `SCRIPT_GLYPHS_GREEK`
   beside the Cyrillic list, so only a screen built in Greek carries the Greek letters and no other screen spends flash
   on them. A screen takes Greek with its next firmware update, chosen under Settings → Language & region.
