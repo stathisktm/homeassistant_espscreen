@@ -93,7 +93,8 @@ A partial check helps too. Say which sections you went through, and leave `check
 | --- | --- | --- |
 | Latin | English, Dutch, German, French, Italian, Spanish, Portuguese, Polish, Czech, the Nordic languages, Turkish, ... | Every screen: the fonts carry every letter European languages use |
 | Cyrillic | Russian | Yes: the Cyrillic letters go only onto a screen built in a Cyrillic language (see "Letters" below) |
-| Cyrillic, Greek | Ukrainian, Bulgarian, Greek | Possible in the same way: a maintainer adds the language to the list, or a list for a new script. Ask first. |
+| Greek | Greek | Yes: the Greek letters go only onto a screen built in Greek (see "Letters" below) |
+| Cyrillic | Ukrainian, Bulgarian | Possible in the same way: a maintainer adds the language to the list. Ask first. |
 | Chinese, Japanese, Korean | | Only on a Guition, with the characters the texts need; a CYD has too little room and shows English |
 | Right-to-left, or letters that join | Arabic, Hebrew, Persian, Thai, Hindi | Not yet: the screens' graphics library doesn't write them without extra work |
 
@@ -104,19 +105,20 @@ The editor and the app's messages work in any language, whatever the screens can
 The five text fonts of every screen carry the Latin letters European languages use, and nothing more, because flash is
 tight on every board. A language written in another script brings its letters along only where they are needed:
 
-- Its translation file names the script in `_meta.script` (`cyrillic`).
-- `packages/core.yaml` has one list of letters per script (`SCRIPT_GLYPHS_CYRILLIC`) and picks it with `SCRIPT_GLYPHS` by
-  the screen's `LANGUAGE`, which the app writes into the screen's own YAML. The text fonts end on `"${SCRIPT_GLYPHS}"`,
-  so a screen built in Russian carries the Cyrillic letters and every other screen carries none of them.
+- Its translation file names the script in `_meta.script` (`cyrillic`, `greek`).
+- `packages/core.yaml` has one list of letters per script (`SCRIPT_GLYPHS_CYRILLIC`, `SCRIPT_GLYPHS_GREEK`) and picks it
+  with `SCRIPT_GLYPHS` by the screen's `LANGUAGE`, which the app writes into the screen's own YAML. The text fonts end on
+  `"${SCRIPT_GLYPHS}"`, so a screen built in Russian carries the Cyrillic letters, a screen built in Greek the Greek
+  ones, and every other screen carries none of them.
 - The app keeps those letters in what it sends to that screen alone: names and state words in Cyrillic reach a Russian
   screen, and other screens get them left out as before (`header_bar.SCRIPT_GLYPHS`, `clean_text`).
 - `tools/i18n.py check` accepts the letters of a language's own script in its screen texts. A test keeps the lists in the
   firmware and the app equal, and the languages `SCRIPT_GLYPHS` takes equal to the files that name that script.
 
 A list holds the letters its languages write and no more, since every letter is drawn in five fonts on every screen
-built in that language. To add a language of a script that has a list, add its code to `SCRIPT_GLYPHS` beside `ru` and
-the letters it writes that the list lacks to both lists (Ukrainian adds Є, є, І, і, Ї, ї, Ґ and ґ). A new script takes a
-list of its own in both places, letters the text font (Roboto) has.
+built in that language. To add a language of a script that has a list, add its code to `SCRIPT_GLYPHS` beside `ru` or
+`el` and the letters it writes that the list lacks to both lists (Ukrainian adds Є, є, І, і, Ї, ї, Ґ and ґ). A new
+script takes a list of its own in both places, letters the text font (Roboto) has.
 
 ## The format
 

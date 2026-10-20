@@ -33,7 +33,7 @@ class MicroSignTests(unittest.TestCase):
         self.assertIn(MICRO, header_bar.GLYPHS)
         self.assertIn(MICRO, header_bar.LEGACY_GLYPHS)
         self.assertNotIn(MU, header_bar.GLYPHS)
-        text = (ROOT / 'packages/core.yaml').read_text()
+        text = (ROOT / 'packages/core.yaml').read_text(encoding='utf-8')
         for font in TEXT_FONTS:
             glyphs = profiles.glyphs(text, font)
             self.assertIsNotNone(glyphs, font)

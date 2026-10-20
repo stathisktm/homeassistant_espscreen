@@ -1,5 +1,8 @@
 ## Unreleased
 
+- **Greek.** The editor, the app's messages and the screens speak Greek: a new `el.json`, and `SCRIPT_GLYPHS_GREEK`
+  beside the Cyrillic list, so only a screen built in Greek carries the Greek letters and no other screen spends flash
+  on them. A screen takes Greek with its next firmware update, chosen under Settings → Language & region.
 - **Pictures in one system (docs/PICTURES.md).** Every picture a screen shows now goes one way: the camera full
   screen, a camera's or a cover's tile, a map, the media card's cover, a player's library, a vacuum's map, the
   screensaver's cover, camera and photos, an alert's picture and a plugin's places. A screen asks for each as one
