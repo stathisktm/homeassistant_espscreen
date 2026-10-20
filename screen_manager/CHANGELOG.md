@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **Every screen builds from this repository, also the ones made before.** The app wrote the original repository's
+  address into a new screen's YAML, so a screen set up here pulled its packages, components and fonts from a repository
+  this app never had: English screens, no Greek letters, no colours by state, whatever this app offered. A new screen now
+  names this repository, and so does every board entry (`packages/<board>.yaml`). A screen made by an earlier build is
+  pointed here by the app itself the next time it starts: the one `url:` line and the one `ref:` line of the profile,
+  each on its own, and nothing else of the file; a repository the owner chose is still left alone. This app also knows
+  the address it was added from, so it counts as the release channel it is and moves its screens to its own tags.
 - **A tile's card takes the colour of what its entity does.** A new section of the tile panel, Colour by state, keeps a
   short list of rules for one tile: a state or an action word (heating, cooling, dry, sunny, playing, on, off) with one
   of nineteen colours, or a temperature with one (above 25, below 5). The first rule that fits paints the whole card,

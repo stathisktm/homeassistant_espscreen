@@ -18,7 +18,7 @@ import atomic
 import build_cache
 import build_memory
 import build_server
-from core import BOARD_KEYS, REF, REPO, SHAPES, channel, hotspot_name, installation_yaml, old_hotspot_name, our_ref, ref
+from core import BOARD_KEYS, PREVIOUS_REPOS, REF, REPO, SHAPES, channel, hotspot_name, installation_yaml, old_hotspot_name, our_ref, ref
 from i18n import t
 
 LOG = logging.getLogger('screen_manager')
@@ -445,8 +445,10 @@ class Firmware:
         dev channel (docs/RELEASING.md, "Testing dev"). The `ref:` of the package from this repository, and GITHUB_REF of
         the substitutions, which the package fetches its components and fonts with. Only a `ref:` the app may move
         (core.our_ref: main, dev or one of its release tags) is changed, on its own line; another tag, a commit, another
-        branch or a fork is the owner's own choice and stays, and so does the rest of the file. The result is read back
-        and written only when that line is the one thing that changed. True when the profile changed."""
+        branch or a fork is the owner's own choice and stays, and so does the rest of the file. A screen whose package
+        still names the repository this app wrote before this one had its own address (core.PREVIOUS_REPOS) is pointed
+        at REPO the same way, one line at a time. The result is read back and written only when those lines are the
+        ones that changed. True when the profile changed."""
         if not our_ref(branch):
             return False
         profile = self.profile(name)
@@ -455,25 +457,41 @@ class Firmware:
         text = raw.replace('\r\n', '\n')
         before = yaml.load(text, Loader=LenientLoader)
         packages = before.get('packages') if isinstance(before, dict) else None
-        ours = [key for key, entry in packages.items() if isinstance(entry, dict) and REPO in str(entry.get('url', ''))] \
+
+        def ours_from(value):
+            return any(known in str(value or '') for known in (REPO, *PREVIOUS_REPOS))
+
+        ours = [key for key, entry in packages.items() if isinstance(entry, dict) and ours_from(entry.get('url'))] \
             if isinstance(packages, dict) else []
         if not ours or any(not our_ref(packages[key].get('ref')) for key in ours):
             return False
-        changed = False
-        line = re.compile(r'(?m)^([ \t]+ref:[ \t]*)(["\']?)(main|dev|screens-v\d+\.\d+\.\d+)\2([ \t]*(?:#.*)?)$')
-        for key in ours:
-            if packages[key]['ref'] == branch:
-                continue
+
+        def replace_one(pattern, key, field, value):
+            """That one line of that one package, and only when the result is exactly the document with only it changed."""
+            nonlocal text, before, packages, changed
+            if packages[key].get(field) == value:
+                return True
             expected = deepcopy(before)
-            expected['packages'][key]['ref'] = branch
-            for match in line.finditer(text):
-                candidate = text[:match.start(3)] + branch + text[match.end(3):]
+            expected['packages'][key][field] = value
+            for match in re.finditer(pattern, text):
+                candidate = text[:match.start(3)] + value + text[match.end(3):]
                 if yaml.load(candidate, Loader=LenientLoader) == expected:
-                    text, before, changed = candidate, expected, True
-                    break
-            else:
-                LOG.warning('%s: its ref could not be changed without changing more, so it builds from %s',
-                            profile.name, packages[key]['ref'])
+                    text, before, packages, changed = candidate, expected, expected['packages'], True
+                    return True
+            LOG.warning('%s: its %s could not be changed without changing more, so it keeps %s',
+                        profile.name, field, packages[key].get(field))
+            return False
+
+        changed = False
+        url_line = re.compile(r'(?m)^([ \t]+url:[ \t]*)(["\']?)(https://github\.com/[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+)\2([ \t]*(?:#.*)?)$')
+        for key in ours:
+            if REPO in str(packages[key].get('url', '')):
+                continue
+            if not replace_one(url_line, key, 'url', REPO):
+                return False
+        ref_line = re.compile(r'(?m)^([ \t]+ref:[ \t]*)(["\']?)(main|dev|screens-v\d+\.\d+\.\d+)\2([ \t]*(?:#.*)?)$')
+        for key in ours:
+            if not replace_one(ref_line, key, 'ref', branch):
                 return False
         if changed:
             self._atomic_write(profile, text.replace('\n', newline))

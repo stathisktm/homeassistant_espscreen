@@ -99,7 +99,11 @@ FULL_PAGE_MIN_FIRMWARE = (0, 2, 62)
 # Twenty tiles from firmware 0.2.7, ten before.
 TWENTY_TILES_MIN_FIRMWARE = (0, 2, 7)
 FIRST_MAX_TILES = 10
-REPO = 'https://github.com/MaxGramser/homeassistant_espscreen'
+REPO = 'https://github.com/stathisktm/homeassistant_espscreen'
+# The address this app wrote in a screen's YAML before this repository had one of its own: a screen set up then points at
+# the original repository, so its builds came from packages this app never had. firmware.set_branch points such a screen
+# at REPO, one line at a time, the next time it is opened.
+PREVIOUS_REPOS = ('https://github.com/MaxGramser/homeassistant_espscreen',)
 # The branch a screen's YAML builds its board package from. Which boards there are is boards.json's (BOARD_KEYS).
 REF = 'main'
 # The app's channel (docs/RELEASING.md, "Testing dev"): the branch of this repository the app was added from. The
@@ -108,7 +112,12 @@ REF = 'main'
 # another app, with data of its own, and its screens build from dev. Any other hash (a local copy, a fork, another
 # spelling of the URL) and no Supervisor at all have no channel: new screens build from main, existing ones keep the
 # `ref:` they have.
-CHANNELS = {'ec8ae0ed': 'main', 'fa6a7b50': 'dev'}
+# This fork is a channel of its own: its address, and the `#dev` spelling of it, so the app knows where it was added
+# from and moves its own screens to its own release tags.
+CHANNELS = {'ec8ae0ed': 'main', 'fa6a7b50': 'dev',          # github.com/MaxGramser/homeassistant_espscreen
+            '50febc80': 'main', 'b07ca719': 'dev',          # github.com/stathisktm/homeassistant_espscreen
+            'c82c0a6c': 'main', '34e93bcd': 'dev',          # the same, with a trailing slash or .git
+            'f5fb1afc': 'main', '55977268': 'dev'}
 CHANNEL = None
 
 def channel_of(slug):

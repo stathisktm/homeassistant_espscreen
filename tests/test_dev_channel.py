@@ -130,6 +130,22 @@ class Branch(unittest.TestCase):
                 self.assertFalse(self.firmware.set_branch(path.name, 'dev'))
                 self.assertEqual(path.read_text(), text)
 
+    def test_a_screen_that_points_at_the_original_repository_is_moved_to_this_one(self):
+        """A screen set up before this app had its own address names the original repository, so its builds came from
+        packages this app never had. Its url and its ref are changed, each on its own line, and a repository the owner
+        chose (another fork) keeps both."""
+        for index, previous in enumerate(core.PREVIOUS_REPOS):
+            with self.subTest(previous):
+                text = SCREEN.replace(REPO, previous).replace('ref: main', 'ref: screens-v0.4.89')
+                path = self.write(text, f'old{index}.yaml')
+                self.assertTrue(self.firmware.set_branch(path.name, 'screens-v0.4.90'))
+                moved = load(path.read_text())
+                self.assertEqual(moved['packages']['display']['url'], REPO)
+                self.assertEqual(moved['packages']['display']['ref'], 'screens-v0.4.90')
+                expected = (text.replace(previous, REPO).replace('screens-v0.4.89', 'screens-v0.4.90')
+                            .replace('substitutions:\n', 'substitutions:\n  GITHUB_REF: "screens-v0.4.90"\n', 1))
+                self.assertEqual(path.read_text(), expected, 'the url, the ref and GITHUB_REF alone')
+
     def test_a_ref_line_elsewhere_is_not_ours(self):
         # The owner's own external_components says `ref: main` too, before the package: only the package's line moves.
         text = SCREEN.replace('packages:\n', f'external_components:\n  - source:\n      type: git\n      url: https://github.com/someone/parts\n      ref: main\n\npackages:\n')
