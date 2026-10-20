@@ -166,8 +166,16 @@ export function subEntity(sub: unknown) {
  * writes it for the screen (Home Assistant's number, unit and word for it). `liveOf` reads what the other entity
  * reports. A value Home Assistant does not report leaves the line to the screen, as on the glass. */
 export function subLine(sub: string, live: Live | null | undefined, status: string,
-                        liveOf?: (entity: string) => Live | null | undefined, words?: ScreenWords) {
+                        liveOf?: (entity: string) => Live | null | undefined, words?: ScreenWords, second = "") {
   if (sub === "none") return "";
+  const first = subText(sub, live, liveOf, words);
+  const next = second && first ? subText(second, live, liveOf, words) : "";
+  // A second part of the line (app 0.4.94) stands beside the first, between two dots, as the app sends it.
+  if (first && next) return `${first} · ${next}`;
+  return first || next || status;
+}
+/** One part of that line: its text, or "" when the part is the screen's own line or Home Assistant has nothing for it. */
+function subText(sub: string, live: Live | null | undefined, liveOf?: (entity: string) => Live | null | undefined, words?: ScreenWords) {
   if (sub.startsWith("text:")) return sub.slice(5);
   if (sub.startsWith("attr:")) {
     const line = live?.sub?.[sub.slice(5)] ?? live?.a?.[sub.slice(5)];
@@ -176,15 +184,15 @@ export function subLine(sub: string, live: Live | null | undefined, status: stri
   if (sub.startsWith("entity:")) {
     const entity = subEntity(sub), attribute = sub.slice(7).split("#")[1] || "";
     const foreign = entity ? liveOf?.(entity) : null;
-    if (!foreign || isGone(foreign)) return status;
+    if (!foreign || isGone(foreign)) return "";
     if (attribute) {
       const line = foreign.sub?.[attribute] ?? foreign.a?.[attribute];
       if (line !== undefined && line !== null && line !== "") return String(line);
-      return status;
+      return "";
     }
     return words ? stateText(entity, foreign, {}, words) : String(foreign.word || foreign.state);
   }
-  return status;
+  return "";
 }
 /** The big value of a Big number card; its unit stands beside it in small letters. */
 export function bigValue(domain: string, live: Live | null | undefined, words: ScreenWords) {

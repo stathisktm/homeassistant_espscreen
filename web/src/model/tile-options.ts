@@ -19,7 +19,7 @@ import { canonicalMeter } from "./meter";
 import { subEntity } from "./tile-text";
 import { TINT_RULES, TINT_WHEN, tintHex } from "./tint";
 
-const APPEARANCE = { display: "display", icon: "icon", background: "background", historyHours: "history_hours", refresh: "refresh", subtitle: "sub", fit: "fit", overlay: "overlay",
+const APPEARANCE = { display: "display", icon: "icon", background: "background", historyHours: "history_hours", refresh: "refresh", subtitle: "sub", subtitle2: "sub2", fit: "fit", overlay: "overlay",
   mapEntities: "map", mapFraming: "framing", mapDistance: "distance",
   mapFollow: "follow", mapMarkers: "markers", mapNames: "names", mapZones: "zones", mapStreets: "streets", mapLook: "look",
   energyFlow: "flow",
@@ -73,6 +73,14 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
     out.sub = /^[a-z_0-9]+\.[a-z_0-9_]+$/.test(id) ? `entity:${id}${/^[a-z_0-9]+$/.test(attribute) ? `#${attribute}` : ""}` : "auto";
   }
   if (out.sub === "auto") delete out.sub;
+  // A second part of the line (app 0.4.94): its words trimmed as the first part's, and it stands beside a line the app
+  // writes (a value of an entity), never beside words of your own or nothing.
+  if (typeof out.sub2 === "string" && out.sub2.startsWith("text:")) {
+    const words = out.sub2.slice(5).trim();
+    out.sub2 = words ? `text:${words}` : "none";
+  }
+  if (out.sub2 === "auto" || out.sub2 === "none") delete out.sub2;
+  if (typeof out.sub !== "string" || out.sub === "none" || out.sub.startsWith("text:")) delete out.sub2;
   // Where a cover's slats stand open: Home Assistant's 100 is never stored, and no other tile has the choice.
   if (out.tilt_open !== undefined && (!entity.startsWith("cover.") || String(out.tilt_open) === "100")) delete out.tilt_open;
   // Perform action keeps its action; another tap choice leaves none behind.

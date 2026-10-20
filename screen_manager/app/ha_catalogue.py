@@ -513,12 +513,10 @@ def subtitle_wire(message):
         options['sub'] = 'attr:x'
 
 
-def subtitle_message(tile, state, units=None, entry=None, words=None, states=None, registry=None, tz=None):
-    """What a tile's chosen second line adds to its state message: `s` for a finished line, `sm` for a moment in
-    time. Empty when the tile says the line itself, says nothing, or says words of its own - the screen holds
-    those three in the option and keeps drawing them while Home Assistant is away. A line from another entity
-    (`states`, `registry`) leaves the line to the screen when Home Assistant has no state for it."""
-    choice = subtitle_choice(tile)
+def subtitle_part(tile, stored, state, units=None, entry=None, words=None, states=None, registry=None, tz=None):
+    """One stored part of a second line (`sub`, or its second part `sub2`, app 0.4.94) as the screen gets it: `s` for a
+    finished line or `sm` for a moment in time, empty for a part the screen draws itself or cannot be given."""
+    choice = subtitle_choice({'options': {'sub': stored}})
     if not choice:
         return {}
     if choice[0] == 'attr':
@@ -543,3 +541,21 @@ def subtitle_message(tile, state, units=None, entry=None, words=None, states=Non
     if not text:
         return {}
     return {'s': header_bar.short(header_bar.clean_text(text), SUBTITLE_BYTES)}
+
+
+def subtitle_message(tile, state, units=None, entry=None, words=None, states=None, registry=None, tz=None):
+    """What a tile's chosen second line adds to its state message: `s` for a finished line, `sm` for a moment in
+    time. Empty when the tile says the line itself, says nothing, or says words of its own - the screen holds
+    those three in the option and keeps drawing them while Home Assistant is away. A line from another entity
+    (`states`, `registry`) leaves the line to the screen when Home Assistant has no state for it. A second part of the
+    line (app 0.4.94) stands beside the first, between two dots; a part that is a moment in time goes alone, because the
+    screen says a moment in its own words and its own clock."""
+    options = tile.get('options') or {}
+    first = subtitle_part(tile, options.get('sub'), state, units, entry, words, states, registry, tz)
+    second = subtitle_part(tile, options.get('sub2'), state, units, entry, words, states, registry, tz)
+    if not second or not first:
+        return first or second
+    if 'sm' in first or 'sm' in second:
+        return {'sm': first.get('sm') or second.get('sm')}
+    joined = f'{first["s"]} · {second["s"]}'
+    return {'s': header_bar.short(header_bar.clean_text(joined), SUBTITLE_BYTES)}

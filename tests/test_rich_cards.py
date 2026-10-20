@@ -159,6 +159,27 @@ class SecondLine(unittest.TestCase):
         self.assertEqual(message('entity:not an entity'), {})
         self.assertEqual(message('text:Klaar om 7'), {})
 
+    def test_a_line_can_say_two_things(self):
+        """App 0.4.94: a second part of the line (`sub2`) stands beside the first between two dots, so a tile says what
+        its entity is doing and a temperature next to it. A part that is a moment in time goes alone: the screen says a
+        moment in its own words and its own clock."""
+        states = {'sensor.outside': {'state': '12.4', 'attributes': {'unit_of_measurement': '°C'}},
+                  'climate.hall': {'state': 'heat', 'attributes': {'current_temperature': 21.5}},
+                  'script.goede_morgen': self.SCRIPT}
+
+        def message(**options):
+            return ha_catalogue.subtitle_message({'entity': 'climate.hall', 'options': options},
+                                                 states['climate.hall'], states=states)
+
+        self.assertEqual(message(sub='entity:sensor.outside', sub2='attr:current_temperature'), {'s': '12.4 °C · 21.5'})
+        self.assertEqual(message(sub='attr:current_temperature', sub2='entity:sensor.outside'), {'s': '21.5 · 12.4 °C'})
+        # A moment goes alone, whichever part it is in.
+        self.assertEqual(message(sub='entity:script.goede_morgen#last_triggered', sub2='attr:current_temperature'), {'sm': 1789967311})
+        # A part Home Assistant has nothing for leaves the other part, as it leaves the whole line.
+        self.assertEqual(message(sub='entity:sensor.nope', sub2='attr:current_temperature'), {'s': '21.5'})
+        self.assertEqual(message(sub='entity:sensor.nope', sub2='entity:sensor.missing'), {})
+        self.assertEqual(message(sub='none', sub2='attr:current_temperature'), {'s': '21.5'})
+
     def test_the_screen_is_told_in_a_shape_it_already_reads(self):
         """No firmware learns the new choice: the screen gets the finished line in `x.s` (or `x.sm`), and the option
         says in the shape every firmware with a chosen line reads that the line was chosen by hand. With nothing to

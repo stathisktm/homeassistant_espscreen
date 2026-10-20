@@ -1954,7 +1954,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -2033,24 +2033,32 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
             # The second line of a tile (app 0.2.105): the line the screen works out itself, nothing at all, words
             # of your own, a value of the entity that Home Assistant names, or a value of another entity
-            # (app 0.4.90). Which values those are is Home Assistant's answer and changes with it, so the name is
-            # only checked for its shape here; a value that is not there any more simply leaves the line to the
-            # screen again.
-            sub = options.get('sub')
-            if sub is not None:
+            # (app 0.4.90). `sub2` is a second part of the same line (app 0.4.94), said beside the first, so a tile can
+            # say what its entity is doing and a temperature next to it. Which values those are is Home Assistant's
+            # answer and changes with it, so the name is only checked for its shape here; a value that is not there any
+            # more simply leaves that part of the line out.
+            for key in ('sub', 'sub2'):
+                sub = options.get(key)
+                if sub is None:
+                    continue
                 if not isinstance(sub, str) or len(sub.encode()) > 96:
-                    raise ValueError(t('addon.errors.layout.invalid_setting', setting='sub'))
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
                 if sub.startswith('text:'):
                     # Words of your own keep the words, not the space around them: a line that starts with a blank
                     # is a line that looks indented on the tile, and every other line starts at the same place.
                     words = sub[5:].strip()
                     sub = f'text:{words}' if words else 'none'
-                    options = {**options, 'sub': sub}
+                    options = {**options, key: sub}
                 if sub not in ('auto', 'none') and not re.fullmatch(
                         r'text:.+|attr:[a-z_0-9]+|entity:[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?', sub):
-                    raise ValueError(t('addon.errors.layout.invalid_setting', setting='sub'))
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
                 if sub == 'auto':
-                    options = {k: v for k, v in options.items() if k != 'sub'}
+                    options = {k: v for k, v in options.items() if k != key}
+            # A second part of the line belongs to a line the app writes (a value of an entity): with no line at all, or
+            # one of words of your own, it is dropped.
+            first = options.get('sub')
+            if 'sub2' in options and (first is None or first == 'none' or str(first).startswith('text:')):
+                options = {k: v for k, v in options.items() if k != 'sub2'}
             # The five-day strip and the sun path only fit a double-width card (or the whole page).
             if options.get('display') in WIDE_ONLY and options.get('size') not in ('wide', 'square', 'full') and size_columns(options.get('size')) < 2:
                 options = {**options, 'size': 'wide'}

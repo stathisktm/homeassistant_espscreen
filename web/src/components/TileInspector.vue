@@ -181,6 +181,16 @@ const targetValues = computed(() => entities.subtitleValues[subTarget.value] ?? 
 const targetAttribute = computed(() => (subTarget.value ? sub.value.slice(7).split("#")[1] || "" : ""));
 watch(subTarget, (id) => { if (id) entities.loadSubtitleValues(id); }, { immediate: true });
 const subList = computed(() => subChoices(props.tile, panel.value, subKind.value, subValues.value.length, subAttribute.value));
+// A second part of the line (app 0.4.94): a value of this entity, or one of the entity the line reads, said beside the
+// first part between two dots - a tile that says what it does and the temperature next to it.
+const subSecond = computed(() => String(props.tile.options?.sub2 ?? ""));
+const secondChoices = computed<[string, string][]>(() => [
+  ["", t("editor.tile.sub.second_none")],
+  ...subValues.value.map((value) => [`attr:${value.key}`, value.name] as [string, string]),
+  ...(subTarget.value ? (entities.subtitleValues[subTarget.value] ?? []).map((value) =>
+    [`entity:${subTarget.value}#${value.key}`, `${value.name} · ${entities.entityName(subTarget.value)}`] as [string, string]) : []),
+]);
+const lineIsValue = computed(() => sub.value.startsWith("attr:") || (sub.value.startsWith("entity:") && Boolean(subTarget.value)));
 // "Own text" or "another entity" with nothing chosen yet is a kind, not a stored value: writing "text:" with a blank
 // in it would put that blank on the tile, and "entity:" without an entity is no line at all.
 const typing = ref(false), picking = ref(false);
@@ -321,6 +331,11 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
               :aria-label="t('editor.tile.sub.value_aria')" @update:model-value="(key) => writeSubTarget(key)" />
           </template>
         </template>
+      </PropRow>
+      <!-- A second part of the line: a value said beside the first (app 0.4.94). -->
+      <PropRow v-if="lineIsValue" :label="t('editor.tile.sub.second')" icon="plus">
+        <UiSelect class="sub-value" :model-value="subSecond" :options="secondChoices" :aria-label="t('editor.tile.sub.second_aria')"
+          @update:model-value="(value: string) => setTileOption(tile, 'sub2', value || undefined)" />
       </PropRow>
       <PrecisionRow v-if="lookShown && precisionShown" :entity="tile.entity" />
       <PropRow v-if="lookShown && display === 'live'" :label="t('editor.tile.refresh.label')" icon="refresh">

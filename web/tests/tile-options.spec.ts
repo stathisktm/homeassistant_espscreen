@@ -78,6 +78,13 @@ describe("the canonical options (tile-options.ts)", () => {
     expect(canonicalOptions("light.a", { sub: "entity:sensor.outside#" })).toEqual({ sub: "entity:sensor.outside" });
     expect(canonicalOptions("light.a", { sub: "entity:sensor.outside#Bad Name" })).toEqual({ sub: "entity:sensor.outside" });
     expect(canonicalOptions("light.a", { sub: "entity:garbage" })).toEqual({});
+    // A second part of the line (app 0.4.94) stands beside a value, never beside words of your own or nothing.
+    expect(canonicalOptions("light.a", { sub: "entity:sensor.outside", sub2: "attr:temperature" }))
+      .toEqual({ sub: "entity:sensor.outside", sub2: "attr:temperature" });
+    expect(canonicalOptions("light.a", { sub: "none", sub2: "attr:temperature" })).toEqual({ sub: "none" });
+    expect(canonicalOptions("light.a", { sub: "text:hi", sub2: "attr:temperature" })).toEqual({ sub: "text:hi" });
+    expect(canonicalOptions("light.a", { sub2: "attr:temperature" })).toEqual({});
+    expect(canonicalOptions("light.a", { sub: "attr:brightness", sub2: "none" })).toEqual({ sub: "attr:brightness" });
     expect(canonicalOptions("light.a", { tap: "auto", action: { action: "light.turn_on" } })).toEqual({ tap: "auto" });
     expect(canonicalOptions("camera.door", { display: "standard", refresh: 5, fit: "contain" })).toEqual({ display: "standard" });
     expect(canonicalOptions("camera.door", { display: "live", fit: "fill", overlay: "name" })).toEqual({ display: "live" });

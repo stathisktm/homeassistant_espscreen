@@ -98,6 +98,18 @@ describe("the line under a card's name", () => {
     for (const sub of ["entity:sensor.nothing", "entity:sensor.gone", "entity:sensor.gone#temperature", "entity:bad", "entity:"])
       expect(subLine(sub, live, "On", of, en)).toBe("On");
   });
+
+  it("says a second thing beside the line, as the add-on joins it (app 0.4.94)", () => {
+    const live = climate("heat", { current_temperature: 21.5 });
+    const outside = { state: "12.4", a: { unit_of_measurement: "°C" } };
+    const of = (id: string) => (id === "sensor.outside" ? outside : null);
+    expect(subLine("entity:sensor.outside", live, "Heat", of, en, "attr:current_temperature")).toBe("12.4 °C · 21.5");
+    expect(subLine("attr:current_temperature", live, "Heat", of, en, "entity:sensor.outside")).toBe("21.5 · 12.4 °C");
+    // No second part, or a part with nothing in it, leaves the line as it was.
+    expect(subLine("attr:current_temperature", live, "Heat", of, en, "")).toBe("21.5");
+    expect(subLine("attr:current_temperature", live, "Heat", of, en, "entity:sensor.nothing")).toBe("21.5");
+    expect(subLine("none", live, "Heat", of, en, "attr:current_temperature")).toBe("");
+  });
 });
 
 describe("the values a card stands large", () => {

@@ -99,7 +99,7 @@ export function validatePageShape(layout: PageLayout, plugins = false) {
     for (const tile of page.tiles) {
       fields(tile, ['id', 'content', 'placement', 'appearance', 'interaction', 'children'], ['id', 'content', 'placement', 'appearance', 'interaction']);
       fields(tile.placement, ['row', 'column', 'columns', 'rows']);
-      fields(tile.appearance, ['label', 'presentation', 'display', 'icon', 'background', 'historyHours', 'refresh', 'subtitle', 'fit', 'overlay',
+      fields(tile.appearance, ['label', 'presentation', 'display', 'icon', 'background', 'historyHours', 'refresh', 'subtitle', 'subtitle2', 'fit', 'overlay',
         'mapEntities', 'mapFraming', 'mapDistance', 'mapFollow', 'mapMarkers', 'mapNames', 'mapZones', 'mapStreets', 'mapLook', 'energyFlow',
         ...CALENDAR_FIELDS, ...CALENDAR_MORE, ...METER_FIELDS, ...TINT_FIELDS], ['label']);
       fields(tile.interaction, ['tap', 'inline', 'controls', 'action', 'guard', 'play', 'speaker', 'shuffle', 'repeat', 'tilt_open'], []);
@@ -237,12 +237,15 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
     if (list.length > (map?.max ?? 8) - (mapTile ? 0 : 1) || new Set(list).size !== list.length ||
         list.some((id) => typeof id !== 'string' || !matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, id) || !(map?.with ?? []).includes(id.split('.')[0]) || id === entityId)) fail();
   }
-  if (a.subtitle !== undefined) {
-    const sub = a.subtitle;
+  // The second line, and its second part (app 0.4.94): the same shapes, and a part of words or of nothing is no part.
+  for (const [key, value] of [['subtitle', a.subtitle], ['subtitle2', a.subtitle2]] as [string, string | undefined][]) {
+    if (value === undefined) continue;
+    const sub = value;
     if (typeof sub !== 'string' || bytes(sub) > 96 || sub === 'auto' ||
         !(sub === 'none' || (sub.startsWith('text:') && sub.length > 5 && !sub.includes('\n')) || matches(/^attr:[a-z_0-9]+$/, sub) ||
           matches(/^entity:[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?$/, sub)) ||
         (sub.startsWith('text:') && (!sub.slice(5).trim() || sub.slice(5) !== sub.slice(5).trim()))) fail('normalization');
+    if (key === 'subtitle2' && !(typeof a.subtitle === 'string' && (a.subtitle.startsWith('attr:') || a.subtitle.startsWith('entity:')))) fail('normalization');
   }
   if (i.tap === 'action') {
     if (domain === 'screen') fail();

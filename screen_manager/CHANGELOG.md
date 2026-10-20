@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **A tile's second line can say two things at once.** Under Second line, once one part of the line is a value, a new
+  row, "And then", adds a second value beside it: a value of the tile's own entity or one of the entity the line reads,
+  and the two are drawn as one line between two dots. A thermostat's tile can say `Heating · 21.5°`, a switch's tile
+  `On · 12.4 °C` from the room's thermometer, a weather tile `Sunny · 26.5 °C`. A moment in time (a script's last run)
+  still goes alone, because the screen says a moment in its own words and clock, and a part Home Assistant has nothing
+  for simply leaves the other part. No firmware update is needed: the screen is sent the finished line, as before.
+
 - **The colours of a tile's card look like the colours you pick, and reach the cards a tile opens.** A colour by state was
   laid so thinly over the card that a red read as a pale pink: it now keeps two thirds of itself in both looks, still
   light enough for the words on it. A weather tile's full screen (and its forecast card) is painted in the tile's colour

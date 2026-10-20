@@ -19,6 +19,10 @@ export type TileOptions = {
   tilt_open?: string;
   tap?: string;
   icon?: string;
+  // The second line of a tile (app 0.2.105), words of your own, a value of the entity, a value of another entity
+  // (app 0.4.90), and the second part of that line (app 0.4.94).
+  sub?: string;
+  sub2?: string;
   background?: string;
   history_hours?: number;
   action?: { action: string; data?: Record<string, unknown> };
@@ -94,7 +98,7 @@ export type PageTile = {
   // A footprint is a rectangle. The renderer's capabilities decide which
   // rectangles it supports; the page's grid is never user-overridable.
   placement: { row: number; column: number; columns: number; rows: number };
-  appearance: { label: string; presentation?: "single" | "wide" | "tall" | "square" | "full" | `${number}x${number}`; display?: string; icon?: string; background?: string; historyHours?: number; refresh?: number; subtitle?: string; fit?: string; overlay?: string;
+  appearance: { label: string; presentation?: "single" | "wide" | "tall" | "square" | "full" | `${number}x${number}`; display?: string; icon?: string; background?: string; historyHours?: number; refresh?: number; subtitle?: string; subtitle2?: string; fit?: string; overlay?: string;
     mapEntities?: string[]; mapFraming?: string; mapDistance?: string; mapFollow?: string; mapMarkers?: string; mapNames?: string;
     mapZones?: string; mapStreets?: string; mapLook?: string; energyFlow?: string;
     // A calendar card's choices (firmware 0.56.0): TileOptions' style, calendars, places, words, hide_words, all_day,

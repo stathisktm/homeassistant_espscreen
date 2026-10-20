@@ -9,7 +9,6 @@ import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from "reka
 import { editorLanguage, languageMarks, t } from "../../i18n";
 import { hasTint, stateLabel, TINT_RULES, tintColors, tintHex, tintRules, tintStates, type TintRule } from "../../model/tint";
 import { soften } from "../../model/tint";
-import { unitSuffix } from "../../model/tile-text";
 import type { Tile } from "../../types";
 import Icon from "../ui/Icon.vue";
 import Section from "../ui/Section.vue";
