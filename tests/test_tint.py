@@ -66,5 +66,18 @@ class Colours(unittest.TestCase):
         self.assertEqual(tint.card_background(tile, 'cool', {'current_temperature': 26}, second=second), '#f44336')
 
 
+class Message(unittest.TestCase):
+    def test_the_colour_rides_both_ways_a_screen_reads_it(self):
+        # x.bg on every message, and the tile's own options too, so a card drawn at its first message (a forecast, a
+        # graph) takes the colour as well (app 0.4.95).
+        message = tint.wire({'index': 3, 'o': {'entity': 'weather.home', 'background': 'mint'}}, '#ffeb3b')
+        self.assertEqual(message['x'], {'bg': '#ffeb3b'})
+        self.assertEqual(message['o']['background'], '#ffeb3b')
+        # A named card colour and a colourless card are not options: the screen knows every name already.
+        self.assertEqual(tint.wire({'index': 3, 'o': {'background': 'mint'}}, 'mint'), {'index': 3, 'x': {'bg': 'mint'}, 'o': {'background': 'mint'}})
+        # A tile that keeps no rules is a message that carries no colour at all.
+        self.assertEqual(tint.wire({'index': 3}, None), {'index': 3})
+
+
 if __name__ == '__main__':
     unittest.main()

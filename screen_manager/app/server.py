@@ -2940,8 +2940,7 @@ class Manager:
         # without rules sends none, and every screen draws it as it always has.
         second=tint_second(tile,getattr(self.ha,'states',None))
         colour=tint.card_background(tile,state.get('state'),state.get('attributes') or {},second)
-        if colour is not None:
-            message.setdefault('x',{})['bg']=colour
+        tint.wire(message,colour)
         if tile['entity'].startswith('sensor.') and hasattr(self.ha,'history'):
             hours=tile.get('options',{}).get('history_hours',24)
             entry=self.histories.get((tile['entity'],hours))

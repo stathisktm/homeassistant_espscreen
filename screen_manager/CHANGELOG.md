@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **The second half of a tile's line reaches the screen, and a colour by state reaches the cards drawn by their own
+  renderer.** The part the editor saved as "And then" was dropped while the page was stored, so a tile set to show its
+  state and a temperature still showed the state alone: it is kept now, and the line arrives complete. A colour by state
+  also travels in the tile's own options and not only in the value message, so a forecast, a graph or a meter is painted
+  in it from its first drawing. Screens need firmware 0.59.0 for the colour; the line needs none.
+
 - **A tile's second line can say two things at once.** Under Second line, once one part of the line is a value, a new
   row, "And then", adds a second value beside it: a value of the tile's own entity or one of the entity the line reads,
   and the two are drawn as one line between two dots. A thermostat's tile can say `Heating · 21.5°`, a switch's tile

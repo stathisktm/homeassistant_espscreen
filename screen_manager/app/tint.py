@@ -168,3 +168,15 @@ def card_background(tile, state, attributes, second=None):
     if not isinstance(rules, list) or not rules:
         return None
     return matching(tile, state, attributes, second) or str((tile.get('options') or {}).get('background') or '')
+
+
+def wire(message, colour):
+    """Where a tile's message carries the colour: the screen reads `x.bg` on every message it receives, and the
+    tile's own options too, so a card face that takes its colour when it is first drawn (a forecast, a graph, a
+    meter) is painted right then and not only when a value message follows (app 0.4.95)."""
+    if colour is None:
+        return message
+    message.setdefault('x', {})['bg'] = colour
+    if colour.startswith('#') and isinstance(message.get('o'), dict):
+        message['o']['background'] = colour
+    return message

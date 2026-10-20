@@ -48,6 +48,19 @@ class PageLayoutTests(unittest.TestCase):
                 record = self.migrate(old)
                 self.assertEqual(legacy_projection(record)["header"]["items"], header_items(old))
 
+    def test_the_second_part_of_a_line_and_a_colour_by_state_are_kept(self):
+        """App 0.4.94 and 0.4.91: what the editor saves as `subtitle2` and `tint` has to reach the screen. Until app
+        0.4.95 the second part was dropped on the way, so a tile asked to show its state and a temperature showed the
+        state alone."""
+        record = self.migrate({"title": "Screen", "tiles": [
+            {"entity": "climate.hall", "slot": 0, "options": {
+                "sub": "entity:sensor.outside", "sub2": "attr:current_temperature",
+                "tint": [{"when": "heating", "c": "deep-orange"}]}}]})
+        options = compile_tiles(record["layout"], Grid())[0]["options"]
+        self.assertEqual(options["sub"], "entity:sensor.outside")
+        self.assertEqual(options["sub2"], "attr:current_temperature")
+        self.assertEqual(options["tint"], [{"when": "heating", "c": "deep-orange"}])
+
     def test_missing_slots_are_packed_on_the_verified_grid(self):
         grid = Grid(3, 3)
         old = {"title": "Screen", "tiles": [{"entity": f"sensor.t{i}"} for i in range(10)]}

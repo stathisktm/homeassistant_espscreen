@@ -23,6 +23,9 @@ INSTANCE_ID = re.compile(r"[a-zA-Z0-9_-]{1,64}\Z")
 APPEARANCE = {
     "display": "display", "icon": "icon", "background": "background",
     "historyHours": "history_hours", "refresh": "refresh", "subtitle": "sub", "fit": "fit", "overlay": "overlay",
+    # The second part of a tile's line (app 0.4.94): what stands beside the first, between two dots. Kept here as well,
+    # or the line the editor saved would reach the screen with its first part only (app 0.4.95).
+    "subtitle2": "sub2",
     # A map card (app 0.4.33): who rides along and how it frames them. None of the three ever reaches a screen.
     "mapEntities": "map", "mapFraming": "framing", "mapDistance": "distance",
     # How a map looks and, on the map tile, whom it follows (app 0.4.36).
