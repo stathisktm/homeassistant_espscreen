@@ -169,7 +169,14 @@ const hasSlats = computed(() => {
 // simply offers the other ways. A line of another entity always has its state, and its named values after it.
 const sub = computed(() => current("sub", "auto") as string);
 const subTarget = computed(() => subEntity(sub.value));
-const subKind = computed(() => (sub.value.startsWith("attr:") ? "attr" : sub.value.startsWith("text:") || typing.value ? "text"
+// The second thing the line can say (app 0.4.94), and the state of this entity with another one beside it (app 0.4.98):
+// one way of filling the line, so it takes one step - pick it, then pick the entity.
+const subSecond = computed(() => String(props.tile.options?.sub2 ?? ""));
+const secondTarget = computed(() => subEntity(subSecond.value));
+const pairing = ref(false);
+const pair = computed(() => sub.value === "state" && Boolean(secondTarget.value));
+const subKind = computed(() => (pair.value || pairing.value ? "pair"
+  : sub.value.startsWith("attr:") ? "attr" : sub.value.startsWith("text:") || typing.value ? "text"
   : sub.value.startsWith("entity:") || picking.value ? "entity" : sub.value));
 const subValues = computed(() => entities.subtitleValues[props.tile.entity] ?? []);
 if (entities.subtitleValues[props.tile.entity] === undefined) entities.loadSubtitleValues(props.tile.entity);
@@ -180,23 +187,23 @@ const subText = computed(() => (sub.value.startsWith("text:") ? sub.value.slice(
 const targetValues = computed(() => entities.subtitleValues[subTarget.value] ?? []);
 const targetAttribute = computed(() => (subTarget.value ? sub.value.slice(7).split("#")[1] || "" : ""));
 watch(subTarget, (id) => { if (id) entities.loadSubtitleValues(id); }, { immediate: true });
-const subList = computed(() => subChoices(props.tile, panel.value, subKind.value, subValues.value.length, subAttribute.value));
-// A second part of the line (app 0.4.94): a value of this entity, its own state, or a value of another entity, said
-// beside the first part between two dots - a tile that says what it does and the temperature next to it.
-const subSecond = computed(() => String(props.tile.options?.sub2 ?? ""));
-// The entity the second part reads, when it is not this one (app 0.4.96).
-const secondTarget = computed(() => subEntity(subSecond.value));
 watch(secondTarget, (id) => { if (id) entities.loadSubtitleValues(id); }, { immediate: true });
-// The entity whose state and values the second part may say: the one it picked, else the one the first part reads.
+const subList = computed(() => subChoices(props.tile, panel.value, subKind.value, subValues.value.length, subAttribute.value));
+// The entity the second thing reads: the one it picked, else the one the line reads.
 const lineEntity = computed(() => secondTarget.value || subTarget.value);
 const secondChoices = computed<[string, string][]>(() => [
   ["", t("editor.tile.sub.second_none")],
-  ...(subKind.value === "state" ? [] : [["state", t("editor.tile.sub.state")] as [string, string]]),
+  ...(subKind.value === "state" || subKind.value === "pair" ? [] : [["state", t("editor.tile.sub.state")] as [string, string]]),
   ...subValues.value.map((value) => [`attr:${value.key}`, value.name] as [string, string]),
   ...(lineEntity.value ? [[`entity:${lineEntity.value}`, `${t("editor.tile.sub.state")} · ${entities.entityName(lineEntity.value)}`] as [string, string],
     ...(entities.subtitleValues[lineEntity.value] ?? []).map((value) =>
       [`entity:${lineEntity.value}#${value.key}`, `${value.name} · ${entities.entityName(lineEntity.value)}`] as [string, string])] : []),
 ]);
+// What the entity of a two-part line may say: its state (the first choice), or one of its values.
+const pairChoices = computed<[string, string][]>(() => (lineEntity.value ? [
+  [`entity:${lineEntity.value}`, t("editor.tile.sub.entity_state")] as [string, string],
+  ...(entities.subtitleValues[lineEntity.value] ?? []).map((value) =>
+    [`entity:${lineEntity.value}#${value.key}`, value.name] as [string, string])] : []));
 const lineIsValue = computed(() => sub.value === "state" || sub.value.startsWith("attr:")
   || (sub.value.startsWith("entity:") && Boolean(subTarget.value)));
 // "Own text" or "another entity" with nothing chosen yet is a kind, not a stored value: writing "text:" with a blank
@@ -205,7 +212,9 @@ const typing = ref(false), picking = ref(false);
 function pickSubKind(kind: string) {
   typing.value = kind === "text";
   picking.value = kind === "entity" && !subTarget.value;
-  if (kind === "attr") setTileOption(props.tile, "sub", subAttribute.value ? `attr:${subAttribute.value}` : "auto");
+  pairing.value = kind === "pair" && !secondTarget.value;
+  if (kind === "pair") setTileOption(props.tile, "sub", "state");
+  else if (kind === "attr") setTileOption(props.tile, "sub", subAttribute.value ? `attr:${subAttribute.value}` : "auto");
   else if (kind === "text") { if (subText.value) setTileOption(props.tile, "sub", `text:${subText.value}`); }
   else if (kind === "entity") { if (subTarget.value) setTileOption(props.tile, "sub", `entity:${subTarget.value}`); }
   else setTileOption(props.tile, "sub", kind);
@@ -217,6 +226,7 @@ function pickSubEntity(id: string) {
 }
 // The second part may read another entity than the first (app 0.4.96): its own state first, and its values after it.
 function pickSecondEntity(id: string) {
+  pairing.value = false;
   entities.loadSubtitleValues(id);
   setTileOption(props.tile, "sub2", `entity:${id}`);
 }
@@ -324,8 +334,20 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
            writes its value and name itself. -->
       <PropRow v-if="!bedside && !key && !mapCard && !energyTile && !meterCard" :label="t('editor.tile.sub.label')" icon="text-short" :hint="t(`editor.tile.sub.hint_${subKind}`)">
         <ChoiceField :choices="subList" :value="subKind" :tile="tile" preview-key="sub" :sample="subSample" :aria-label="t('editor.tile.sub.label')" @pick="pickSubKind" />
-        <template v-if="subKind === 'attr' || subKind === 'text' || subKind === 'entity'" #note>
-          <UiSelect v-if="subKind === 'attr'" class="sub-value" :model-value="subAttribute" :options="subValues.map((value) => [value.key, value.name] as [string, string])"
+        <template v-if="subKind === 'attr' || subKind === 'text' || subKind === 'entity' || subKind === 'pair'" #note>
+          <!-- Its state and another entity (app 0.4.98): the entity, then what of it stands beside the state. -->
+          <template v-if="subKind === 'pair'">
+            <UiPicker :items="entityChoices" :placeholder="t('editor.tile.sub.entity_search')" :empty="t('editor.tile.sub.entity_none')" width="320px" @pick="pickSecondEntity">
+              <template #trigger>
+                <button type="button" class="ghost-btn sub-entity" :aria-label="t('editor.tile.sub.second_entity_aria')">
+                  <Icon name="swap-horizontal" />{{ secondTarget ? entities.entityName(secondTarget) : t('editor.tile.sub.entity_pick') }}
+                </button>
+              </template>
+            </UiPicker>
+            <UiSelect v-if="lineEntity" class="sub-value" :model-value="subSecond" :options="pairChoices"
+              :aria-label="t('editor.tile.sub.value_aria')" @update:model-value="(key: string) => setTileOption(tile, 'sub2', key)" />
+          </template>
+          <UiSelect v-else-if="subKind === 'attr'" class="sub-value" :model-value="subAttribute" :options="subValues.map((value) => [value.key, value.name] as [string, string])"
             :aria-label="t('editor.tile.sub.value_aria')" @update:model-value="(key) => setTileOption(tile, 'sub', `attr:${key}`)" />
           <input v-else-if="subKind === 'text'" class="sub-text" :value="subText" maxlength="60"
             @focus="doc.beginFieldEdit(`sub:${tile.id}`)" @blur="doc.endFieldEdit()"
@@ -345,8 +367,9 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
           </template>
         </template>
       </PropRow>
-      <!-- A second part of the line: a value said beside the first, its state or a value of another entity (app 0.4.96). -->
-      <PropRow v-if="lineIsValue" :label="t('editor.tile.sub.second')" icon="plus" :hint="t('editor.tile.sub.second_hint')">
+      <!-- A second part of the line for a line that is one value: nothing more, or a value beside it (app 0.4.94).
+           A line of its state and another entity already says both, so it takes no second row. -->
+      <PropRow v-if="lineIsValue && subKind !== 'pair'" :label="t('editor.tile.sub.second')" icon="plus" :hint="t('editor.tile.sub.second_hint')">
         <UiSelect class="sub-value" :model-value="subSecond" :options="secondChoices" :aria-label="t('editor.tile.sub.second_aria')"
           @update:model-value="(value: string) => setTileOption(tile, 'sub2', value || undefined)" />
         <UiPicker :items="entityChoices" :placeholder="t('editor.tile.sub.entity_search')" :empty="t('editor.tile.sub.entity_none')" width="320px" @pick="pickSecondEntity">

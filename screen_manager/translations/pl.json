@@ -2502,6 +2502,7 @@
         "none": "Nic",
         "attr": "Wartość",
         "state": "Jego stan",
+        "pair": "Jego stan i inna encja",
         "entity": "Inna encja",
         "text": "Własny tekst",
         "second": "A potem",
@@ -2522,7 +2523,8 @@
         "entity_state": "Jej stan",
         "hint_state": "Stan tej encji, słowami Home Assistant.",
         "second_hint": "Wartość tej lub innej encji stoi obok pierwszej, między dwiema kropkami.",
-        "second_entity_aria": "Którą encję czyta druga część"
+        "second_entity_aria": "Która encja stoi obok stanu",
+        "hint_pair": "Co robi ta encja, a obok wartość innej."
       },
       "slider": {
         "label": "Mały suwak na kafelku",

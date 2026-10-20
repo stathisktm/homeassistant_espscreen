@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **The second line has one choice for two things.** "Its state and another entity" fills the line in a single step:
+  pick it, pick the entity, and the tile says what it is doing with a value of that entity beside it, `On · 12.4 °C`.
+  The row under it, "And then", is only for a line that is one value already.
+
 - **A tile's line can start with what its entity is doing.** Second line gains "Its state", Home Assistant's own word
   for the state ("Heating", "Open", "Sunny", or a measurement with its unit), and the row below it, "And then", can now
   reach another entity of its own with its own entity button, so a switch's tile says `On · 12.4 °C` from the room's

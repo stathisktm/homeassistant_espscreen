@@ -2502,6 +2502,7 @@
         "none": "Niente",
         "attr": "Un valore",
         "state": "Il suo stato",
+        "pair": "Il suo stato e un'altra entità",
         "entity": "Un'altra entità",
         "text": "Testo libero",
         "second": "E poi",
@@ -2522,7 +2523,8 @@
         "entity_state": "Il suo stato",
         "hint_state": "Lo stato di questa entità, con le parole che usa Home Assistant.",
         "second_hint": "Un valore di questa o di un'altra entità sta accanto al primo, tra due punti.",
-        "second_entity_aria": "Quale entità legge la seconda parte"
+        "second_entity_aria": "Quale entità sta accanto allo stato",
+        "hint_pair": "Cosa fa questa entità, e un valore di un'altra accanto."
       },
       "slider": {
         "label": "Piccolo cursore sul riquadro",

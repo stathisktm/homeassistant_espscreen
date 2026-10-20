@@ -359,15 +359,17 @@ export function tapHint(tile: Tile, panel: TilePanel, tap: string): Hint | null 
 }
 
 /** The ways to fill the second line (app 0.2.105, firmware 0.2.90+): the screen's own line, nothing, the state of the
- * tile's entity (app 0.4.96), a value of the entity where Home Assistant names one, a value of another entity (app
- * 0.4.90), or words of your own; the last ones tried with a sample of the step they ask. */
+ * tile's entity (app 0.4.96), that state and a value of another entity beside it (app 0.4.98), a value of the entity
+ * where Home Assistant names one, a value of another entity (app 0.4.90), or words of your own; the last ones tried
+ * with a sample of the step they ask. */
 export function subChoices(tile: Tile, panel: TilePanel, kind: string, values: number, attribute: string) {
-  const keys = ["auto", "none", "state"];
+  const keys = ["auto", "none", "state", "pair"];
   if (values || kind === "attr") keys.push("attr");
   keys.push("entity");
   keys.push("text");
   const sample = (key: string) => key === "attr" ? `attr:${attribute || "state"}` : key === "text" ? "text:x"
-    : key === "entity" ? `entity:${subEntity(option(tile, "sub", "auto")) || tile.entity}#temperature` : key;
+    : key === "entity" ? `entity:${subEntity(option(tile, "sub", "auto")) || tile.entity}#temperature`
+    : key === "pair" ? "state" : key;
   return offer(tile, panel, "sub", keys.map((key) => [key, t(`editor.tile.sub.${key}`)] as [string, string]), kind, sample);
 }
 /** Whether the panel offers the small slider: on a card of one row whose domain has one, where Home Assistant does not

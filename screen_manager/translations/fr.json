@@ -2502,6 +2502,7 @@
         "none": "Rien",
         "attr": "Une valeur",
         "state": "Son état",
+        "pair": "Son état et une autre entité",
         "entity": "Une autre entité",
         "text": "Votre texte",
         "second": "Et ensuite",
@@ -2522,7 +2523,8 @@
         "entity_state": "Son état",
         "hint_state": "L'état de cette entité, avec les mots qu'utilise Home Assistant.",
         "second_hint": "Une valeur de cette entité ou d'une autre se tient à côté de la première, entre deux points.",
-        "second_entity_aria": "Quelle entité la seconde partie lit"
+        "second_entity_aria": "Quelle entité se tient à côté de l'état",
+        "hint_pair": "Ce que fait cette entité, et une valeur d'une autre à côté."
       },
       "slider": {
         "label": "Petit curseur sur la tuile",

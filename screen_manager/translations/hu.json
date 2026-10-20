@@ -2502,6 +2502,7 @@
         "none": "Semmi",
         "attr": "Egy érték",
         "state": "Az állapota",
+        "pair": "Az állapota és egy másik entitás",
         "entity": "Más entitás",
         "text": "Saját szöveg",
         "second": "És utána",
@@ -2522,7 +2523,8 @@
         "entity_state": "Az állapota",
         "hint_state": "Az entitás állapota, a Home Assistant szavaival.",
         "second_hint": "Ennek vagy egy másik entitásnak egy értéke áll az első mellett, két pont között.",
-        "second_entity_aria": "Melyik entitást olvassa a második rész"
+        "second_entity_aria": "Melyik entitás áll az állapot mellett",
+        "hint_pair": "Mit tesz ez az entitás, és mellette egy másik értéke."
       },
       "slider": {
         "label": "Kis csúszka a csempén",

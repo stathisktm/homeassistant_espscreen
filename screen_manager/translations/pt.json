@@ -2502,6 +2502,7 @@
         "none": "Nada",
         "attr": "Um valor",
         "state": "O seu estado",
+        "pair": "O seu estado e outra entidade",
         "entity": "Outra entidade",
         "text": "Texto próprio",
         "second": "E depois",
@@ -2522,7 +2523,8 @@
         "entity_state": "O estado dela",
         "hint_state": "O estado desta entidade, com as palavras do Home Assistant.",
         "second_hint": "Um valor desta ou de outra entidade fica ao lado do primeiro, entre dois pontos.",
-        "second_entity_aria": "Que entidade a segunda parte lê"
+        "second_entity_aria": "Que entidade fica ao lado do estado",
+        "hint_pair": "O que esta entidade está a fazer, e um valor de outra ao lado."
       },
       "slider": {
         "label": "Controlo deslizante pequeno no mosaico",

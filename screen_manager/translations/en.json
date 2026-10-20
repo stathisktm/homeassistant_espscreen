@@ -2077,6 +2077,7 @@
         "none": "Nothing",
         "attr": "A value",
         "state": "Its state",
+        "pair": "Its state and another entity",
         "entity": "Another entity",
         "text": "Own text",
         "second": "And then",
@@ -2097,7 +2098,8 @@
         "entity_state": "Its state",
         "hint_state": "The state of this entity, in the words Home Assistant uses for it.",
         "second_hint": "A value of this entity or of another one stands beside the first, between two dots.",
-        "second_entity_aria": "Which entity the second part reads"
+        "second_entity_aria": "Which entity stands beside the state",
+        "hint_pair": "What this entity is doing, and a value of another entity beside it."
       },
       "slider": {
         "label": "Small slider on the tile",

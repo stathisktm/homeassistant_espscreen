@@ -2077,6 +2077,7 @@
         "none": "Niets",
         "attr": "Een waarde",
         "state": "Zijn status",
+        "pair": "Zijn status en een andere entiteit",
         "entity": "Een andere entiteit",
         "text": "Eigen tekst",
         "second": "En dan",
@@ -2097,7 +2098,8 @@
         "entity_state": "De status ervan",
         "hint_state": "De status van deze entiteit, in de woorden van Home Assistant.",
         "second_hint": "Een waarde van deze of een andere entiteit staat naast de eerste, tussen twee punten.",
-        "second_entity_aria": "Welke entiteit het tweede deel leest"
+        "second_entity_aria": "Welke entiteit naast de status staat",
+        "hint_pair": "Wat deze entiteit doet, en een waarde van een andere ernaast."
       },
       "slider": {
         "label": "Kleine slider op de tegel",
