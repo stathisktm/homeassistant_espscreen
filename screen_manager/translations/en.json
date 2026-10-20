@@ -2287,6 +2287,19 @@
           "blue-grey": "Blue grey"
         }
       },
+      "tint": {
+        "title": "Colour by state",
+        "hint": "The whole card takes a colour: the one of the first rule that fits what the entity is doing, or its temperature. The card keeps its own colour when none fits.",
+        "when_aria": "What gives the card this colour",
+        "temperature_aria": "The temperature this rule compares",
+        "colour_aria": "The colour when {colour}",
+        "add": "Add a rule",
+        "remove": "Remove this rule",
+        "above": "Above a temperature",
+        "below": "Below a temperature",
+        "first": "Rules are tried from the top; the first that fits wins. The app works the colour out, so the screen costs nothing.",
+        "degrees": "°"
+      },
       "anchor_hint": "Click its icon to choose another, or its name to rename the tile",
       "grow": {
         "title": "Room for more controls",

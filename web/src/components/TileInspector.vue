@@ -23,6 +23,7 @@ import CalendarSection from "./inspector/CalendarSection.vue";
 import FavoriteSection from "./inspector/FavoriteSection.vue";
 import MapSection from "./inspector/MapSection.vue";
 import MeterSection from "./inspector/MeterSection.vue";
+import TintSection from "./inspector/TintSection.vue";
 import NameField from "./inspector/NameField.vue";
 import PrecisionRow from "./inspector/PrecisionRow.vue";
 import TitleButton from "./inspector/TitleButton.vue";
@@ -339,6 +340,9 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
 
     <!-- A sensor's meter (firmware 0.56.0): a ring, a tape or a bar; Home Assistant's range or its own; its colours. -->
     <MeterSection v-if="lookShown && meterCard" :tile="tile" />
+
+    <!-- A card's colour by state (app 0.4.91): the whole card takes the colour of what the entity is doing. -->
+    <TintSection v-if="!key && !bedside" :tile="tile" />
 
     <!-- A calendar card (firmware 0.56.0): what it shows, its calendars, which events, how far ahead. -->
     <CalendarSection v-if="calendarCard" :tile="tile" />

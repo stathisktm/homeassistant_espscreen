@@ -36,6 +36,7 @@ from firmware import Firmware
 import ha_pairing
 import catalogue
 import ha_catalogue
+import tint
 import light_effects
 import light_groups
 import cover_groups
@@ -104,6 +105,15 @@ RESEND_GUARD_SECONDS = 120
 SCREEN_STATUS_WORDS = {'Synced': 'synced', 'Loading tiles': 'loading_tiles', 'Layout received': 'layout_received',
                        'Resend needed': 'resend_needed', 'Ready for tile configuration': 'ready'}
 PAGE_DELIVERY_WORDS = {'Saved, waiting for screen': 'saved', 'Applying': 'applying', 'Applied': 'applied'}
+
+
+def tint_second(tile, states):
+    """The entity a tile's second line reads and its state (app 0.4.90), for a colour by temperature that comes from it
+    (tint.py, app 0.4.91); None when the line is the screen's own or Home Assistant has no state for that entity."""
+    choice = ha_catalogue.subtitle_choice(tile)
+    target = ha_catalogue.entity_line_target(choice[1]) if choice and choice[0] == 'entity' else None
+    state = (states or {}).get(target[0]) if target else None
+    return (target[0], state) if state else None
 
 
 def status_text(status):
@@ -2925,6 +2935,13 @@ class Manager:
                                                       states=getattr(self.ha,'states',None),registry=self.registry_index(),tz=getattr(self.ha,'time_zone',None)).items():
             message.setdefault('x',{})[key]=value
         ha_catalogue.subtitle_wire(message)
+        # The colour this card is drawn in for what its entity is doing (app 0.4.91, tint.py): the first rule that
+        # matches, else the colour the tile was given, so a card goes back to it when nothing matches any more. A tile
+        # without rules sends none, and every screen draws it as it always has.
+        second=tint_second(tile,getattr(self.ha,'states',None))
+        colour=tint.card_background(tile,state.get('state'),state.get('attributes') or {},second)
+        if colour is not None:
+            message.setdefault('x',{})['bg']=colour
         if tile['entity'].startswith('sensor.') and hasattr(self.ha,'history'):
             hours=tile.get('options',{}).get('history_hours',24)
             entry=self.histories.get((tile['entity'],hours))

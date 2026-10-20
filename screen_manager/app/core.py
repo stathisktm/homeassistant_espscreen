@@ -12,6 +12,7 @@ import secrets
 from i18n import english, screen_t, t
 import calendar_feed
 import meter
+import tint
 import catalogue
 import tile_icons
 
@@ -161,7 +162,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.57.0'
+FIRMWARE_VERSION = '0.58.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -1944,7 +1945,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -1959,6 +1960,11 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 options = meter.validate(options)
             except ValueError as error:
                 raise ValueError(t('addon.errors.layout.invalid_setting', setting=str(error))) from None
+            # A card's colour by state (app 0.4.91, tint.py): an ordered list of rules; it stays in the app.
+            try:
+                options = tint.validate(options)
+            except ValueError as error:
+                raise ValueError(t('addon.errors.layout.invalid_setting', setting='tint')) from None
             # A navigation tile (screen.page_<n>, firmware 0.2.62+) has a name, an icon, a colour and a width; never the page.
             if page_target(tile['entity']):
                 if options.get('size') == 'full':
@@ -2539,8 +2545,9 @@ def screen_options(tile, attrs, state=None, entry=None):
     and `controls` only as the set the card really shows (firmware 0.2.19+, ignored before)."""
     # A map's own choices stay in the app: who is on it and how it frames them say where people are (app 0.4.33).
     # So do a favourite's own (app 0.4.42): the screen asks to play its tile, never an id.
-    # A calendar's filters stay too (calendar_feed.OWN): the screen gets the events they let through.
-    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'controls', 'action', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
+    # A calendar's filters stay too (calendar_feed.OWN): the screen gets the events they let through, and a tile's
+    # colour rules (app 0.4.91): the screen gets the colour each state asks for, in `x.bg` (tint.py).
+    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'controls', 'action', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
     # A meter's colours travel as numbers (firmware 0.56.0): the screen keeps no table of names.
     options = meter.screen_options(options)
     icon = tile_icon(tile, attrs, state, entry)

@@ -2712,6 +2712,19 @@
           "blue-grey": "Gris bleu"
         }
       },
+      "tint": {
+        "title": "Couleur selon l'état",
+        "hint": "Toute la tuile prend une couleur : celle de la première règle qui correspond à ce que fait l'entité ou à sa température. Si aucune ne correspond, elle garde sa propre couleur.",
+        "when_aria": "Ce qui donne cette couleur à la tuile",
+        "temperature_aria": "La température que compare cette règle",
+        "colour_aria": "La couleur quand {colour}",
+        "add": "Ajouter une règle",
+        "remove": "Retirer cette règle",
+        "above": "Au-dessus d'une température",
+        "below": "En dessous d'une température",
+        "first": "Les règles s'appliquent de haut en bas ; la première qui correspond gagne. La couleur est calculée par l'app, l'écran ne coûte donc rien.",
+        "degrees": "°"
+      },
       "anchor_hint": "Cliquez sur l'icône pour en choisir une autre, ou sur le nom pour renommer la tuile",
       "grow": {
         "title": "De la place pour plus de commandes",

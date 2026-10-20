@@ -2712,6 +2712,19 @@
           "blue-grey": "Niebieskoszary"
         }
       },
+      "tint": {
+        "title": "Kolor według stanu",
+        "hint": "Cały kafelek przyjmuje kolor: tego pierwszego warunku, który pasuje do tego, co robi encja, albo do jej temperatury. Gdy żaden nie pasuje, zostaje jego własny kolor.",
+        "when_aria": "Co daje kafelkowi ten kolor",
+        "temperature_aria": "Temperatura, którą porównuje ten warunek",
+        "colour_aria": "Kolor, gdy {colour}",
+        "add": "Dodaj warunek",
+        "remove": "Usuń ten warunek",
+        "above": "Powyżej temperatury",
+        "below": "Poniżej temperatury",
+        "first": "Warunki są sprawdzane od góry; wygrywa pierwszy pasujący. Kolor liczy aplikacja, więc ekran nic nie kosztuje.",
+        "degrees": "°"
+      },
       "anchor_hint": "Kliknij ikonę, aby wybrać inną, lub nazwę, aby zmienić nazwę kafelka",
       "grow": {
         "title": "Miejsce na więcej sterowania",

@@ -6,6 +6,7 @@ import { isWideSize } from './sizes';
 import { TILE, ofType, taps as catalogueTaps } from './catalogue';
 import { PLUGIN_LIST_MAX, PLUGIN_OPTIONS_BYTES, PLUGIN_TILE } from './plugins';
 import rules from './page-rules.json';
+import { TINT_RULES, TINT_WHEN, tintHex } from './tint';
 import type { PageLayout, PageTile } from '../types';
 
 const bytes = (s: string) => new TextEncoder().encode(s).length;
@@ -20,8 +21,10 @@ const CALENDAR_FIELDS = ['calendarStyle', 'calendarEntities', 'calendarPlaces', 
   'calendarTentative', 'calendarPrivate', 'calendarAhead', 'calendarSoon', 'calendarStartView'] as const;
 // ... and its week and booking (the add-on's page_layout.APPEARANCE has them; calendar_feed.validate checks them).
 const CALENDAR_MORE = ['calendarWeekStart', 'calendarHours', 'calendarWeekNumbers', 'calendarBookOn', 'calendarBookPlace', 'calendarBookTitle'] as const;
-// A sensor's meter (firmware 0.56.0, meter.validate), as the page document names it.
+// A sensor's meter (firmware 0.56.0, meter.validate) and a card's colour by state (app 0.4.91, tint.validate), as the
+// page document names them.
 const METER_FIELDS = ['meterStyle', 'meterMin', 'meterMax', 'meterSegments', 'meterColors', 'meterThresholds'] as const;
+const TINT_FIELDS = ['tint'] as const;
 const entity = (value: any, domains: string[]) => typeof value === 'string' && value.length <= 120 &&
   matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, value) && domains.includes(value.split('.')[0]);
 const icon = (value: any, none = false) => value === 'auto' || (none && value === 'none') || rules.icons.includes(value);
@@ -98,7 +101,7 @@ export function validatePageShape(layout: PageLayout, plugins = false) {
       fields(tile.placement, ['row', 'column', 'columns', 'rows']);
       fields(tile.appearance, ['label', 'presentation', 'display', 'icon', 'background', 'historyHours', 'refresh', 'subtitle', 'fit', 'overlay',
         'mapEntities', 'mapFraming', 'mapDistance', 'mapFollow', 'mapMarkers', 'mapNames', 'mapZones', 'mapStreets', 'mapLook', 'energyFlow',
-        ...CALENDAR_FIELDS, ...CALENDAR_MORE, ...METER_FIELDS], ['label']);
+        ...CALENDAR_FIELDS, ...CALENDAR_MORE, ...METER_FIELDS, ...TINT_FIELDS], ['label']);
       fields(tile.interaction, ['tap', 'inline', 'controls', 'action', 'guard', 'play', 'speaker', 'shuffle', 'repeat', 'tilt_open'], []);
       const content = tile.content;
       fields(content, ['kind', 'entityId', 'name', 'target', 'plugin', 'tile', 'options'], ['kind']);
@@ -205,6 +208,17 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
     const values = a.meterThresholds;
     if (values !== undefined && (!Array.isArray(values) || !values.length || values.length !== segments - 1 || !values.every(number) ||
         values.some((value, i) => i > 0 && values[i - 1] >= value))) fail();
+  }
+  // A card's colour by state (app 0.4.91), as tint.validate checks it: at most eight rules, each a state word or a
+  // temperature and a colour the screen knows.
+  if (a.tint !== undefined) {
+    const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 1e9;
+    if (!Array.isArray(a.tint) || !a.tint.length || a.tint.length > TINT_RULES) fail();
+    for (const rule of a.tint as Record<string, unknown>[]) {
+      if (!rule || typeof rule !== 'object' || Object.keys(rule).some((key) => !['when', 'above', 'below', 'c'].includes(key)) || tintHex(rule.c) === '') fail();
+      if (typeof rule.when === 'string' ? !TINT_WHEN.test(rule.when) || rule.above !== undefined || rule.below !== undefined
+        : !(number(rule.above) || number(rule.below))) fail();
+    }
   }
   // A favourite (app 0.4.42): what it plays and its speaker, and its own shuffle and repeat (app 0.4.84), with the
   // favourite alone.

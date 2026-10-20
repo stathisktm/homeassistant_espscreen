@@ -17,6 +17,7 @@ import { BUILTIN_CARDS, type BuiltinName } from "../types";
 import { PLUGIN_TILE, PLUGIN_TILE_OPTIONS } from "./plugins";
 import { canonicalMeter } from "./meter";
 import { subEntity } from "./tile-text";
+import { TINT_RULES, TINT_WHEN, tintHex } from "./tint";
 
 const APPEARANCE = { display: "display", icon: "icon", background: "background", historyHours: "history_hours", refresh: "refresh", subtitle: "sub", fit: "fit", overlay: "overlay",
   mapEntities: "map", mapFraming: "framing", mapDistance: "distance",
@@ -26,7 +27,8 @@ const APPEARANCE = { display: "display", icon: "icon", background: "background",
   calendarAllDay: "all_day", calendarTentative: "tentative", calendarPrivate: "private", calendarAhead: "ahead", calendarSoon: "soon",
   calendarStartView: "start_view", calendarWeekStart: "week_start", calendarHours: "hours", calendarWeekNumbers: "week_numbers",
   calendarBookOn: "book_on", calendarBookPlace: "book_place", calendarBookTitle: "book_title",
-  meterStyle: "meter", meterMin: "min", meterMax: "max", meterSegments: "segments", meterColors: "colors", meterThresholds: "thresholds" } as const;
+  meterStyle: "meter", meterMin: "min", meterMax: "max", meterSegments: "segments", meterColors: "colors", meterThresholds: "thresholds",
+  tint: "tint" } as const;
 const INTERACTION = ["tap", "inline", "controls", "action", "play", "speaker", "shuffle", "repeat"] as const;
 const PICTURE_OWN = ["refresh", ...Object.keys(rules.picture)];
 // A map card's own choices (app 0.4.33); its name on the picture is the live picture's `overlay`.
@@ -96,6 +98,17 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
   // A sensor's meter (firmware 0.56.0) keeps its look, its range, its colours and its thresholds while it is the meter;
   // a default is never stored (model/meter.ts, meter.validate).
   canonicalMeter(entity, out);
+  // A card's colour by state (app 0.4.91, tint.validate): at most eight rules, each a state or a temperature and a
+  // colour the screen knows; a rule the add-on would refuse is dropped, and no rules is no key.
+  if (Array.isArray(out.tint)) {
+    const kept = out.tint.filter((rule) => Boolean(rule) && typeof rule === "object")
+      .filter((rule) => tintHex((rule as Record<string, unknown>).c) !== "" &&
+        (typeof (rule as Record<string, unknown>).when === "string"
+          ? TINT_WHEN.test(String((rule as Record<string, unknown>).when)) && (rule as Record<string, unknown>).above === undefined && (rule as Record<string, unknown>).below === undefined
+          : typeof (rule as Record<string, unknown>).above === "number" || typeof (rule as Record<string, unknown>).below === "number"))
+      .slice(0, TINT_RULES);
+    if (kept.length) out.tint = kept as TileOptions["tint"]; else delete out.tint;
+  } else delete out.tint;
   for (const [key, value] of Object.entries(DEFAULTS)) if (out[key] === value) delete out[key];
   // A Go to page tile has a name, an icon, a colour and a width, nothing else.
   if (pageTile(entity)) for (const key of ["display", "inline", "controls", "history_hours"]) delete out[key];

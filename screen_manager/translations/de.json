@@ -2712,6 +2712,19 @@
           "blue-grey": "Blaugrau"
         }
       },
+      "tint": {
+        "title": "Farbe nach Zustand",
+        "hint": "Die ganze Kachel nimmt eine Farbe an: die der ersten Regel, die zum Zustand oder zur Temperatur passt. Passt keine, behält sie ihre eigene Farbe.",
+        "when_aria": "Was der Kachel diese Farbe gibt",
+        "temperature_aria": "Die Temperatur, die diese Regel vergleicht",
+        "colour_aria": "Die Farbe bei {colour}",
+        "add": "Regel hinzufügen",
+        "remove": "Regel entfernen",
+        "above": "Über einer Temperatur",
+        "below": "Unter einer Temperatur",
+        "first": "Die Regeln gelten von oben; die erste passende gewinnt. Die Farbe rechnet die App aus, die Kachel kostet also nichts.",
+        "degrees": "°"
+      },
       "anchor_hint": "Klicke auf das Symbol, um ein anderes zu wählen, oder auf den Namen, um die Kachel umzubenennen",
       "grow": {
         "title": "Platz für mehr Steuerung",

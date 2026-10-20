@@ -50,6 +50,8 @@ export type TileOptions = {
   segments?: number;
   colors?: string[];
   thresholds?: number[];
+  // A card's colour by state (app 0.4.91, tint.py): the rules that give the whole card a colour, the first that fits.
+  tint?: { when?: string; above?: number; below?: number; c: string }[];
   [key: string]: unknown;
 };
 // What a favourite plays (app 0.4.42), as Home Assistant's library names it: its content id and type, the title and the
@@ -100,8 +102,10 @@ export type PageTile = {
     calendarStyle?: string; calendarEntities?: string[]; calendarPlaces?: string[]; calendarWords?: string[]; calendarHideWords?: string[];
     calendarAllDay?: boolean; calendarTentative?: boolean; calendarPrivate?: boolean; calendarAhead?: number; calendarSoon?: number; calendarStartView?: string;
     calendarWeekStart?: string; calendarHours?: [number, number]; calendarWeekNumbers?: boolean; calendarBookOn?: string; calendarBookPlace?: string; calendarBookTitle?: string;
-    // A sensor's meter (firmware 0.56.0): TileOptions' meter, min, max, segments, colors and thresholds.
-    meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[] };
+    // A sensor's meter (firmware 0.56.0): TileOptions' meter, min, max, segments, colors and thresholds; and a card's
+    // colour by state (app 0.4.91): TileOptions' tint.
+    meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[];
+    tint?: TileOptions["tint"] };
   interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string };
   children?: ChildTile[];
 };

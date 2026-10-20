@@ -1,0 +1,70 @@
+"""A card's colour by state (app 0.4.91, tint.py): the rules a tile keeps, the colour the first match gives, and the
+temperature a rule compares."""
+import sys
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'screen_manager/app'))
+import tint  # noqa: E402
+
+
+class Rules(unittest.TestCase):
+    def test_the_rules_the_add_on_keeps(self):
+        kept = tint.validate({'tint': [{'when': 'heating', 'c': 'deep-orange'}, {'above': 25, 'c': '#ff0000'},
+                                       {'below': 5, 'c': 'blue'}], 'background': 'mint'})
+        self.assertEqual(kept, {'tint': [{'when': 'heating', 'c': 'deep-orange'}, {'c': '#ff0000', 'above': 25},
+                                         {'c': 'blue', 'below': 5}], 'background': 'mint'})
+        # No rules is no key, and nothing else of the tile's options changes.
+        self.assertEqual(tint.validate({'tint': [], 'background': 'mint'}), {'background': 'mint'})
+        self.assertEqual(tint.validate({'background': 'mint'}), {'background': 'mint'})
+        # A shape the editor never makes is refused: a word that is not one, a colour no screen knows, too many rules.
+        for bad in ('heating', [{'when': 'Heating', 'c': 'red'}], [{'when': 'heating'}], [{'c': 'red'}],
+                    [{'when': 'heating', 'above': 2, 'c': 'red'}], [{'above': 'warm', 'c': 'red'}],
+                    [{'when': 'heating', 'c': 'not-a-colour'}], [{'when': 'heating', 'c': 'red', 'x': 1}],
+                    [{'when': 'on', 'c': 'red'}] * (tint.RULES + 1)):
+            with self.assertRaises(ValueError, msg=bad):
+                tint.validate({'tint': bad})
+
+    def test_a_colour_is_the_colour_itself(self):
+        # The screen is sent the colour, never a table of names: Home Assistant's own, or a colour typed as it is.
+        self.assertEqual(tint.colour_value('deep-orange'), '#ff6f22')
+        self.assertEqual(tint.colour_value('#AABBCC'.lower()), '#aabbcc')
+        self.assertIsNone(tint.colour_value('mint'))
+
+
+class Colours(unittest.TestCase):
+    CLIMATE = {'entity': 'climate.hall', 'options': {'background': 'mint', 'tint': [
+        {'when': 'heating', 'c': 'deep-orange'}, {'when': 'cooling', 'c': 'blue'},
+        {'below': 5, 'c': 'indigo'}, {'above': 28, 'c': 'red'}]}}
+
+    def test_the_first_rule_that_fits_gives_the_colour(self):
+        self.assertEqual(tint.card_background(self.CLIMATE, 'heat', {'hvac_action': 'heating', 'current_temperature': 21}), '#ff6f22')
+        # What the entity does counts as well as its state: a thermostat's mode is heat while it cools.
+        self.assertEqual(tint.card_background(self.CLIMATE, 'heat', {'hvac_action': 'cooling'}), '#2196f3')
+        # A temperature rule, in the card's own temperature.
+        self.assertEqual(tint.card_background(self.CLIMATE, 'heat', {'hvac_action': 'idle', 'current_temperature': 2}), '#3f51b5')
+        self.assertEqual(tint.card_background(self.CLIMATE, 'heat', {'hvac_action': 'idle', 'current_temperature': 31}), '#f44336')
+        # Nothing fits: the card goes back to the colour it was given.
+        self.assertEqual(tint.card_background(self.CLIMATE, 'off', {'hvac_action': 'idle', 'current_temperature': 21}), 'mint')
+        # A tile without rules carries no colour at all, so every screen draws it as it always did.
+        self.assertIsNone(tint.card_background({'entity': 'light.desk', 'options': {}}, 'on', {}))
+
+    def test_a_temperature_can_come_from_the_second_line(self):
+        tile = {'entity': 'switch.heater', 'options': {'tint': [{'below': 18, 'c': 'blue'}]}}
+        outside = ('sensor.outside', {'state': '12', 'attributes': {'unit_of_measurement': '°C'}})
+        self.assertEqual(tint.card_background(tile, 'on', {}, second=outside), '#2196f3')
+        # At 21° the rule does not fit and the card keeps its own colour (none, so the plain card).
+        self.assertEqual(tint.card_background(tile, 'on', {}, second=('sensor.outside', {'state': '21', 'attributes': {}})), '')
+        # A switch measures nothing and reads nothing: its temperature rules never fit.
+        self.assertEqual(tint.card_background(tile, 'on', {}), '')
+
+    def test_the_cards_own_temperature_comes_first(self):
+        tile = {'entity': 'climate.hall', 'options': {'tint': [{'above': 25, 'c': 'red'}]}}
+        second = ('sensor.outside', {'state': '30', 'attributes': {}})
+        self.assertEqual(tint.card_background(tile, 'cool', {'current_temperature': 21}, second=second), '')
+        self.assertEqual(tint.card_background(tile, 'cool', {'current_temperature': 26}, second=second), '#f44336')
+
+
+if __name__ == '__main__':
+    unittest.main()

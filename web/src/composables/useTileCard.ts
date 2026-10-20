@@ -13,6 +13,8 @@ import { displayOf, sameFace, tileFace, type Face } from "../model/tile-face";
 import { bigKeyLine, bigValue, bodyText, ownWords, favoriteLine, fillPercent, headLine, isGone, isOn, mediaSubtitle, pageLink, rangeChip, readingText,
   roundValue, runText, sameLive, sameWords, screenText, setpointText, stateText, subLine, type Live, type ScreenWords } from "../model/tile-text";
 import { glyph, clockText } from "../model/topbar";
+import { hasTint, tintColour } from "../model/tint";
+import { subEntity } from "../model/tile-text";
 import { resolveControls } from "../model/catalogue";
 import { cardContent, cardHeight, watchCard, watchPadding, wideChip, widestSetpoint } from "../model/ui-scale";
 import { useCanvasStore } from "../stores/canvas";
@@ -142,8 +144,14 @@ export function useTileCard(props: TileCardProps) {
   });
 
   // ---- How it looks ----
-  // Its colour of the add-on's choices (none is a card without one).
-  const background = computed(() => inv.inventory.backgrounds?.[props.tile.options?.background || ""]?.color);
+  // Its colour of the add-on's choices (none is a card without one), or the colour a rule of its own gives for the state
+  // it is in now (app 0.4.91, tint.py: the same first match, softened as the screen softens it).
+  const background = computed(() => {
+    const own = inv.inventory.backgrounds?.[props.tile.options?.background || ""]?.color;
+    if (!hasTint(props.tile)) return own;
+    const second = subEntity(props.tile.options?.sub);
+    return tintColour(props.tile, current.value, (id: string) => entities.liveOf(id), second) ?? own;
+  });
   const palette = computed(() => tilePalette(props.tile.entity, current.value, runs.value));
   const on = computed(() => tileActive(props.tile.entity, current.value, runs.value));
   const icon = computed(() => entities.tileIconCp(props.tile));

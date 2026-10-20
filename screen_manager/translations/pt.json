@@ -2712,6 +2712,19 @@
           "blue-grey": "Cinzento azulado"
         }
       },
+      "tint": {
+        "title": "Cor pelo estado",
+        "hint": "O cartão inteiro assume uma cor: a da primeira regra que corresponda ao que a entidade faz ou à sua temperatura. Se nenhuma corresponder, mantém a sua própria cor.",
+        "when_aria": "O que dá esta cor ao cartão",
+        "temperature_aria": "A temperatura que esta regra compara",
+        "colour_aria": "A cor quando {colour}",
+        "add": "Adicionar uma regra",
+        "remove": "Remover esta regra",
+        "above": "Acima de uma temperatura",
+        "below": "Abaixo de uma temperatura",
+        "first": "As regras são testadas de cima para baixo; ganha a primeira que corresponder. A cor é calculada pela app, por isso o ecrã não custa nada.",
+        "degrees": "°"
+      },
       "anchor_hint": "Clique no ícone para escolher outro, ou no nome para mudar o nome do mosaico",
       "grow": {
         "title": "Espaço para mais controlos",

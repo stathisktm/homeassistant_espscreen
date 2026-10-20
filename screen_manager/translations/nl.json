@@ -2287,6 +2287,19 @@
           "blue-grey": "Blauwgrijs"
         }
       },
+      "tint": {
+        "title": "Kleur per status",
+        "hint": "De hele tegel krijgt een kleur: die van de eerste regel die past bij wat de entiteit doet of bij zijn temperatuur. Past er geen, dan houdt hij zijn eigen kleur.",
+        "when_aria": "Wat de tegel deze kleur geeft",
+        "temperature_aria": "De temperatuur die deze regel vergelijkt",
+        "colour_aria": "De kleur bij {colour}",
+        "add": "Regel toevoegen",
+        "remove": "Deze regel verwijderen",
+        "above": "Boven een temperatuur",
+        "below": "Onder een temperatuur",
+        "first": "De regels gelden van bovenaf; de eerste die past wint. De app rekent de kleur uit, dus het scherm kost niets.",
+        "degrees": "°"
+      },
       "anchor_hint": "Klik op het icoon om een ander te kiezen, of op de naam om de tegel een andere naam te geven",
       "grow": {
         "title": "Ruimte voor meer bediening",

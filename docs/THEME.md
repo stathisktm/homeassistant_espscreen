@@ -73,6 +73,21 @@ you set), and a palette pass that overwrote a colour the sun path had chosen its
 5. A local colour always wins over a paint: an object that takes a paint must not also get a local
    colour for the same property and part.
 
+## A card's own colour, and one that changes with what an entity does
+
+A tile's card can be painted in a colour of its own: the add-on sends the name of one of the swatches below
+(`background`, `theme::swatch`), and the tile keeps its light value as the colour's identity (`tile_palette.h`), which
+`theme::surface` draws in the current look.
+
+Since app 0.4.91 that colour can change with what the entity is doing (`tint.py`). A tile keeps an ordered list of
+rules in its `tint` option: a state or an action word ("heating", "sunny", "on") with a colour, or a temperature
+("above 25", "below 5") with one. The rules never reach a screen. The app works out the first rule that fits and sends
+the colour it gives in `x.bg` with every message of the tile, so the card repaints when the colour changes and goes back
+to its own colour when no rule fits. The colour is a colour of its own: `tile_palette::color()` reads `#RRGGBB` as well
+as a swatch's name, and `theme::surface()` lays it over the look's ground, a fifth of the colour over white in light and
+over black in dark, so the words on the card read as they do on a swatch. `model/tint.ts` mirrors the same rules and the
+same arithmetic for the editor's card.
+
 ## Checks
 
 - `tests/test_theme.cpp`: the light design, contrast of the text roles on every surface and swatch in

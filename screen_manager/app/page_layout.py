@@ -40,6 +40,8 @@ APPEARANCE = {
     # A sensor's meter (firmware 0.56.0, meter.py): a ring, a tape or a bar, its own range and its colours.
     "meterStyle": "meter", "meterMin": "min", "meterMax": "max", "meterSegments": "segments", "meterColors": "colors",
     "meterThresholds": "thresholds",
+    # A card's colour by state (app 0.4.91, tint.py): the rules stay in the app and travel as the colour they give.
+    "tint": "tint",
 }
 # A favourite (app 0.4.42) keeps what it plays (`play`, Home Assistant's own ids) and on which speaker (`speaker`), and
 # since app 0.4.84 its own shuffle and repeat.

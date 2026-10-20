@@ -1,5 +1,16 @@
 ## Unreleased
 
+- **A tile's card takes the colour of what its entity does.** A new section of the tile panel, Colour by state, keeps a
+  short list of rules for one tile: a state or an action word (heating, cooling, dry, sunny, playing, on, off) with one
+  of nineteen colours, or a temperature with one (above 25, below 5). The first rule that fits paints the whole card,
+  not only its icon; with none, the card goes back to the colour the tile was given. A climate tile can be orange while
+  it heats and blue while it cools, a weather tile can turn deep red over 30 degrees, a scene's tile can take the colour
+  of the moment. The temperature a rule compares is the one the card is about: a thermostat's current temperature, a
+  weather card's temperature, a sensor's own value, or the value of the entity its second line reads, so a switch's tile
+  can turn blue with the room's thermometer. The app works the colour out and sends it, which costs the screen nothing.
+  A screen needs this firmware (0.58.0) to paint a card in a colour of its own; an older screen keeps drawing the card
+  as it did, and everything else works as before.
+
 - **A tile's second line can read another entity.** Beside the line the screen works out itself, nothing, words of your
   own and a value of the tile's entity, the tile's Second line now offers another entity: pick any entity Home Assistant
   knows, and the line says its state, or one of the values Home Assistant names of it. A thermometer's tile can say the

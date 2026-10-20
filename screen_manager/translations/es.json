@@ -2712,6 +2712,19 @@
           "blue-grey": "Gris azulado"
         }
       },
+      "tint": {
+        "title": "Color según el estado",
+        "hint": "Toda la tarjeta toma un color: el de la primera regla que encaje con lo que hace la entidad o con su temperatura. Si ninguna encaja, conserva su propio color.",
+        "when_aria": "Qué da este color a la tarjeta",
+        "temperature_aria": "La temperatura que compara esta regla",
+        "colour_aria": "El color cuando {colour}",
+        "add": "Añadir una regla",
+        "remove": "Quitar esta regla",
+        "above": "Por encima de una temperatura",
+        "below": "Por debajo de una temperatura",
+        "first": "Las reglas se prueban desde arriba y gana la primera que encaje. El color lo calcula la app, así que la pantalla no cuesta nada.",
+        "degrees": "°"
+      },
       "anchor_hint": "Haz clic en el icono para elegir otro, o en el nombre para cambiar el nombre del mosaico",
       "grow": {
         "title": "Espacio para más controles",

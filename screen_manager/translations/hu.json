@@ -2712,6 +2712,19 @@
           "blue-grey": "Kékesszürke"
         }
       },
+      "tint": {
+        "title": "Szín állapot szerint",
+        "hint": "Az egész csempe színt kap: az első szabályét, amely illik ahhoz, amit az entitás tesz, vagy a hőmérsékletéhez. Ha egyik sem illik, megtartja a saját színét.",
+        "when_aria": "Mi adja a csempének ezt a színt",
+        "temperature_aria": "A hőmérséklet, amelyet ez a szabály összehasonlít",
+        "colour_aria": "A szín, amikor {colour}",
+        "add": "Szabály hozzáadása",
+        "remove": "A szabály eltávolítása",
+        "above": "Hőmérséklet felett",
+        "below": "Hőmérséklet alatt",
+        "first": "A szabályok felülről érvényesek; az első illeszkedő nyer. A színt az app számolja, így a kijelzőnek nem kerül semmibe.",
+        "degrees": "°"
+      },
       "anchor_hint": "Kattints az ikonra egy másik választásához, vagy a névre a csempe átnevezéséhez",
       "grow": {
         "title": "Hely több vezérlőnek",

@@ -798,6 +798,14 @@ std::string receive(const std::string &payload) {
     }
 
     }
+    // The colour this card is drawn in right now (app 0.4.91): the add-on sends it with every message of a tile whose
+    // card changes colour with its state, so a card that should change repaints as the state does, and one that should
+    // go back to the colour it was configured with does. A message without it leaves the tile as it was drawn.
+    if (root["x"]["bg"].is<const char *>()) {
+      const std::string background = string(root["x"]["bg"], 16);
+      tile.background = tile_palette::color(background);
+      tile.transparent = tile_palette::transparent(background);
+    }
     // Pre-computed extras: the manager converts time zones and fetches forecasts. What only some tiles
     // carry is collected in `next` and replaces the tile's Extra at the end (see Tile::set_extra).
     // Short of memory inside the chip (tile_memory.h, firmware 0.34.0+): the state and its attributes still arrive, but
