@@ -2501,6 +2501,7 @@
         "auto": "Automatisch",
         "none": "Nichts",
         "attr": "Ein Wert",
+        "entity": "Andere Entität",
         "text": "Eigener Text",
         "value_aria": "Welchen Wert die zweite Zeile zeigt",
         "text_aria": "Was die zweite Zeile zeigt",
@@ -2508,7 +2509,13 @@
         "hint_auto": "Was der Bildschirm selbst ermittelt: eine Helligkeit, eine Temperatur, wann ein Skript zuletzt lief.",
         "hint_none": "Die Kachel zeigt ihren Namen und nichts darunter.",
         "hint_attr": "Ein Wert dieser Entität, benannt und geschrieben wie in Home Assistant.",
-        "hint_text": "Immer dieselben Worte, was die Entität auch tut."
+        "hint_entity": "Ein Wert einer anderen Entität: ihr Zustand oder einer der Werte, die Home Assistant von ihr benennt.",
+        "hint_text": "Immer dieselben Worte, was die Entität auch tut.",
+        "entity_search": "Entitäten suchen",
+        "entity_none": "Nichts gefunden",
+        "entity_aria": "Welche Entität die zweite Zeile liest",
+        "entity_pick": "Entität wählen",
+        "entity_state": "Ihr Zustand"
       },
       "slider": {
         "label": "Kleiner Schieberegler auf der Kachel",

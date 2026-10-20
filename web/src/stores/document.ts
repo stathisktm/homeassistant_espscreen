@@ -23,6 +23,7 @@ import { savedDraft } from "../model/page-conflict";
 import { completePositions } from "../model/page-workspace";
 import * as pages from "../model/pages";
 import { slug } from "../model/slug";
+import { subEntity } from "../model/tile-text";
 import type { ChildTile, Inventory, Layout, PageDocument, PageGrid, PageLayout, PageTile, PageWorkspace, Screen, Tile } from "../types";
 import { useDragStore } from "./drag";
 import { useEntitiesStore } from "./entities";
@@ -294,9 +295,11 @@ export const useDocumentStore = defineStore("document", () => {
     return () => { followers.delete(follower); };
   }
   const replaced = (opened: boolean) => { for (const follower of followers) follower(opened); };
-  // The states of the open layout's entities, for the mockup.
+  // The states of the open layout's entities, for the mockup, and of the entities a second line reads (app 0.4.90).
   function loadStates() {
-    return entities.loadStates((layout.value?.tiles || []).map((tile) => tile.entity), stillSelected());
+    const tiles = layout.value?.tiles || [];
+    const read = tiles.map((tile) => subEntity(tile.options?.sub)).filter(Boolean);
+    return entities.loadStates([...tiles.map((tile) => tile.entity), ...read], stillSelected());
   }
   // A screen's saved document becomes the draft, with nothing to undo and nothing unsaved: when a screen is opened, when it
   // is read again, and for the tests' fixtures (tests/helpers/fixtures.ts), which so start from what the editor starts from.

@@ -2076,6 +2076,7 @@
         "auto": "Automatic",
         "none": "Nothing",
         "attr": "A value",
+        "entity": "Another entity",
         "text": "Own text",
         "value_aria": "Which value the second line says",
         "text_aria": "What the second line says",
@@ -2083,7 +2084,13 @@
         "hint_auto": "What the screen works out itself: a brightness, a temperature, when a script last ran.",
         "hint_none": "The tile shows its name and nothing under it.",
         "hint_attr": "A value of this entity, named and written the way Home Assistant does.",
-        "hint_text": "The same words, whatever the entity does."
+        "hint_entity": "A value of another entity: its state, or one of the values Home Assistant names of it.",
+        "hint_text": "The same words, whatever the entity does.",
+        "entity_search": "Search entities",
+        "entity_none": "Nothing found",
+        "entity_aria": "Which entity the second line reads",
+        "entity_pick": "Choose an entity",
+        "entity_state": "Its state"
       },
       "slider": {
         "label": "Small slider on the tile",

@@ -2501,6 +2501,7 @@
         "auto": "Automatycznie",
         "none": "Nic",
         "attr": "Wartość",
+        "entity": "Inna encja",
         "text": "Własny tekst",
         "value_aria": "Jaką wartość pokazuje druga linia",
         "text_aria": "Co mówi druga linia",
@@ -2508,7 +2509,13 @@
         "hint_auto": "To, co ekran wyliczy sam: jasność, temperatura, kiedy ostatnio uruchomiono skrypt.",
         "hint_none": "Kafelek pokazuje swoją nazwę i nic pod nią.",
         "hint_attr": "Wartość tej encji, nazwana i zapisana tak jak w Home Assistant.",
-        "hint_text": "Te same słowa, cokolwiek robi encja."
+        "hint_entity": "Wartość innej encji: jej stan lub jedna z wartości, które Home Assistant dla niej nazywa.",
+        "hint_text": "Te same słowa, cokolwiek robi encja.",
+        "entity_search": "Szukaj encji",
+        "entity_none": "Nic nie znaleziono",
+        "entity_aria": "Którą encję czyta druga linia",
+        "entity_pick": "Wybierz encję",
+        "entity_state": "Jej stan"
       },
       "slider": {
         "label": "Mały suwak na kafelku",

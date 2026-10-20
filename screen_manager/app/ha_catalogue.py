@@ -360,17 +360,25 @@ def subtitle_attributes(entity_id, state, words):
 
 
 def subtitle_choice(tile):
-    """('none'|'text'|'attr', value) of a tile's stored second line, or None when it is the line the screen works
-    out itself. The stored form is one string beside the other tile options: "none", "text:<words>", "attr:<name>"."""
+    """('none'|'text'|'attr'|'entity', value) of a tile's stored second line, or None when it is the line the screen
+    works out itself. The stored form is one string beside the other tile options: "none", "text:<words>",
+    "attr:<name>" (a value of the tile's own entity), "entity:<entity_id>" (the state of another entity) or
+    "entity:<entity_id>#<name>" (an attribute of it)."""
     choice = (tile.get('options') or {}).get('sub')
     if not isinstance(choice, str) or not choice or choice == 'auto':
         return None
     if choice == 'none':
         return ('none', '')
-    for kind in ('text', 'attr'):
+    for kind in ('text', 'attr', 'entity'):
         if choice.startswith(kind + ':'):
             return (kind, choice[len(kind) + 1:])
     return None
+
+
+def entity_line_target(value):
+    """('entity_id', 'attribute' or None) of a stored "entity:<id>" or "entity:<id>#<name>", or None."""
+    entity, _, attribute = str(value).partition('#')
+    return (entity, attribute or None) if re.fullmatch(r'[a-z_0-9]+\.[a-z_0-9_]+', entity) else None
 
 
 # An attribute's number as Home Assistant's frontend writes it (computeAttributeValueToParts in
@@ -494,12 +502,33 @@ def subtitle_lines(entity_id, state, units=None, entry=None, words=None):
     return lines
 
 
-def subtitle_message(tile, state, units=None, entry=None, words=None):
+def subtitle_message(tile, state, units=None, entry=None, words=None, states=None, registry=None, tz=None):
     """What a tile's chosen second line adds to its state message: `s` for a finished line, `sm` for a moment in
     time. Empty when the tile says the line itself, says nothing, or says words of its own - the screen holds
-    those three in the option and keeps drawing them while Home Assistant is away."""
+    those three in the option and keeps drawing them while Home Assistant is away. A line from another entity
+    (`states`, `registry`) leaves the line to the screen when Home Assistant has no state for it."""
     choice = subtitle_choice(tile)
-    if not choice or choice[0] != 'attr':
+    if not choice:
         return {}
-    attributes = (state or {}).get('attributes') or {}
-    return subtitle_value(tile['entity'], choice[1], attributes.get(choice[1]), attributes, units, entry, words)
+    if choice[0] == 'attr':
+        attributes = (state or {}).get('attributes') or {}
+        return subtitle_value(tile['entity'], choice[1], attributes.get(choice[1]), attributes, units, entry, words)
+    if choice[0] != 'entity':
+        return {}
+    target = entity_line_target(choice[1])
+    if not target:
+        return {}
+    entity, attribute = target
+    foreign = (states or {}).get(entity)
+    if not foreign:
+        return {}
+    attributes = foreign.get('attributes') or {}
+    foreign_entry = (registry or {}).get(entity)
+    if attribute:
+        return subtitle_value(entity, attribute, attributes.get(attribute), attributes, units, foreign_entry, words)
+    text, moment = header_bar.value(entity, foreign, foreign_entry, units, tz, words)
+    if moment:
+        return {'sm': moment}
+    if not text:
+        return {}
+    return {'s': header_bar.short(header_bar.clean_text(text), SUBTITLE_BYTES)}

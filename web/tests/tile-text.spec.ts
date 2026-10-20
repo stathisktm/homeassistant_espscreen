@@ -2,7 +2,7 @@
 // stands tall, and the firmware's number rules it ports (tests/test_editor_parity.py runs those against the C++ too).
 import { describe, expect, it } from "vitest";
 import { bigKeyLine, bigValue, bodyText, decimalText, favoriteLine, fillPercent, haWord, headLine, humidityText, isOn, ownWords, pageLink, rangeChip,
-  readingText, roundValue, runText, sameLive, setpointText, stateText, subLine, temperatureText, unitSuffix, type ScreenWords } from "../src/model/tile-text";
+  readingText, roundValue, runText, sameLive, setpointText, stateText, subLine, temperatureText, unitSuffix, type Live, type ScreenWords } from "../src/model/tile-text";
 
 const en: ScreenWords = { locale: "en", marks: { decimal: ".", group: ",", from: 4 } };
 const comma: ScreenWords = { locale: "en", marks: { decimal: ",", group: ".", from: 4 }, percentSpace: true };
@@ -82,6 +82,21 @@ describe("the line under a card's name", () => {
     // A value as the app writes it for the screen (ha_catalogue.subtitle_lines, #241): Home Assistant's number and unit.
     const humid = { ...climate("heat", { current_humidity: 61.60000000000001 }), sub: { current_humidity: "61.6%" } };
     expect(subLine("attr:current_humidity", humid, "Heat")).toBe("61.6%");
+  });
+
+  it("reads another entity, as the add-on sends that line (app 0.4.90)", () => {
+    const live = climate("on", { brightness: 128 });
+    const outside = { state: "12.4", a: { unit_of_measurement: "°C" } }, fan = { state: "on", a: {} };
+    const blank = { state: "unavailable", a: {} };
+    const of = (id: string) => ({ "sensor.outside": outside, "switch.fan": fan, "sensor.gone": blank } as Record<string, Live>)[id] ?? null;
+    // Its state, written as the screen writes the card's own line: a number with its unit, Home Assistant's word.
+    expect(subLine("entity:sensor.outside", live, "On", of, en)).toBe("12.4 °C");
+    expect(subLine("entity:switch.fan", live, "On", of, en)).toBe("On");
+    // One of its values, as the app sends it (ha_catalogue.subtitle_value): here what the editor was given for it.
+    expect(subLine("entity:sensor.outside#temperature", live, "On", (id) => ({ ...of(id), sub: { temperature: "12.4 °C" } }), en)).toBe("12.4 °C");
+    // An entity Home Assistant does not report, or one that is gone, leaves the line the screen works out itself.
+    for (const sub of ["entity:sensor.nothing", "entity:sensor.gone", "entity:sensor.gone#temperature", "entity:bad", "entity:"])
+      expect(subLine(sub, live, "On", of, en)).toBe("On");
   });
 });
 

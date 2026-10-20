@@ -2501,6 +2501,7 @@
         "auto": "Automatique",
         "none": "Rien",
         "attr": "Une valeur",
+        "entity": "Une autre entité",
         "text": "Votre texte",
         "value_aria": "Quelle valeur affiche la deuxième ligne",
         "text_aria": "Ce que dit la deuxième ligne",
@@ -2508,7 +2509,13 @@
         "hint_auto": "Ce que l'écran calcule lui-même : une luminosité, une température, la dernière exécution d'un script.",
         "hint_none": "La tuile affiche son nom et rien en dessous.",
         "hint_attr": "Une valeur de cette entité, nommée et écrite comme dans Home Assistant.",
-        "hint_text": "Les mêmes mots, quoi que fasse l'entité."
+        "hint_entity": "Une valeur d'une autre entité : son état ou l'une des valeurs que Home Assistant nomme pour elle.",
+        "hint_text": "Les mêmes mots, quoi que fasse l'entité.",
+        "entity_search": "Rechercher des entités",
+        "entity_none": "Rien trouvé",
+        "entity_aria": "Quelle entité la deuxième ligne lit",
+        "entity_pick": "Choisir une entité",
+        "entity_state": "Son état"
       },
       "slider": {
         "label": "Petit curseur sur la tuile",

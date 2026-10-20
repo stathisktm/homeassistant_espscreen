@@ -2501,6 +2501,7 @@
         "auto": "Automático",
         "none": "Nada",
         "attr": "Un valor",
+        "entity": "Otra entidad",
         "text": "Texto propio",
         "value_aria": "Qué valor muestra la segunda línea",
         "text_aria": "Qué dice la segunda línea",
@@ -2508,7 +2509,13 @@
         "hint_auto": "Lo que la pantalla calcula por sí misma: un brillo, una temperatura, cuándo se ejecutó un script por última vez.",
         "hint_none": "El mosaico muestra su nombre y nada debajo.",
         "hint_attr": "Un valor de esta entidad, con el nombre y el formato de Home Assistant.",
-        "hint_text": "Las mismas palabras, haga lo que haga la entidad."
+        "hint_entity": "Un valor de otra entidad: su estado o uno de los valores que Home Assistant nombra de ella.",
+        "hint_text": "Las mismas palabras, haga lo que haga la entidad.",
+        "entity_search": "Buscar entidades",
+        "entity_none": "No se encontró nada",
+        "entity_aria": "Qué entidad lee la segunda línea",
+        "entity_pick": "Elegir una entidad",
+        "entity_state": "Su estado"
       },
       "slider": {
         "label": "Control deslizante pequeño en el mosaico",

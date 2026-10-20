@@ -71,6 +71,13 @@ describe("the canonical options (tile-options.ts)", () => {
     expect(canonicalOptions("light.a", { sub: "auto" })).toEqual({});
     expect(canonicalOptions("light.a", { sub: "text:  hi " })).toEqual({ sub: "text:hi" });
     expect(canonicalOptions("light.a", { sub: "text: " })).toEqual({ sub: "none" });
+    // A second line of another entity (app 0.4.90): its state, or one of its values, as the add-on checks them; an
+    // empty value behind it is its state again, and a target it cannot read is no line at all.
+    expect(canonicalOptions("light.a", { sub: "entity:sensor.outside" })).toEqual({ sub: "entity:sensor.outside" });
+    expect(canonicalOptions("light.a", { sub: "entity:sensor.outside#temperature" })).toEqual({ sub: "entity:sensor.outside#temperature" });
+    expect(canonicalOptions("light.a", { sub: "entity:sensor.outside#" })).toEqual({ sub: "entity:sensor.outside" });
+    expect(canonicalOptions("light.a", { sub: "entity:sensor.outside#Bad Name" })).toEqual({ sub: "entity:sensor.outside" });
+    expect(canonicalOptions("light.a", { sub: "entity:garbage" })).toEqual({});
     expect(canonicalOptions("light.a", { tap: "auto", action: { action: "light.turn_on" } })).toEqual({ tap: "auto" });
     expect(canonicalOptions("camera.door", { display: "standard", refresh: 5, fit: "contain" })).toEqual({ display: "standard" });
     expect(canonicalOptions("camera.door", { display: "live", fit: "fill", overlay: "name" })).toEqual({ display: "live" });
@@ -408,8 +415,8 @@ describe("what the panel offers, as functions of the tile, Home Assistant and th
   });
 
   it("offers a value of the entity for the second line where Home Assistant names one, and the small slider on one row", () => {
-    expect(keys(subChoices(tile("light.a"), panel(), "auto", 0, ""))).toEqual(["auto", "none", "text"]);
-    expect(keys(subChoices(tile("light.a"), panel(), "auto", 2, "brightness"))).toEqual(["auto", "none", "attr", "text"]);
+    expect(keys(subChoices(tile("light.a"), panel(), "auto", 0, ""))).toEqual(["auto", "none", "entity", "text"]);
+    expect(keys(subChoices(tile("light.a"), panel(), "auto", 2, "brightness"))).toEqual(["auto", "none", "attr", "entity", "text"]);
     expect(sliderOffered(tile("light.a"), panel())).toBe(true);
     expect(sliderOffered(tile("light.a", { size: "tall" }), panel())).toBe(false);
     expect(sliderOffered(tile("switch.s"), panel())).toBe(false);

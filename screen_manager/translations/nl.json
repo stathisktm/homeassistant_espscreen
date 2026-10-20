@@ -2076,6 +2076,7 @@
         "auto": "Automatisch",
         "none": "Niets",
         "attr": "Een waarde",
+        "entity": "Een andere entiteit",
         "text": "Eigen tekst",
         "value_aria": "Welke waarde de tweede regel zegt",
         "text_aria": "Wat de tweede regel zegt",
@@ -2083,7 +2084,13 @@
         "hint_auto": "Wat het scherm zelf uitrekent: een helderheid, een temperatuur, wanneer een script voor het laatst liep.",
         "hint_none": "De tegel toont zijn naam en niets eronder.",
         "hint_attr": "Een waarde van deze entiteit, met de naam en de schrijfwijze van Home Assistant.",
-        "hint_text": "Dezelfde woorden, wat de entiteit ook doet."
+        "hint_entity": "Een waarde van een andere entiteit: de status, of een van de waarden die Home Assistant ervan noemt.",
+        "hint_text": "Dezelfde woorden, wat de entiteit ook doet.",
+        "entity_search": "Entiteiten zoeken",
+        "entity_none": "Niets gevonden",
+        "entity_aria": "Welke entiteit de tweede regel leest",
+        "entity_pick": "Kies een entiteit",
+        "entity_state": "De status ervan"
       },
       "slider": {
         "label": "Kleine slider op de tegel",

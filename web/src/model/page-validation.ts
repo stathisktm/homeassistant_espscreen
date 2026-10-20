@@ -226,7 +226,8 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
   if (a.subtitle !== undefined) {
     const sub = a.subtitle;
     if (typeof sub !== 'string' || bytes(sub) > 96 || sub === 'auto' ||
-        !(sub === 'none' || (sub.startsWith('text:') && sub.length > 5 && !sub.includes('\n')) || matches(/^attr:[a-z_0-9]+$/, sub)) ||
+        !(sub === 'none' || (sub.startsWith('text:') && sub.length > 5 && !sub.includes('\n')) || matches(/^attr:[a-z_0-9]+$/, sub) ||
+          matches(/^entity:[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?$/, sub)) ||
         (sub.startsWith('text:') && (!sub.slice(5).trim() || sub.slice(5) !== sub.slice(5).trim()))) fail('normalization');
   }
   if (i.tap === 'action') {

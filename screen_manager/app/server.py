@@ -2410,6 +2410,16 @@ class Manager:
         return self._by_device.get(device, []) if device else []
 
     def related_entities(self, tile, inbox=None):
+        """`_related_entities`, and the entity a second line of the tile reads (app 0.4.90): its own change reaches
+        the tile the same way, so the line follows without a resend of the whole layout."""
+        related = self._related_entities(tile, inbox)
+        choice = ha_catalogue.subtitle_choice(tile)
+        target = ha_catalogue.entity_line_target(choice[1]) if choice and choice[0] == 'entity' else None
+        if not target or target[0] == tile['entity']:
+            return related
+        return tuple(dict.fromkeys((*related, target[0])))
+
+    def _related_entities(self, tile, inbox=None):
         """Entities a card reads besides its own: a vacuum's cleaning mode and water selects and its battery sensor, a
         cover's battery sensor, the entities a plugin tile's entity options chose. `inbox`: the screen it is on, whose
         own plugin of that id says what its options are."""
@@ -2908,9 +2918,11 @@ class Manager:
             keys=catalogue.remote_keypad((entry or {}).get('platform'))
             if keys:
                 message.setdefault('x',{})['keys']=keys
-        # A second line set to a value of this entity (app 0.2.105): the finished line, or seconds for a moment in
-        # time. The other three settings live in the option itself, so the screen keeps drawing them without us.
-        for key,value in ha_catalogue.subtitle_message(tile,state,getattr(self.ha,'units',None),entry,getattr(self.ha,'state_words',None)).items():
+        # A second line set to a value of this entity or of another one (app 0.2.105, 0.4.90): the finished line,
+        # or seconds for a moment in time. The other settings live in the option itself, so the screen keeps
+        # drawing them without us.
+        for key,value in ha_catalogue.subtitle_message(tile,state,getattr(self.ha,'units',None),entry,getattr(self.ha,'state_words',None),
+                                                      states=getattr(self.ha,'states',None),registry=self.registry_index(),tz=getattr(self.ha,'time_zone',None)).items():
             message.setdefault('x',{})[key]=value
         if tile['entity'].startswith('sensor.') and hasattr(self.ha,'history'):
             hours=tile.get('options',{}).get('history_hours',24)

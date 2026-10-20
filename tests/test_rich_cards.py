@@ -132,6 +132,33 @@ class SecondLine(unittest.TestCase):
         # An attribute that is gone leaves the line to the screen again, instead of an empty one.
         self.assertEqual(message('attr:nope'), {})
 
+    def test_a_second_line_of_another_entity_is_written_here_too(self):
+        """App 0.4.90: a line made of another entity, its state ("entity:<id>") or one of its values
+        ("entity:<id>#<name>"). The app writes it as it writes the screen's own lines: a number with its unit, Home
+        Assistant's word, or seconds for a moment in time. An entity or a value that is gone leaves the line to the
+        screen, and the block stays out of the message."""
+        states = {
+            'sensor.outside': {'state': '12.4', 'attributes': {'unit_of_measurement': '°C'}},
+            'script.goede_morgen': self.SCRIPT,
+            'light.desk': {'state': 'on', 'attributes': {'brightness': 128}},
+            'cover.blind': {'state': 'open', 'attributes': {'current_position': 40}},
+        }
+
+        def message(sub):
+            return ha_catalogue.subtitle_message({'entity': 'cover.blind', 'options': {'sub': sub}},
+                                                 states['cover.blind'], states=states)
+
+        self.assertEqual(message('entity:sensor.outside'), {'s': '12.4 °C'})
+        self.assertEqual(message('entity:cover.blind#current_position'), {'s': '40%'})
+        self.assertEqual(message('entity:light.desk#brightness'), {'s': '50%'})
+        # A moment in time goes as seconds, so the screen says it in its own words and its own clock.
+        self.assertEqual(message('entity:script.goede_morgen#last_triggered'), {'sm': 1789967311})
+        # A value that is gone, an entity that is gone, and a line this app does not write.
+        self.assertEqual(message('entity:sensor.outside#nope'), {})
+        self.assertEqual(message('entity:sensor.nope'), {})
+        self.assertEqual(message('entity:not an entity'), {})
+        self.assertEqual(message('text:Klaar om 7'), {})
+
     def test_a_number_is_written_as_home_assistant_writes_an_attributes_number(self):
         """computeAttributeValueToParts of Home Assistant's frontend (GitHub #241): a formatter for a few attributes,
         formatNumber (at most two decimals, a half away from zero), then the unit of the attribute for its domain, the
@@ -217,9 +244,30 @@ class SecondLine(unittest.TestCase):
         # Own text with nothing in it is an empty line, which is what "nothing" already means.
         self.assertEqual(options('text:   '), {'sub': 'none'})
         self.assertEqual(options('attr:last_triggered'), {'sub': 'attr:last_triggered'})
-        for bad in ('attr:Bad Name', 'weird', 'attr:', 3, 'text:' + 'x' * 96):
+        # A value of another entity (app 0.4.90): its state, or one of the values Home Assistant names of it.
+        self.assertEqual(options('entity:sensor.outside'), {'sub': 'entity:sensor.outside'})
+        self.assertEqual(options('entity:sensor.outside#temperature'), {'sub': 'entity:sensor.outside#temperature'})
+        for bad in ('attr:Bad Name', 'weird', 'attr:', 3, 'text:' + 'x' * 96,
+                    'entity:', 'entity:sensor', 'entity:sensor.X', 'entity:sensor.x#Bad Name', 'entity:sensor.x#',
+                    'entity:a.b.c', 'entity:' + 'sensor.' + 'x' * 96):
             with self.assertRaises(ValueError, msg=bad):
                 options(bad)
         # A Go to page tile keeps it: not saying "Page 3" is the reason this exists.
         page = validate_layout({'title': 'Home', 'tiles': [{'entity': 'screen.page_2', 'options': {'sub': 'none'}}]})
         self.assertEqual(page['tiles'][0]['options'], {'sub': 'none'})
+
+
+@unittest.skipUnless(test_portal.HAS_AIOHTTP, 'Run using .venv-portal/bin/python for server tests')
+class SecondLineFollow(unittest.TestCase):
+    """A line made of another entity follows that entity (app 0.4.90): the sync loop sends a tile again when one of the
+    entities it reads changes, and the line is in that list."""
+
+    def test_the_entity_a_line_reads_is_one_the_tile_follows(self):
+        from server import Manager
+        manager = object.__new__(Manager)          # nothing of the app is touched: a sensor reaches no other branch
+        read = manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'entity:sensor.outside#temperature'}})
+        self.assertEqual(read, ('sensor.outside',))
+        # A line of its own entity, or no line of another one, follows nothing more.
+        self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'entity:sensor.inside'}}), ())
+        self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'attr:temperature'}}), ())
+        self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'none'}}), ())

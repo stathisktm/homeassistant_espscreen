@@ -853,7 +853,7 @@ def tile_cost(tile, memory):
     entry = catalogue.CARD_MEMORY.get(entity) or catalogue.MEMORY.get(entity.split('.', 1)[0], catalogue.DEAREST)
     options = tile.get('options') or {}
     action = options.get('tap') == 'action'
-    line = isinstance(options.get('sub'), str) and options['sub'].startswith('attr:')
+    line = isinstance(options.get('sub'), str) and options['sub'].startswith(('attr:', 'entity:'))
     cost = entry['bytes'] + (catalogue.CHOICE_MEMORY['action'] if action else 0) + (catalogue.CHOICE_MEMORY['line'] if line else 0)
     if not memory['psram']:
         cost += memory['tile'] + (memory['extra'] if entry['extras'] or action or line else 0)
@@ -2017,9 +2017,10 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 if key in options and options[key] not in allowed:
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
             # The second line of a tile (app 0.2.105): the line the screen works out itself, nothing at all, words
-            # of your own, or a value of the entity that Home Assistant names. Which values those are is Home
-            # Assistant's answer and changes with it, so the name is only checked for its shape here; a value that
-            # is not there any more simply leaves the line to the screen again.
+            # of your own, a value of the entity that Home Assistant names, or a value of another entity
+            # (app 0.4.90). Which values those are is Home Assistant's answer and changes with it, so the name is
+            # only checked for its shape here; a value that is not there any more simply leaves the line to the
+            # screen again.
             sub = options.get('sub')
             if sub is not None:
                 if not isinstance(sub, str) or len(sub.encode()) > 96:
@@ -2030,7 +2031,8 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                     words = sub[5:].strip()
                     sub = f'text:{words}' if words else 'none'
                     options = {**options, 'sub': sub}
-                if sub not in ('auto', 'none') and not re.fullmatch(r'text:.+|attr:[a-z_0-9]+', sub):
+                if sub not in ('auto', 'none') and not re.fullmatch(
+                        r'text:.+|attr:[a-z_0-9]+|entity:[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?', sub):
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting='sub'))
                 if sub == 'auto':
                     options = {k: v for k, v in options.items() if k != 'sub'}

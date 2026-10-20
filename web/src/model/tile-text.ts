@@ -155,15 +155,34 @@ export function stateText(entity: string, live: Live | null | undefined, options
   if (domain === "sensor" || NUMERIC.includes(domain)) return ownWords(domain, live) || valueText(domain, live.state, a.unit_of_measurement, words);
   return word;
 }
+/** The entity a second line of another entity reads (app 0.4.90), from the stored "entity:<entity_id>" or
+ * "entity:<entity_id>#<attribute>": empty when the option says something else, as the add-on checks it. */
+export function subEntity(sub: unknown) {
+  const text = typeof sub === "string" && sub.startsWith("entity:") ? sub.slice(7) : "";
+  return /^[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?$/.test(text) ? text.split("#")[0] : "";
+}
 /** The second line as chosen in the tile panel (app 0.2.105; drawn on the mockup since app 0.4.1): the screen's own
- * line, nothing, words of your own, or a value of the entity, as the add-on writes it for the screen (Home Assistant's
- * number, unit and word for it). A value Home Assistant does not report leaves the line to the screen, as on the glass. */
-export function subLine(sub: string, live: Live | null | undefined, status: string) {
+ * line, nothing, words of your own, a value of the entity, or a value of another entity (app 0.4.90), as the add-on
+ * writes it for the screen (Home Assistant's number, unit and word for it). `liveOf` reads what the other entity
+ * reports. A value Home Assistant does not report leaves the line to the screen, as on the glass. */
+export function subLine(sub: string, live: Live | null | undefined, status: string,
+                        liveOf?: (entity: string) => Live | null | undefined, words?: ScreenWords) {
   if (sub === "none") return "";
   if (sub.startsWith("text:")) return sub.slice(5);
   if (sub.startsWith("attr:")) {
     const line = live?.sub?.[sub.slice(5)] ?? live?.a?.[sub.slice(5)];
     if (line !== undefined && line !== null && line !== "") return String(line);
+  }
+  if (sub.startsWith("entity:")) {
+    const entity = subEntity(sub), attribute = sub.slice(7).split("#")[1] || "";
+    const foreign = entity ? liveOf?.(entity) : null;
+    if (!foreign || isGone(foreign)) return status;
+    if (attribute) {
+      const line = foreign.sub?.[attribute] ?? foreign.a?.[attribute];
+      if (line !== undefined && line !== null && line !== "") return String(line);
+      return status;
+    }
+    return words ? stateText(entity, foreign, {}, words) : String(foreign.word || foreign.state);
   }
   return status;
 }

@@ -16,6 +16,7 @@ import type { Capability, PageTile, Tile, TileOptions } from "../types";
 import { BUILTIN_CARDS, type BuiltinName } from "../types";
 import { PLUGIN_TILE, PLUGIN_TILE_OPTIONS } from "./plugins";
 import { canonicalMeter } from "./meter";
+import { subEntity } from "./tile-text";
 
 const APPEARANCE = { display: "display", icon: "icon", background: "background", historyHours: "history_hours", refresh: "refresh", subtitle: "sub", fit: "fit", overlay: "overlay",
   mapEntities: "map", mapFraming: "framing", mapDistance: "distance",
@@ -63,6 +64,11 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
   if (typeof out.sub === "string" && out.sub.startsWith("text:")) {
     const words = out.sub.slice(5).trim();
     out.sub = words ? `text:${words}` : "none";
+  }
+  // A value of another entity (app 0.4.90): its id as the add-on checks it, and no empty value behind it.
+  if (typeof out.sub === "string" && out.sub.startsWith("entity:")) {
+    const [id, ...rest] = out.sub.slice(7).split("#"), attribute = rest.join("#");
+    out.sub = /^[a-z_0-9]+\.[a-z_0-9_]+$/.test(id) ? `entity:${id}${/^[a-z_0-9]+$/.test(attribute) ? `#${attribute}` : ""}` : "auto";
   }
   if (out.sub === "auto") delete out.sub;
   // Where a cover's slats stand open: Home Assistant's 100 is never stored, and no other tile has the choice.
@@ -332,12 +338,15 @@ export function tapHint(tile: Tile, panel: TilePanel, tap: string): Hint | null 
 }
 
 /** The ways to fill the second line (app 0.2.105, firmware 0.2.90+): the screen's own line, nothing, a value of the entity
- * where Home Assistant names one, or words of your own; the last two tried with a sample of the step they ask. */
+ * where Home Assistant names one, a value of another entity (app 0.4.90), or words of your own; the last ones tried
+ * with a sample of the step they ask. */
 export function subChoices(tile: Tile, panel: TilePanel, kind: string, values: number, attribute: string) {
   const keys = ["auto", "none"];
   if (values || kind === "attr") keys.push("attr");
+  keys.push("entity");
   keys.push("text");
-  const sample = (key: string) => key === "attr" ? `attr:${attribute || "state"}` : key === "text" ? "text:x" : key;
+  const sample = (key: string) => key === "attr" ? `attr:${attribute || "state"}` : key === "text" ? "text:x"
+    : key === "entity" ? `entity:${subEntity(option(tile, "sub", "auto")) || tile.entity}#temperature` : key;
   return offer(tile, panel, "sub", keys.map((key) => [key, t(`editor.tile.sub.${key}`)] as [string, string]), kind, sample);
 }
 /** Whether the panel offers the small slider: on a card of one row whose domain has one, where Home Assistant does not

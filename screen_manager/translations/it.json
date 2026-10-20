@@ -2501,6 +2501,7 @@
         "auto": "Automatico",
         "none": "Niente",
         "attr": "Un valore",
+        "entity": "Un'altra entità",
         "text": "Testo libero",
         "value_aria": "Quale valore mostra la seconda riga",
         "text_aria": "Cosa dice la seconda riga",
@@ -2508,7 +2509,13 @@
         "hint_auto": "Quello che lo schermo calcola da sé: una luminosità, una temperatura, quando è stato eseguito uno script.",
         "hint_none": "Il riquadro mostra il suo nome e niente sotto.",
         "hint_attr": "Un valore di questa entità, con il nome e la forma di Home Assistant.",
-        "hint_text": "Le stesse parole, qualunque cosa faccia l'entità."
+        "hint_entity": "Un valore di un'altra entità: il suo stato o uno dei valori che Home Assistant ne indica.",
+        "hint_text": "Le stesse parole, qualunque cosa faccia l'entità.",
+        "entity_search": "Cerca entità",
+        "entity_none": "Nessun risultato",
+        "entity_aria": "Quale entità legge la seconda riga",
+        "entity_pick": "Scegli un'entità",
+        "entity_state": "Il suo stato"
       },
       "slider": {
         "label": "Piccolo cursore sul riquadro",

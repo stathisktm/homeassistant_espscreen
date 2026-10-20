@@ -2501,6 +2501,7 @@
         "auto": "Automatikus",
         "none": "Semmi",
         "attr": "Egy érték",
+        "entity": "Más entitás",
         "text": "Saját szöveg",
         "value_aria": "Melyik értéket írja ki a második sor",
         "text_aria": "Mit írjon ki a második sor",
@@ -2508,7 +2509,13 @@
         "hint_auto": "Amit a kijelző magától kiszámol: fényerő, hőmérséklet, mikor futott utoljára egy szkript.",
         "hint_none": "A csempe a nevét mutatja, alatta semmit.",
         "hint_attr": "Ennek az entitásnak egy értéke, úgy megnevezve és kiírva, ahogy a Home Assistant teszi.",
-        "hint_text": "Mindig ugyanaz a szöveg, bármit is csinál az entitás."
+        "hint_entity": "Egy másik entitás értéke: az állapota vagy az egyik érték, amit a Home Assistant megnevez hozzá.",
+        "hint_text": "Mindig ugyanaz a szöveg, bármit is csinál az entitás.",
+        "entity_search": "Entitások keresése",
+        "entity_none": "Nincs találat",
+        "entity_aria": "Melyik entitást olvassa a második sor",
+        "entity_pick": "Entitás választása",
+        "entity_state": "Az állapota"
       },
       "slider": {
         "label": "Kis csúszka a csempén",

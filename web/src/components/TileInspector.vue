@@ -16,6 +16,7 @@ import IconChoices from "./IconChoices.vue";
 import IconPicker from "./IconPicker.vue";
 import TileAnchor from "./TileAnchor.vue";
 import { coverPrimary, coverTiltKind, hasCoverTilt, withCoverTilt } from "../model/tall-controls";
+import { subEntity } from "../model/tile-text";
 import { roomControls } from "../model/catalogue";
 import ChoiceField from "./ChoiceField.vue";
 import CalendarSection from "./inspector/CalendarSection.vue";
@@ -31,6 +32,7 @@ import InspectorHead from "./ui/InspectorHead.vue";
 import Section from "./ui/Section.vue";
 import SwitchRow from "./ui/SwitchRow.vue";
 import UiSelect from "./ui/UiSelect.vue";
+import UiPicker from "./ui/UiPicker.vue";
 import UiMenu from "./ui/UiMenu.vue";
 import UiMenuItem from "./ui/UiMenuItem.vue";
 import rules from "../model/page-rules.json";
@@ -160,25 +162,47 @@ const hasSlats = computed(() => {
   return tiltOpen.value !== "100" || Boolean(live && coverTiltKind(live.state, live.a));
 });
 // ---- The second line (app 0.2.105, firmware 0.2.90+) ----
-// Four ways to fill it: the line the screen works out itself, nothing at all, a value of the entity, or words of
-// your own. The list of values is Home Assistant's, asked for the entity when this panel opens; an entity Home
-// Assistant names no attribute of - a scene, a switch, a Go to page tile - simply offers the other three.
+// Five ways to fill it: the line the screen works out itself, nothing at all, a value of the entity, a value of
+// another entity (app 0.4.90), or words of your own. The list of values is Home Assistant's, asked for the entity
+// when this panel opens; an entity Home Assistant names no attribute of - a scene, a switch, a Go to page tile -
+// simply offers the other ways. A line of another entity always has its state, and its named values after it.
 const sub = computed(() => current("sub", "auto") as string);
-const subKind = computed(() => (sub.value.startsWith("attr:") ? "attr" : sub.value.startsWith("text:") || typing.value ? "text" : sub.value));
+const subTarget = computed(() => subEntity(sub.value));
+const subKind = computed(() => (sub.value.startsWith("attr:") ? "attr" : sub.value.startsWith("text:") || typing.value ? "text"
+  : sub.value.startsWith("entity:") || picking.value ? "entity" : sub.value));
 const subValues = computed(() => entities.subtitleValues[props.tile.entity] ?? []);
 if (entities.subtitleValues[props.tile.entity] === undefined) entities.loadSubtitleValues(props.tile.entity);
 const subAttribute = computed(() => (sub.value.startsWith("attr:") ? sub.value.slice(5) : subValues.value[0]?.key ?? ""));
 const subText = computed(() => (sub.value.startsWith("text:") ? sub.value.slice(5) : ""));
+// What the other entity's line may say: its state first, then the values Home Assistant names of it (asked for the
+// entity as soon as one is chosen).
+const targetValues = computed(() => entities.subtitleValues[subTarget.value] ?? []);
+const targetAttribute = computed(() => (subTarget.value ? sub.value.slice(7).split("#")[1] || "" : ""));
+watch(subTarget, (id) => { if (id) entities.loadSubtitleValues(id); }, { immediate: true });
 const subList = computed(() => subChoices(props.tile, panel.value, subKind.value, subValues.value.length, subAttribute.value));
-// "Own text" with nothing typed yet is a kind, not a stored value: writing "text:" with a blank in it would put
-// that blank on the tile. The field opens empty and the option follows the first letter.
-const typing = ref(false);
+// "Own text" or "another entity" with nothing chosen yet is a kind, not a stored value: writing "text:" with a blank
+// in it would put that blank on the tile, and "entity:" without an entity is no line at all.
+const typing = ref(false), picking = ref(false);
 function pickSubKind(kind: string) {
   typing.value = kind === "text";
+  picking.value = kind === "entity" && !subTarget.value;
   if (kind === "attr") setTileOption(props.tile, "sub", subAttribute.value ? `attr:${subAttribute.value}` : "auto");
   else if (kind === "text") { if (subText.value) setTileOption(props.tile, "sub", `text:${subText.value}`); }
+  else if (kind === "entity") { if (subTarget.value) setTileOption(props.tile, "sub", `entity:${subTarget.value}`); }
   else setTileOption(props.tile, "sub", kind);
 }
+function pickSubEntity(id: string) {
+  picking.value = false;
+  entities.loadSubtitleValues(id);
+  setTileOption(props.tile, "sub", `entity:${id}`);
+}
+function writeSubTarget(attribute: string) {
+  if (subTarget.value) setTileOption(props.tile, "sub", `entity:${subTarget.value}${attribute ? `#${attribute}` : ""}`);
+}
+const subTargetName = computed(() => (subTarget.value ? entities.entityName(subTarget.value) : ""));
+// Another entity: any Home Assistant has, this tile's own left out.
+const entityChoices = computed(() => inv.inventory.entities.filter((item) => item.id !== props.tile.entity)
+  .map((item) => ({ id: item.id, name: item.name, hint: item.area })));
 function writeSubText(value: string) {
   const words = value.trim();
   // Typing words of your own is one step of undo, as typing the name is (app 0.4.2).
@@ -202,7 +226,8 @@ const lookShown = computed(() => !goesTo.value && !bedside.value && !key.value &
 const controlsHere = computed(() => Boolean(catalogue.value) && (size.value !== "single" || roomControls(domain.value)));
 const controlsShown = computed(() => (domain.value !== "screen" && !goesTo.value) || (controlsHere.value && !goesTo.value) || (showSlider.value && !goesTo.value));
 // What the pointer rests on is drawn on the tile before it is picked (ChoiceField does the same for its lists).
-const subSample = (kind: string) => kind === "attr" ? `attr:${subAttribute.value || "state"}` : kind === "text" ? `text:${subText.value || t("editor.tile.sub.text_placeholder")}` : kind;
+const subSample = (kind: string) => kind === "attr" ? `attr:${subAttribute.value || "state"}` : kind === "text" ? `text:${subText.value || t("editor.tile.sub.text_placeholder")}`
+  : kind === "entity" ? `entity:${subTarget.value || props.tile.entity}#temperature` : kind;
 const controlSample = (key: string) => domain.value === "cover" ? withCoverTilt(key, tiltSelected.value) : key;
 function previewBackground(key: string | null) {
   if (key && props.tile.id && key !== (props.tile.options?.background || "auto")) insp.optionPreview = { tileId: props.tile.id, key: "background", value: key };
@@ -275,13 +300,25 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
            writes its value and name itself. -->
       <PropRow v-if="!bedside && !key && !mapCard && !energyTile && !meterCard" :label="t('editor.tile.sub.label')" icon="text-short" :hint="t(`editor.tile.sub.hint_${subKind}`)">
         <ChoiceField :choices="subList" :value="subKind" :tile="tile" preview-key="sub" :sample="subSample" :aria-label="t('editor.tile.sub.label')" @pick="pickSubKind" />
-        <template v-if="subKind === 'attr' || subKind === 'text'" #note>
+        <template v-if="subKind === 'attr' || subKind === 'text' || subKind === 'entity'" #note>
           <UiSelect v-if="subKind === 'attr'" class="sub-value" :model-value="subAttribute" :options="subValues.map((value) => [value.key, value.name] as [string, string])"
             :aria-label="t('editor.tile.sub.value_aria')" @update:model-value="(key) => setTileOption(tile, 'sub', `attr:${key}`)" />
-          <input v-else class="sub-text" :value="subText" maxlength="60"
+          <input v-else-if="subKind === 'text'" class="sub-text" :value="subText" maxlength="60"
             @focus="doc.beginFieldEdit(`sub:${tile.id}`)" @blur="doc.endFieldEdit()"
             :placeholder="t('editor.tile.sub.text_placeholder')" :aria-label="t('editor.tile.sub.text_aria')"
             @input="writeSubText(($event.target as HTMLInputElement).value)" />
+          <template v-else>
+            <UiPicker :items="entityChoices" :placeholder="t('editor.tile.sub.entity_search')" :empty="t('editor.tile.sub.entity_none')" width="320px" @pick="pickSubEntity">
+              <template #trigger>
+                <button type="button" class="ghost-btn sub-entity" :aria-label="t('editor.tile.sub.entity_aria')">
+                  <Icon name="swap-horizontal" />{{ subTargetName || t('editor.tile.sub.entity_pick') }}
+                </button>
+              </template>
+            </UiPicker>
+            <UiSelect v-if="subTarget" class="sub-value" :model-value="targetAttribute"
+              :options="[['', t('editor.tile.sub.entity_state')], ...targetValues.map((value) => [value.key, value.name] as [string, string])]"
+              :aria-label="t('editor.tile.sub.value_aria')" @update:model-value="(key) => writeSubTarget(key)" />
+          </template>
         </template>
       </PropRow>
       <PrecisionRow v-if="lookShown && precisionShown" :entity="tile.entity" />
