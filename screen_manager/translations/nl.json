@@ -2076,6 +2076,7 @@
         "auto": "Automatisch",
         "none": "Niets",
         "attr": "Een waarde",
+        "state": "Zijn status",
         "entity": "Een andere entiteit",
         "text": "Eigen tekst",
         "second": "En dan",
@@ -2093,7 +2094,10 @@
         "entity_none": "Niets gevonden",
         "entity_aria": "Welke entiteit de tweede regel leest",
         "entity_pick": "Kies een entiteit",
-        "entity_state": "De status ervan"
+        "entity_state": "De status ervan",
+        "hint_state": "De status van deze entiteit, in de woorden van Home Assistant.",
+        "second_hint": "Een waarde van deze of een andere entiteit staat naast de eerste, tussen twee punten.",
+        "second_entity_aria": "Welke entiteit het tweede deel leest"
       },
       "slider": {
         "label": "Kleine slider op de tegel",

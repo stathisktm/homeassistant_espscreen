@@ -2031,8 +2031,9 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             for key, allowed in choices.items():
                 if key in options and options[key] not in allowed:
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
-            # The second line of a tile (app 0.2.105): the line the screen works out itself, nothing at all, words
-            # of your own, a value of the entity that Home Assistant names, or a value of another entity
+            # The second line of a tile (app 0.2.105): the line the screen works out itself, nothing at all, the state
+            # of its own entity (app 0.4.96), words of your own, a value of the entity that Home Assistant names, or a
+            # value of another entity
             # (app 0.4.90). `sub2` is a second part of the same line (app 0.4.94), said beside the first, so a tile can
             # say what its entity is doing and a temperature next to it. Which values those are is Home Assistant's
             # answer and changes with it, so the name is only checked for its shape here; a value that is not there any
@@ -2049,7 +2050,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                     words = sub[5:].strip()
                     sub = f'text:{words}' if words else 'none'
                     options = {**options, key: sub}
-                if sub not in ('auto', 'none') and not re.fullmatch(
+                if sub not in ('auto', 'none', 'state') and not re.fullmatch(
                         r'text:.+|attr:[a-z_0-9]+|entity:[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?', sub):
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
                 if sub == 'auto':

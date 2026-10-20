@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **A tile's line can start with what its entity is doing.** Second line gains "Its state", Home Assistant's own word
+  for the state ("Heating", "Open", "Sunny", or a measurement with its unit), and the row below it, "And then", can now
+  reach another entity of its own with its own entity button, so a switch's tile says `On · 12.4 °C` from the room's
+  thermometer, a thermostat's says `Heat · 21.5`, a weather tile says `Sunny · 26.5`. No firmware update is needed: the
+  screen is sent the finished line.
+
 - **The second half of a tile's line reaches the screen, and a colour by state reaches the cards drawn by their own
   renderer.** The part the editor saved as "And then" was dropped while the page was stored, so a tile set to show its
   state and a temperature still showed the state alone: it is kept now, and the line arrives complete. A colour by state

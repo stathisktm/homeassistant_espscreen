@@ -2501,6 +2501,7 @@
         "auto": "Automatycznie",
         "none": "Nic",
         "attr": "Wartość",
+        "state": "Jego stan",
         "entity": "Inna encja",
         "text": "Własny tekst",
         "second": "A potem",
@@ -2518,7 +2519,10 @@
         "entity_none": "Nic nie znaleziono",
         "entity_aria": "Którą encję czyta druga linia",
         "entity_pick": "Wybierz encję",
-        "entity_state": "Jej stan"
+        "entity_state": "Jej stan",
+        "hint_state": "Stan tej encji, słowami Home Assistant.",
+        "second_hint": "Wartość tej lub innej encji stoi obok pierwszej, między dwiema kropkami.",
+        "second_entity_aria": "Którą encję czyta druga część"
       },
       "slider": {
         "label": "Mały suwak na kafelku",

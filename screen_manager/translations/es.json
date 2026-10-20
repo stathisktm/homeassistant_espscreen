@@ -2501,6 +2501,7 @@
         "auto": "Automático",
         "none": "Nada",
         "attr": "Un valor",
+        "state": "Su estado",
         "entity": "Otra entidad",
         "text": "Texto propio",
         "second": "Y después",
@@ -2518,7 +2519,10 @@
         "entity_none": "No se encontró nada",
         "entity_aria": "Qué entidad lee la segunda línea",
         "entity_pick": "Elegir una entidad",
-        "entity_state": "Su estado"
+        "entity_state": "Su estado",
+        "hint_state": "El estado de esta entidad, con las palabras que usa Home Assistant.",
+        "second_hint": "Un valor de esta u otra entidad va junto al primero, entre dos puntos.",
+        "second_entity_aria": "Qué entidad lee la segunda parte"
       },
       "slider": {
         "label": "Control deslizante pequeño en el mosaico",

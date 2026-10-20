@@ -110,6 +110,20 @@ describe("the line under a card's name", () => {
     expect(subLine("attr:current_temperature", live, "Heat", of, en, "entity:sensor.nothing")).toBe("21.5");
     expect(subLine("none", live, "Heat", of, en, "attr:current_temperature")).toBe("");
   });
+
+  it("starts the line with the state of the tile's entity (app 0.4.96)", () => {
+    const heater = climate("heat", { current_temperature: 21.5 });
+    const outside = { state: "12.4", a: { unit_of_measurement: "°C" } };
+    const of = (id: string) => (id === "sensor.outside" ? outside : null);
+    // The words the app sends it in (`live.sub[""]`, ha_catalogue.subtitle_state) come first.
+    const sent = { ...heater, sub: { "": "Heat" } };
+    expect(subLine("state", sent, "", of, en, "entity:sensor.outside")).toBe("Heat · 12.4 °C");
+    expect(subLine("state", sent, "", of, en, "attr:current_temperature")).toBe("Heat · 21.5");
+    expect(subLine("state", sent, "", of, en)).toBe("Heat");
+    // Without a line from the app the mockup still says something, and an entity that is gone leaves the screen's line.
+    expect(subLine("state", climate("heat", {}), "", of, en)).toBe("heat");
+    expect(subLine("state", { state: "unavailable", a: {} }, "Heat", of, en)).toBe("Heat");
+  });
 });
 
 describe("the values a card stands large", () => {

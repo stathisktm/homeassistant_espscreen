@@ -2501,6 +2501,7 @@
         "auto": "Automatisch",
         "none": "Nichts",
         "attr": "Ein Wert",
+        "state": "Sein Zustand",
         "entity": "Andere Entität",
         "text": "Eigener Text",
         "second": "Und dann",
@@ -2518,7 +2519,10 @@
         "entity_none": "Nichts gefunden",
         "entity_aria": "Welche Entität die zweite Zeile liest",
         "entity_pick": "Entität wählen",
-        "entity_state": "Ihr Zustand"
+        "entity_state": "Ihr Zustand",
+        "hint_state": "Der Zustand dieser Entität, in den Worten von Home Assistant.",
+        "second_hint": "Ein Wert dieser oder einer anderen Entität steht neben dem ersten, zwischen zwei Punkten.",
+        "second_entity_aria": "Welche Entität der zweite Teil liest"
       },
       "slider": {
         "label": "Kleiner Schieberegler auf der Kachel",

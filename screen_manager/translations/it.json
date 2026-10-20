@@ -2501,6 +2501,7 @@
         "auto": "Automatico",
         "none": "Niente",
         "attr": "Un valore",
+        "state": "Il suo stato",
         "entity": "Un'altra entità",
         "text": "Testo libero",
         "second": "E poi",
@@ -2518,7 +2519,10 @@
         "entity_none": "Nessun risultato",
         "entity_aria": "Quale entità legge la seconda riga",
         "entity_pick": "Scegli un'entità",
-        "entity_state": "Il suo stato"
+        "entity_state": "Il suo stato",
+        "hint_state": "Lo stato di questa entità, con le parole che usa Home Assistant.",
+        "second_hint": "Un valore di questa o di un'altra entità sta accanto al primo, tra due punti.",
+        "second_entity_aria": "Quale entità legge la seconda parte"
       },
       "slider": {
         "label": "Piccolo cursore sul riquadro",

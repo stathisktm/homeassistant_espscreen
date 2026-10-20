@@ -2501,6 +2501,7 @@
         "auto": "Automatikus",
         "none": "Semmi",
         "attr": "Egy érték",
+        "state": "Az állapota",
         "entity": "Más entitás",
         "text": "Saját szöveg",
         "second": "És utána",
@@ -2518,7 +2519,10 @@
         "entity_none": "Nincs találat",
         "entity_aria": "Melyik entitást olvassa a második sor",
         "entity_pick": "Entitás választása",
-        "entity_state": "Az állapota"
+        "entity_state": "Az állapota",
+        "hint_state": "Az entitás állapota, a Home Assistant szavaival.",
+        "second_hint": "Ennek vagy egy másik entitásnak egy értéke áll az első mellett, két pont között.",
+        "second_entity_aria": "Melyik entitást olvassa a második rész"
       },
       "slider": {
         "label": "Kis csúszka a csempén",

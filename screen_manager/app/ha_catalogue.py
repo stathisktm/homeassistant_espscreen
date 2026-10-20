@@ -360,15 +360,15 @@ def subtitle_attributes(entity_id, state, words):
 
 
 def subtitle_choice(tile):
-    """('none'|'text'|'attr'|'entity', value) of a tile's stored second line, or None when it is the line the screen
-    works out itself. The stored form is one string beside the other tile options: "none", "text:<words>",
-    "attr:<name>" (a value of the tile's own entity), "entity:<entity_id>" (the state of another entity) or
-    "entity:<entity_id>#<name>" (an attribute of it)."""
+    """('none'|'state'|'text'|'attr'|'entity', value) of a tile's stored second line, or None when it is the line the
+    screen works out itself. The stored form is one string beside the other tile options: "none", "state" (the state of
+    the tile's own entity, app 0.4.96), "text:<words>", "attr:<name>" (a value of the tile's own entity),
+    "entity:<entity_id>" (the state of another entity) or "entity:<entity_id>#<name>" (an attribute of it)."""
     choice = (tile.get('options') or {}).get('sub')
     if not isinstance(choice, str) or not choice or choice == 'auto':
         return None
-    if choice == 'none':
-        return ('none', '')
+    if choice in ('none', 'state'):
+        return (choice, '')
     for kind in ('text', 'attr', 'entity'):
         if choice.startswith(kind + ':'):
             return (kind, choice[len(kind) + 1:])
@@ -499,6 +499,11 @@ def subtitle_lines(entity_id, state, units=None, entry=None, words=None):
         line = subtitle_value(entity_id, offered['key'], attributes.get(offered['key']), attributes, units, entry, words).get('s')
         if line is not None:
             lines[offered['key']] = line
+    # The entity's own state as a part of the line (app 0.4.96), under a key no attribute has, so the mockup shows the
+    # very words the screen is sent.
+    own = subtitle_part({'entity': entity_id}, 'state', state, units, entry, words).get('s')
+    if own is not None:
+        lines[''] = own
     return lines
 
 
@@ -509,8 +514,31 @@ def subtitle_wire(message):
     entity is away) the option stays as stored, which such a firmware ignores, and the screen says the line it works
     out itself, as the editor's card does."""
     line, options = message.get('x') or {}, message.get('o') or {}
-    if (line.get('s') or line.get('sm')) and isinstance(options.get('sub'), str) and options['sub'].startswith('entity:'):
+    # A line of the tile's own state (app 0.4.96) is a line the app wrote as well, so a screen that reads only the
+    # values of its own entity shows it the same way.
+    chosen = options.get('sub')
+    if (line.get('s') or line.get('sm')) and isinstance(chosen, str) and (chosen == 'state' or chosen.startswith('entity:')):
         options['sub'] = 'attr:x'
+
+
+def subtitle_state(entity_id, state, units=None, entry=None, words=None):
+    """A state as a part of a tile's line (app 0.4.96): Home Assistant's word for it ("Heating", "Open", "Sunny"), a
+    measurement with its unit where the state is one ("12.4 °C"), or a moment in time as seconds, which the screen says
+    in its own words and its own clock. Empty when Home Assistant has no state to give."""
+    raw = (state or {}).get('state')
+    attributes = (state or {}).get('attributes') or {}
+    if not isinstance(raw, str) or not raw or raw in ('unavailable', 'unknown'):
+        return {}
+    moment = core.epoch(raw)
+    if moment:
+        return {'sm': moment}
+    if attributes.get('unit_of_measurement') and header_bar.numeric(raw) is not None:
+        text, _ = header_bar.value(entity_id, state, entry, units, None, words)
+        return {'s': header_bar.short(header_bar.clean_text(text), SUBTITLE_BYTES)} if text else {}
+    word = core.state_word(entity_id, raw, attributes, entry, words) \
+        or core.screen_t('screen.ha.on' if raw == 'on' else 'screen.ha.off' if raw == 'off' else '')
+    text = word or raw.replace('_', ' ')
+    return {'s': header_bar.short(header_bar.clean_text(text), SUBTITLE_BYTES)}
 
 
 def subtitle_part(tile, stored, state, units=None, entry=None, words=None, states=None, registry=None, tz=None):
@@ -522,6 +550,10 @@ def subtitle_part(tile, stored, state, units=None, entry=None, words=None, state
     if choice[0] == 'attr':
         attributes = (state or {}).get('attributes') or {}
         return subtitle_value(tile['entity'], choice[1], attributes.get(choice[1]), attributes, units, entry, words)
+    if choice[0] == 'state':
+        # The state of the tile's own entity (app 0.4.96), so a tile can show what it is doing beside a value of
+        # another entity.
+        return subtitle_state(tile['entity'], state, units, entry, words)
     if choice[0] != 'entity':
         return {}
     target = entity_line_target(choice[1])

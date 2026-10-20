@@ -358,11 +358,11 @@ export function tapHint(tile: Tile, panel: TilePanel, tap: string): Hint | null 
   return null;
 }
 
-/** The ways to fill the second line (app 0.2.105, firmware 0.2.90+): the screen's own line, nothing, a value of the entity
- * where Home Assistant names one, a value of another entity (app 0.4.90), or words of your own; the last ones tried
- * with a sample of the step they ask. */
+/** The ways to fill the second line (app 0.2.105, firmware 0.2.90+): the screen's own line, nothing, the state of the
+ * tile's entity (app 0.4.96), a value of the entity where Home Assistant names one, a value of another entity (app
+ * 0.4.90), or words of your own; the last ones tried with a sample of the step they ask. */
 export function subChoices(tile: Tile, panel: TilePanel, kind: string, values: number, attribute: string) {
-  const keys = ["auto", "none"];
+  const keys = ["auto", "none", "state"];
   if (values || kind === "attr") keys.push("attr");
   keys.push("entity");
   keys.push("text");

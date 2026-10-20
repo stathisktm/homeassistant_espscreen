@@ -181,16 +181,24 @@ const targetValues = computed(() => entities.subtitleValues[subTarget.value] ?? 
 const targetAttribute = computed(() => (subTarget.value ? sub.value.slice(7).split("#")[1] || "" : ""));
 watch(subTarget, (id) => { if (id) entities.loadSubtitleValues(id); }, { immediate: true });
 const subList = computed(() => subChoices(props.tile, panel.value, subKind.value, subValues.value.length, subAttribute.value));
-// A second part of the line (app 0.4.94): a value of this entity, or one of the entity the line reads, said beside the
-// first part between two dots - a tile that says what it does and the temperature next to it.
+// A second part of the line (app 0.4.94): a value of this entity, its own state, or a value of another entity, said
+// beside the first part between two dots - a tile that says what it does and the temperature next to it.
 const subSecond = computed(() => String(props.tile.options?.sub2 ?? ""));
+// The entity the second part reads, when it is not this one (app 0.4.96).
+const secondTarget = computed(() => subEntity(subSecond.value));
+watch(secondTarget, (id) => { if (id) entities.loadSubtitleValues(id); }, { immediate: true });
+// The entity whose state and values the second part may say: the one it picked, else the one the first part reads.
+const lineEntity = computed(() => secondTarget.value || subTarget.value);
 const secondChoices = computed<[string, string][]>(() => [
   ["", t("editor.tile.sub.second_none")],
+  ...(subKind.value === "state" ? [] : [["state", t("editor.tile.sub.state")] as [string, string]]),
   ...subValues.value.map((value) => [`attr:${value.key}`, value.name] as [string, string]),
-  ...(subTarget.value ? (entities.subtitleValues[subTarget.value] ?? []).map((value) =>
-    [`entity:${subTarget.value}#${value.key}`, `${value.name} · ${entities.entityName(subTarget.value)}`] as [string, string]) : []),
+  ...(lineEntity.value ? [[`entity:${lineEntity.value}`, `${t("editor.tile.sub.state")} · ${entities.entityName(lineEntity.value)}`] as [string, string],
+    ...(entities.subtitleValues[lineEntity.value] ?? []).map((value) =>
+      [`entity:${lineEntity.value}#${value.key}`, `${value.name} · ${entities.entityName(lineEntity.value)}`] as [string, string])] : []),
 ]);
-const lineIsValue = computed(() => sub.value.startsWith("attr:") || (sub.value.startsWith("entity:") && Boolean(subTarget.value)));
+const lineIsValue = computed(() => sub.value === "state" || sub.value.startsWith("attr:")
+  || (sub.value.startsWith("entity:") && Boolean(subTarget.value)));
 // "Own text" or "another entity" with nothing chosen yet is a kind, not a stored value: writing "text:" with a blank
 // in it would put that blank on the tile, and "entity:" without an entity is no line at all.
 const typing = ref(false), picking = ref(false);
@@ -206,6 +214,11 @@ function pickSubEntity(id: string) {
   picking.value = false;
   entities.loadSubtitleValues(id);
   setTileOption(props.tile, "sub", `entity:${id}`);
+}
+// The second part may read another entity than the first (app 0.4.96): its own state first, and its values after it.
+function pickSecondEntity(id: string) {
+  entities.loadSubtitleValues(id);
+  setTileOption(props.tile, "sub2", `entity:${id}`);
 }
 function writeSubTarget(attribute: string) {
   if (subTarget.value) setTileOption(props.tile, "sub", `entity:${subTarget.value}${attribute ? `#${attribute}` : ""}`);
@@ -332,10 +345,17 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
           </template>
         </template>
       </PropRow>
-      <!-- A second part of the line: a value said beside the first (app 0.4.94). -->
-      <PropRow v-if="lineIsValue" :label="t('editor.tile.sub.second')" icon="plus">
+      <!-- A second part of the line: a value said beside the first, its state or a value of another entity (app 0.4.96). -->
+      <PropRow v-if="lineIsValue" :label="t('editor.tile.sub.second')" icon="plus" :hint="t('editor.tile.sub.second_hint')">
         <UiSelect class="sub-value" :model-value="subSecond" :options="secondChoices" :aria-label="t('editor.tile.sub.second_aria')"
           @update:model-value="(value: string) => setTileOption(tile, 'sub2', value || undefined)" />
+        <UiPicker :items="entityChoices" :placeholder="t('editor.tile.sub.entity_search')" :empty="t('editor.tile.sub.entity_none')" width="320px" @pick="pickSecondEntity">
+          <template #trigger>
+            <button type="button" class="ghost-btn sub-entity" :aria-label="t('editor.tile.sub.second_entity_aria')">
+              <Icon name="swap-horizontal" />{{ secondTarget ? entities.entityName(secondTarget) : t('editor.tile.sub.entity_pick') }}
+            </button>
+          </template>
+        </UiPicker>
       </PropRow>
       <PrecisionRow v-if="lookShown && precisionShown" :entity="tile.entity" />
       <PropRow v-if="lookShown && display === 'live'" :label="t('editor.tile.refresh.label')" icon="refresh">

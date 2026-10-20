@@ -180,6 +180,26 @@ class SecondLine(unittest.TestCase):
         self.assertEqual(message(sub='entity:sensor.nope', sub2='entity:sensor.missing'), {})
         self.assertEqual(message(sub='none', sub2='attr:current_temperature'), {'s': '21.5'})
 
+    def test_the_state_of_the_tile_beside_a_value_of_another_entity(self):
+        """App 0.4.96: the first part may be the state of the tile's own entity (`state`), so a tile says what it is
+        doing and a temperature next to it, and the second part may be another entity's state ("entity:<id>"), not
+        only one of its values."""
+        states = {'switch.heater': {'state': 'on', 'attributes': {}},
+                  'sensor.outside': {'state': '12.4', 'attributes': {'unit_of_measurement': '°C'}},
+                  'sensor.hall': {'state': '21.5', 'attributes': {'unit_of_measurement': '°C'}}}
+
+        def message(**options):
+            return ha_catalogue.subtitle_message({'entity': 'switch.heater', 'options': options},
+                                                 states['switch.heater'], states=states)
+
+        self.assertEqual(message(sub='state', sub2='entity:sensor.outside'), {'s': 'On · 12.4 °C'})
+        # Its own state beside a value of another entity, and beside one of its own.
+        self.assertEqual(message(sub='state', sub2='entity:sensor.outside#temperature'), {'s': 'On'})
+        self.assertEqual(message(sub='state'), {'s': 'On'})
+        # The other entity away leaves the state alone, as it leaves any part alone.
+        self.assertEqual(message(sub='state', sub2='entity:sensor.nope'), {'s': 'On'})
+        self.assertEqual(message(sub='entity:sensor.nope', sub2='state'), {'s': 'On'})
+
     def test_the_screen_is_told_in_a_shape_it_already_reads(self):
         """No firmware learns the new choice: the screen gets the finished line in `x.s` (or `x.sm`), and the option
         says in the shape every firmware with a chosen line reads that the line was chosen by hand. With nothing to
@@ -192,6 +212,9 @@ class SecondLine(unittest.TestCase):
             return message['o']['sub']
         self.assertEqual(wire('entity:sensor.outside', {'s': '12.4 °C'}), 'attr:x')
         self.assertEqual(wire('entity:sensor.outside#temperature', {'sm': 1789967311}), 'attr:x')
+        # A line of the tile's own state (app 0.4.96) is the app's line as well, so the screen shows it the same way.
+        self.assertEqual(wire('state', {'s': 'On · 12.4 °C'}), 'attr:x')
+        self.assertEqual(wire('state', {}), 'state')
         self.assertEqual(wire('entity:sensor.outside', {}), 'entity:sensor.outside')
         self.assertEqual(wire('entity:sensor.outside', {'w': 'On'}), 'entity:sensor.outside')
         for sub in ('auto', 'none', 'text:Klaar om 7', 'attr:brightness'):
@@ -261,13 +284,14 @@ class SecondLine(unittest.TestCase):
     def test_the_editor_gets_every_line_the_screen_would(self):
         named = {f'component.climate.entity_component._.state_attributes.{key}.name': key.title()
                  for key in ('current_humidity', 'hvac_action', 'friendly_name', 'last_triggered', 'fan_modes', 'aux')}
-        state = {'attributes': {'current_humidity': 61.60000000000001, 'hvac_action': 'heating', 'friendly_name': 'Hall',
+        state = {'state': 'cool', 'attributes': {'current_humidity': 61.60000000000001, 'hvac_action': 'heating', 'friendly_name': 'Hall',
                                 'last_triggered': '2026-09-21T05:08:31+00:00', 'fan_modes': ['on', 'auto'], 'aux': True,
                                 'access_token': 'private'}}
         lines = ha_catalogue.subtitle_lines('climate.hall', state, {'temperature': '°C'}, None, named)
         # Only what the panel offers: a moment is the screen's to say, a list is no line, the name is the tile's own,
-        # and what Home Assistant does not name (a token) never leaves the app.
-        self.assertEqual(lines, {'current_humidity': '61.6%', 'hvac_action': 'heating', 'aux': 'On'})
+        # and what Home Assistant does not name (a token) never leaves the app. The entity's own state goes under a key
+        # no attribute has, so the mockup shows the very words the screen is sent (app 0.4.96).
+        self.assertEqual(lines, {'': 'cool', 'current_humidity': '61.6%', 'hvac_action': 'heating', 'aux': 'On'})
 
     def test_the_layout_keeps_the_choice_and_refuses_a_shape_it_cannot_read(self):
         def options(sub):
@@ -276,6 +300,8 @@ class SecondLine(unittest.TestCase):
         self.assertEqual(options('auto'), {})            # the default is stored as nothing at all
         self.assertEqual(options('none'), {'sub': 'none'})
         self.assertEqual(options('text:Klaar om 7'), {'sub': 'text:Klaar om 7'})
+        # The state of the entity is a line the app writes itself (app 0.4.96), and it is kept as it is.
+        self.assertEqual(options('state'), {'sub': 'state'})
         # Words of your own keep the words, not the space around them: a line that starts with a blank looks
         # indented on the tile while every other line starts at the same place.
         self.assertEqual(options('text:  Klaar om 7  '), {'sub': 'text:Klaar om 7'})

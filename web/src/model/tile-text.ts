@@ -177,6 +177,12 @@ export function subLine(sub: string, live: Live | null | undefined, status: stri
 /** One part of that line: its text, or "" when the part is the screen's own line or Home Assistant has nothing for it. */
 function subText(sub: string, live: Live | null | undefined, liveOf?: (entity: string) => Live | null | undefined, words?: ScreenWords) {
   if (sub.startsWith("text:")) return sub.slice(5);
+  // The state of the tile's own entity (app 0.4.96), in the very words the app sends it, under a key no attribute has.
+  if (sub === "state") {
+    const line = live?.sub?.[""];
+    if (line) return String(line);
+    return live && !isGone(live) ? String(live.word || live.state) : "";
+  }
   if (sub.startsWith("attr:")) {
     const line = live?.sub?.[sub.slice(5)] ?? live?.a?.[sub.slice(5)];
     if (line !== undefined && line !== null && line !== "") return String(line);

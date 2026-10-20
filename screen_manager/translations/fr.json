@@ -2501,6 +2501,7 @@
         "auto": "Automatique",
         "none": "Rien",
         "attr": "Une valeur",
+        "state": "Son état",
         "entity": "Une autre entité",
         "text": "Votre texte",
         "second": "Et ensuite",
@@ -2518,7 +2519,10 @@
         "entity_none": "Rien trouvé",
         "entity_aria": "Quelle entité la deuxième ligne lit",
         "entity_pick": "Choisir une entité",
-        "entity_state": "Son état"
+        "entity_state": "Son état",
+        "hint_state": "L'état de cette entité, avec les mots qu'utilise Home Assistant.",
+        "second_hint": "Une valeur de cette entité ou d'une autre se tient à côté de la première, entre deux points.",
+        "second_entity_aria": "Quelle entité la seconde partie lit"
       },
       "slider": {
         "label": "Petit curseur sur la tuile",
