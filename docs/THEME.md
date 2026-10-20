@@ -84,9 +84,9 @@ rules in its `tint` option: a state or an action word ("heating", "sunny", "on")
 ("above 25", "below 5") with one. The rules never reach a screen. The app works out the first rule that fits and sends
 the colour it gives in `x.bg` with every message of the tile, so the card repaints when the colour changes and goes back
 to its own colour when no rule fits. The colour is a colour of its own: `tile_palette::color()` reads `#RRGGBB` as well
-as a swatch's name, and `theme::surface()` lays it over the look's ground, a fifth of the colour over white in light and
-over black in dark, so the words on the card read as they do on a swatch. `model/tint.ts` mirrors the same rules and the
-same arithmetic for the editor's card.
+as a swatch's name, and `theme::surface()` lays it over the look's ground, keeping two thirds of the colour picked in light
+and in dark, so the words on the card read as they do on a swatch and the colour still looks like the colour chosen.
+`model/tint.ts` mirrors the same rules and the same arithmetic for the editor's card.
 
 ## Checks
 

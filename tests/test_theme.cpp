@@ -57,7 +57,7 @@ int main() {
   // ---- named card colours: identity in light, deep in dark, the normal card for none; a colour the add-on chose for a
   // tile (app 0.4.91) laid over the look's ground, so the words on it read in both looks
   assert(SWATCH_COUNT == 9 && swatch("red") == 0xFADADD && swatch("gray") == 0xE5E7EB && swatch("none") == 0 && swatch("") == 0);
-  assert(surface(0) == 0xFFFFFF && surface(0xFADADD) == 0xFADADD && surface(0x123456) == mix(0x123456, 0xFFFFFF, 51));
+  assert(surface(0) == 0xFFFFFF && surface(0xFADADD) == 0xFADADD && surface(0x123456) == mix(0x123456, 0xFFFFFF, 165));
   assert(outline(0) == 0xDDDDDD && outline(0xFADADD) == mix(0xFADADD, 0x000000, 220));
   assert(key_on(0xFFFFFF, 236) == mix(0xFFFFFF, 0x000000, 236));
   // A card under a finger: an eighth towards black, on a pastel too.
@@ -67,7 +67,7 @@ int main() {
   // ---- the dark look
   look(true);
   assert(hex(PAGE) == 0x000000);
-  assert(surface(0) == ROLES[CARD].dark && surface(0x123456) == mix(0x123456, 0x000000, 77));
+  assert(surface(0) == ROLES[CARD].dark && surface(0x123456) == mix(0x123456, 0x000000, 140));
   for (const auto &s : SWATCHES) {
     assert(surface(s.light) == s.dark);
     // Light words read on every dark card colour, the slate of a value too.

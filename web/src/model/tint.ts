@@ -62,12 +62,14 @@ export function tintHex(colour: unknown) {
   return meterHex(colour) || "";
 }
 /** The firmware's theme::surface for a colour the add-on chose (a swatch keeps its own two values): laid over the
- * look's ground, so the words stay readable. Light: about a fifth of the colour over white, dark: over black. */
+ * look's ground, so the words stay readable, but keeping two thirds of the colour picked (0.4.91 kept a fifth, which read
+ * as a faded colour). The arithmetic is LVGL's own lv_color_mix, so the mockup is the glass to the last step. */
 export function soften(colour: string, dark = false) {
   const hex = tintHex(colour);
   if (!hex) return "";
-  const value = parseInt(hex.slice(1), 16), amount = dark ? 77 : 51, ground = dark ? 0 : 0xffffff;
-  const channel = (shift: number) => Math.floor((((value >> shift) & 255) * amount + ((ground >> shift) & 255) * (255 - amount)) / 255) & 255;
+  const value = parseInt(hex.slice(1), 16), amount = dark ? 140 : 165, ground = dark ? 0 : 0xffffff;
+  const channel = (shift: number) =>
+    Math.floor((((value >> shift) & 255) * amount + ((ground >> shift) & 255) * (255 - amount)) * 0x8081 / 8388608);
   return `#${((channel(16) << 16) | (channel(8) << 8) | channel(0)).toString(16).padStart(6, "0")}`;
 }
 

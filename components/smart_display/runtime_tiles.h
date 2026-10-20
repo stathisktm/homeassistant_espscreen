@@ -1948,10 +1948,11 @@ inline std::string rain_text(float chance,float mm,bool with_mm){
   return "";
 }
 inline std::string degrees(float value){ if(!std::isfinite(value))return "--"; char b[16];snprintf(b,sizeof(b),"%.0f°",value);return b; }
-inline lv_obj_t *detail_card(int x,int y,int w,int h){
+inline lv_obj_t *detail_card(int x,int y,int w,int h,uint32_t ground=0){
   auto *card=lv_obj_create(detail_root);lv_obj_remove_style_all(card);lv_obj_remove_flag(card,LV_OBJ_FLAG_SCROLLABLE);lv_obj_remove_flag(card,LV_OBJ_FLAG_CLICKABLE);
   lv_obj_set_pos(card,x,y);lv_obj_set_size(card,w,h);
-  lv_obj_set_style_bg_color(card,theme::color(theme::CARD),0);lv_obj_set_style_bg_opa(card,LV_OPA_COVER,0);
+  // `ground`: the colour of the tile this card was opened from (a colour by state, app 0.4.93), or the look's own card.
+  lv_obj_set_style_bg_color(card,ground?lv_color_hex(ground):theme::color(theme::CARD),0);lv_obj_set_style_bg_opa(card,LV_OPA_COVER,0);
   lv_obj_set_style_radius(card,lv_obj_get_style_radius(widgets[0].tile,LV_PART_MAIN),0);
   lv_obj_set_style_border_width(card,1,0);lv_obj_set_style_border_color(card,theme::color(theme::LINE),0);
   return card;
@@ -2136,7 +2137,7 @@ inline void render_weather_detail(const Tile &t,bool large,int width,int height,
   else for(int i=0;i<5;++i)if(tiers[i]>=std::min(3,most)){best=options[i];break;}
   // The weather now.
   const int now_h=2*card_pad+hero+best.extra;
-  auto *card=detail_card(pad,top,area_w,now_h);
+  auto *card=detail_card(pad,top,area_w,now_h,theme::surface(t.background));
   int right=area_w-card_pad;
   if(best.key_in_hero){right-=weather_key_w();weather_key(card,right,card_pad+(hero-weather_key_h())/2,weather_view==1);right-=gi;}
   const int words_min=std::max(text_width(cond,bold),text_width(hl,line_font));
@@ -2178,7 +2179,7 @@ inline void render_weather_detail(const Tile &t,bool large,int width,int height,
   }else if(best.extra>0)detail_text(card,line,card_pad,card_pad+hero+ui::px(4),inner,small,LV_TEXT_ALIGN_LEFT,theme::MUTED);
   // The forecast.
   const int fy=top+now_h+gap,fh=area_h-now_h-gap;
-  auto *days=detail_card(pad,fy,area_w,fh);
+  auto *days=detail_card(pad,fy,area_w,fh,theme::surface(t.background));
   int cy=card_pad;
   if(best.title){weather_key(days,card_pad,card_pad,weather_view==1);cy+=weather_key_h()+gi;}
   if(!x.forecast.size()&&!weather_view){detail_text(days,tr(txt::weather_no_forecast),card_pad,cy,inner,small,LV_TEXT_ALIGN_LEFT,theme::MUTED);}

@@ -29,9 +29,9 @@ beforeEach(() => {
 
 describe("a card's colour by state", () => {
   it("lays a chosen colour over the card as the firmware does", () => {
-    // theme::surface: a fifth of the colour over white in the light look, over black in the dark one.
-    expect(soften("#f44336")).toBe("#fcd9d6");
-    expect(soften("#f44336", true)).toBe("#491410");
+    // theme::surface: two thirds of the colour over white in the light look, over black in the dark one.
+    expect(soften("#f44336")).toBe("#f7857c");
+    expect(soften("#f44336", true)).toBe("#85241d");
     // A name of the palette is the colour itself first (model/meter's names).
     expect(soften("deep-orange")).toBe(soften("#ff6f22"));
     expect(soften("nonsense")).toBe("");

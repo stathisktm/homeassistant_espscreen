@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **The colours of a tile's card look like the colours you pick, and reach the cards a tile opens.** A colour by state was
+  laid so thinly over the card that a red read as a pale pink: it now keeps two thirds of itself in both looks, still
+  light enough for the words on it. A weather tile's full screen (and its forecast card) is painted in the tile's colour
+  as well, where it used to be the plain card, and so is the card of a tile opened from the page. Screens need firmware
+  0.59.0 for both; an older screen keeps its own card colour.
+
 - **Every screen builds from this repository, also the ones made before.** The app wrote the original repository's
   address into a new screen's YAML, so a screen set up here pulled its packages, components and fonts from a repository
   this app never had: English screens, no Greek letters, no colours by state, whatever this app offered. A new screen now

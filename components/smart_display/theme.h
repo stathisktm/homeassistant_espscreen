@@ -286,9 +286,10 @@ inline uint32_t key_pressed(uint32_t key) { return mix(key, 0x000000, 210); }
 inline uint32_t surface(uint32_t own) {
   if (!own) return hex(CARD);
   for (const auto &s : SWATCHES) if (s.light == own) return dark ? s.dark : own;
-  // A colour the add-on chose for this tile (app 0.4.91): laid over the look's ground the way the named ones are, so the
-  // words on the card stay readable in both looks. A named swatch above keeps its own two values.
-  return dark ? mix(own, 0x000000, 77) : mix(own, 0xFFFFFF, 51);
+  // A colour the add-on chose for this tile (app 0.4.93): laid over the look's ground the way the named ones are, but
+  // keeping two thirds of itself (app 0.4.91 kept a fifth, which read as a faded colour), so the words on the card still
+  // read in both looks. A named swatch above keeps its own two values.
+  return dark ? mix(own, 0x000000, 140) : mix(own, 0xFFFFFF, 165);
 }
 // The hairline around a card: the card's own colour a little darker in light, a little lighter in dark.
 inline uint32_t outline(uint32_t own) {
