@@ -238,14 +238,16 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
         list.some((id) => typeof id !== 'string' || !matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, id) || !(map?.with ?? []).includes(id.split('.')[0]) || id === entityId)) fail();
   }
   // The second line, and its second part (app 0.4.94): the same shapes, and a part of words or of nothing is no part.
+  // The state of the tile's own entity (app 0.4.96) is a line the app writes, so it counts as one of the shapes.
   for (const [key, value] of [['subtitle', a.subtitle], ['subtitle2', a.subtitle2]] as [string, string | undefined][]) {
     if (value === undefined) continue;
     const sub = value;
     if (typeof sub !== 'string' || bytes(sub) > 96 || sub === 'auto' ||
-        !(sub === 'none' || (sub.startsWith('text:') && sub.length > 5 && !sub.includes('\n')) || matches(/^attr:[a-z_0-9]+$/, sub) ||
+        !(sub === 'none' || sub === 'state' || (sub.startsWith('text:') && sub.length > 5 && !sub.includes('\n')) || matches(/^attr:[a-z_0-9]+$/, sub) ||
           matches(/^entity:[a-z_0-9]+\.[a-z_0-9_]+(#[a-z_0-9_]+)?$/, sub)) ||
         (sub.startsWith('text:') && (!sub.slice(5).trim() || sub.slice(5) !== sub.slice(5).trim()))) fail('normalization');
-    if (key === 'subtitle2' && !(typeof a.subtitle === 'string' && (a.subtitle.startsWith('attr:') || a.subtitle.startsWith('entity:')))) fail('normalization');
+    if (key === 'subtitle2' && !(typeof a.subtitle === 'string' &&
+        (a.subtitle === 'state' || a.subtitle.startsWith('attr:') || a.subtitle.startsWith('entity:')))) fail('normalization');
   }
   if (i.tap === 'action') {
     if (domain === 'screen') fail();

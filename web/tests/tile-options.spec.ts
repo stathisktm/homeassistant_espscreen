@@ -412,6 +412,15 @@ describe("what the panel offers, as functions of the tile, Home Assistant and th
     expect(keys(tapChoices(tile("climate.c"), panel(), "plugin:gone.tap", [["plugin:sched.open", "Schedule"]])).slice(-2)).toEqual(["plugin:sched.open", "plugin:gone.tap"]);
   });
 
+  it("keeps the state of the entity, and another entity beside it, in the page it saves", () => {
+    // The screen learns no new shape: the app writes the finished line, so only the panel has to accept the choice.
+    // It did not, so "Its state" and "Its state and another entity" were never offered (app 0.4.98).
+    for (const id of ["switch.s", "light.a", "climate.c", "weather.w"])
+      expect(choiceOffered(tile(id), "sub", "state", false), id).toBe(true);
+    expect(canonicalOptions("switch.s", { sub: "state", sub2: "entity:sensor.outside" }))
+      .toEqual({ sub: "state", sub2: "entity:sensor.outside" });
+  });
+
   it("says what holding a tile does, and what a firmware or Home Assistant lacks for a tap", () => {
     expect(tapHint(tile("automation.a"), panel({ supports: at("0.6.0") }), "auto")?.warn).toBe(true);
     expect(tapHint(tile("automation.a"), panel(), "run")?.text).toBe(t("editor.tile.tap.hold_toggle"));
@@ -422,8 +431,9 @@ describe("what the panel offers, as functions of the tile, Home Assistant and th
   });
 
   it("offers a value of the entity for the second line where Home Assistant names one, and the small slider on one row", () => {
-    expect(keys(subChoices(tile("light.a"), panel(), "auto", 0, ""))).toEqual(["auto", "none", "entity", "text"]);
-    expect(keys(subChoices(tile("light.a"), panel(), "auto", 2, "brightness"))).toEqual(["auto", "none", "attr", "entity", "text"]);
+    // Its state, and that state with another entity beside it (app 0.4.96, 0.4.98), are offered for every entity.
+    expect(keys(subChoices(tile("light.a"), panel(), "auto", 0, ""))).toEqual(["auto", "none", "state", "pair", "entity", "text"]);
+    expect(keys(subChoices(tile("light.a"), panel(), "auto", 2, "brightness"))).toEqual(["auto", "none", "state", "pair", "attr", "entity", "text"]);
     expect(sliderOffered(tile("light.a"), panel())).toBe(true);
     expect(sliderOffered(tile("light.a", { size: "tall" }), panel())).toBe(false);
     expect(sliderOffered(tile("switch.s"), panel())).toBe(false);

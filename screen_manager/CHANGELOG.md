@@ -1,8 +1,10 @@
 ## Unreleased
 
-- **The second line has one choice for two things.** "Its state and another entity" fills the line in a single step:
-  pick it, pick the entity, and the tile says what it is doing with a value of that entity beside it, `On · 12.4 °C`.
-  The row under it, "And then", is only for a line that is one value already.
+- **The second line can say what the entity is doing, with a value of another entity beside it.** Second line gains two
+  choices: "Its state" (Home Assistant's own word for the state, "Heating", "Open", "Sunny", or a measurement with its
+  unit), and "Its state and another entity", which does both in one step: pick it, pick the entity, choose its state or
+  one of its values, and the tile says `On · 12.4 °C`, `Heat · 21.5`, `Sunny · 26.5`. The row under it, "And then",
+  stays for a line that is one value already. No firmware update is needed: the screen is sent the finished line.
 
 - **A tile's line can start with what its entity is doing.** Second line gains "Its state", Home Assistant's own word
   for the state ("Heating", "Open", "Sunny", or a measurement with its unit), and the row below it, "And then", can now
