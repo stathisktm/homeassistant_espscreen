@@ -336,6 +336,20 @@ class SecondLineFollow(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'attr:temperature'}}), ())
         self.assertEqual(manager.related_entities({'entity': 'sensor.inside', 'options': {'sub': 'none'}}), ())
 
+    def test_its_state_and_another_entity_follows_that_entity(self):
+        """"Its state and another entity" keeps the other entity in the line's second part (`sub2`): the tile follows it,
+        and a colour by temperature reads it, as it does for a first part of another entity."""
+        from server import Manager, tint_second
+        manager = object.__new__(Manager)
+        pair = {'entity': 'switch.fan', 'options': {'sub': 'state', 'sub2': 'entity:sensor.room'}}
+        self.assertEqual(manager.related_entities(pair), ('sensor.room',))
+        both = {'entity': 'switch.fan', 'options': {'sub': 'entity:sensor.hall', 'sub2': 'entity:sensor.room#humidity'}}
+        self.assertEqual(manager.related_entities(both), ('sensor.hall', 'sensor.room'))
+        room = {'state': '31', 'attributes': {'unit_of_measurement': '°C'}}
+        self.assertEqual(tint_second(pair, {'sensor.room': room}), ('sensor.room', room))
+        self.assertEqual(tint_second(both, {'sensor.room': room}), ('sensor.room', room), 'the first part with a state')
+        self.assertIsNone(tint_second(pair, {}))
+
     async def test_a_tile_sends_the_line_of_another_entity_in_a_shape_the_screen_reads(self):
         from manager_fixtures import with_screen_grid
         from server import Manager

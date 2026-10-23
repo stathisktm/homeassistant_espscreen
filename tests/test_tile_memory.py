@@ -25,6 +25,10 @@ class Prices(unittest.TestCase):
         weather, switch = catalogue.MEMORY['weather'], catalogue.MEMORY['switch']
         self.assertEqual(tile_cost({'entity': 'weather.home'}, PSRAM), weather['bytes'])
         self.assertEqual(tile_cost({'entity': 'weather.home'}, INSIDE), weather['bytes'] + 524 + (1056 if weather['extras'] else 0))
+        # A line of the tile's own state (app 0.4.96) or of another entity is a line the app writes as well.
+        for sub in ('state', 'entity:sensor.room'):
+            self.assertEqual(tile_cost({'entity': 'switch.a', 'options': {'sub': sub}}, INSIDE),
+                             tile_cost({'entity': 'switch.a', 'options': {'sub': 'attr:power'}}, INSIDE), sub)
         acting = {'entity': 'switch.a', 'options': {'tap': 'action', 'sub': 'attr:power'}}
         self.assertEqual(tile_cost(acting, INSIDE), switch['bytes'] + catalogue.CHOICE_MEMORY['action'] + catalogue.CHOICE_MEMORY['line'] + 524 + 1056)
         self.assertEqual(tile_cost({'entity': 'nonsense.a'}, PSRAM), catalogue.DEAREST['bytes'])

@@ -23,7 +23,7 @@ APP_HEADING = re.compile(r'^## (\d+)\.(\d+)\.(\d+)\b(.*)$', re.M)
 # A firmware for some boards alone names them (app 0.3.21): "(firmware 0.3.10 for waveshare4b)".
 FIRMWARE_IN_HEADING = re.compile(r'\(firmware (\d+\.\d+\.\d+)(?: for ([a-z0-9]+(?:, [a-z0-9]+)*))?\)')
 # The published entries (packages/<board>.yaml) point ${FONT_DIR} at the raw GitHub URL of fonts/ on main.
-FONT_URL = re.compile(r'https://raw\.githubusercontent\.com/MaxGramser/homeassistant_espscreen/[^/\s"\']+/(fonts/[^"\'\s]+)')
+FONT_URL = re.compile(r'https://raw\.githubusercontent\.com/stathisktm/homeassistant_espscreen/[^/\s"\']+/(fonts/[^"\'\s]+)')
 
 
 def app_headings():

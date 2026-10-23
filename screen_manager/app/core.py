@@ -871,7 +871,8 @@ def tile_cost(tile, memory):
     entry = catalogue.CARD_MEMORY.get(entity) or catalogue.MEMORY.get(entity.split('.', 1)[0], catalogue.DEAREST)
     options = tile.get('options') or {}
     action = options.get('tap') == 'action'
-    line = isinstance(options.get('sub'), str) and options['sub'].startswith(('attr:', 'entity:'))
+    # A line the app writes (app 0.4.96 counts its own state too): the screen keeps the finished words.
+    line = isinstance(options.get('sub'), str) and (options['sub'] == 'state' or options['sub'].startswith(('attr:', 'entity:')))
     cost = entry['bytes'] + (catalogue.CHOICE_MEMORY['action'] if action else 0) + (catalogue.CHOICE_MEMORY['line'] if line else 0)
     if not memory['psram']:
         cost += memory['tile'] + (memory['extra'] if entry['extras'] or action or line else 0)

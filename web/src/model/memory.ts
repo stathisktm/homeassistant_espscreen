@@ -18,7 +18,7 @@ export function tileCost(tile: PricedTile, memory: Pick<ScreenMemory, "psram" | 
   const plugin = plugins(tile.entity);
   const type = plugin ? { bytes: plugin.tile.memory, extras: false } : TYPES.screen?.cards?.[tile.entity] ?? TYPES[tile.entity.split(".", 1)[0]]?.memory ?? DEAREST;
   const options = (tile.options || {}) as { tap?: string; sub?: string };
-  const action = options.tap === "action", line = typeof options.sub === "string" && (options.sub.startsWith("attr:") || options.sub.startsWith("entity:"));
+  const action = options.tap === "action", line = typeof options.sub === "string" && (options.sub === "state" || options.sub.startsWith("attr:") || options.sub.startsWith("entity:"));
   let bytes = type.bytes + (action ? TILE.memory.action : 0) + (line ? TILE.memory.line : 0);
   if (!memory.psram) bytes += memory.tile + (type.extras || action || line ? memory.extra : 0);
   return bytes;

@@ -53,6 +53,11 @@ class LenientLoader(yaml.CSafeLoader if getattr(yaml, '__with_libyaml__', False)
     """Reads profile metadata without resolving !secret or !include."""
 LenientLoader.add_multi_constructor('!', lambda loader, suffix, node: None)
 
+def our_repository(url):
+    """Whether a package's url is this repository, or the one this app wrote before it had its own address
+    (core.PREVIOUS_REPOS): such a screen is ours too, also before set_branch points it here."""
+    return any(known in str(url or '') for known in (REPO, *PREVIOUS_REPOS))
+
 def profile_meta(text):
     """{'node', 'friendly'} from profile YAML, or None when it has no esphome block."""
     data = yaml.load(text, Loader=LenientLoader)
@@ -66,12 +71,12 @@ def profile_meta(text):
         return value if isinstance(value, str) else None
     # 'screen': the profile pulls this project's board package, so it is one of ours (not any ESPHome device).
     packages = data.get('packages') if isinstance(data.get('packages'), dict) else {}
-    ours = any(isinstance(entry, dict) and REPO in str(entry.get('url', '')) for entry in packages.values())
+    ours = any(isinstance(entry, dict) and our_repository(entry.get('url')) for entry in packages.values())
     # The board package the profile builds from ("packages/guition.yaml"): what the screen looks like follows
     # from it (core.SHAPES), so the editor draws the right screen before it has ever been flashed.
     package = None
     for entry in packages.values():
-        if isinstance(entry, dict) and REPO in str(entry.get('url', '')):
+        if isinstance(entry, dict) and our_repository(entry.get('url')):
             files = entry.get('files')
             first = files[0] if isinstance(files, list) and files else files
             if isinstance(first, str):
@@ -458,10 +463,7 @@ class Firmware:
         before = yaml.load(text, Loader=LenientLoader)
         packages = before.get('packages') if isinstance(before, dict) else None
 
-        def ours_from(value):
-            return any(known in str(value or '') for known in (REPO, *PREVIOUS_REPOS))
-
-        ours = [key for key, entry in packages.items() if isinstance(entry, dict) and ours_from(entry.get('url'))] \
+        ours = [key for key, entry in packages.items() if isinstance(entry, dict) and our_repository(entry.get('url'))] \
             if isinstance(packages, dict) else []
         if not ours or any(not our_ref(packages[key].get('ref')) for key in ours):
             return False

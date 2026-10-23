@@ -381,6 +381,19 @@ def entity_line_target(value):
     return (entity, attribute or None) if re.fullmatch(r'[a-z_0-9]+\.[a-z_0-9_]+', entity) else None
 
 
+def line_entities(tile):
+    """The other entities a tile's line reads, in the order of its parts: the first part (`sub`) and the second
+    (`sub2`, app 0.4.94), so "Its state and another entity" follows that entity as a line of another entity does."""
+    options = tile.get('options') or {}
+    found = []
+    for key in ('sub', 'sub2'):
+        choice = subtitle_choice({'options': {'sub': options.get(key)}})
+        target = entity_line_target(choice[1]) if choice and choice[0] == 'entity' else None
+        if target and target[0] != tile.get('entity') and target[0] not in found:
+            found.append(target[0])
+    return found
+
+
 # An attribute's number as Home Assistant's frontend writes it (computeAttributeValueToParts in
 # src/common/entity/compute_attribute_display.ts, its tables in src/data/entity/entity_attributes.ts and
 # getWeatherUnit in src/data/weather.ts; frontend ff76e4e1): a few attributes are worked out first, then the number,

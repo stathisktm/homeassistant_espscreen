@@ -18,14 +18,17 @@ import shutil
 import tarfile
 import time
 
-from core import REPO
+from core import PREVIOUS_REPOS
 
 LOG = logging.getLogger('screen_manager')
 
 TAG = 'build-cache'
 # The release's asset list; ESP_SCREENS_BUILD_CACHE points elsewhere (a local test) or turns this off ('off', which
 # the GitHub job that makes the caches sets: it has to start from an empty one).
-RELEASE = 'https://api.github.com/repos/' + REPO.removeprefix('https://github.com/') + f'/releases/tags/{TAG}'
+# The original repository's caches: this fork publishes none, and ccache reuses an object only when its source and
+# flags hash the same, so what this fork changed is compiled here and everything it shares (ESP-IDF, LVGL, ESPHome)
+# comes ready.
+RELEASE = 'https://api.github.com/repos/' + PREVIOUS_REPOS[0].removeprefix('https://github.com/') + f'/releases/tags/{TAG}'
 TIME_LIMIT = 300  # seconds for the whole download; past it the build goes on without
 # Recorded per board in the cache folder: which published cache was unpacked, so the same one is not fetched again.
 MARKER = '.esp-screens-build-cache.json'

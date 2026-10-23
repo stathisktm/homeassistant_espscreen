@@ -111,12 +111,14 @@ PAGE_DELIVERY_WORDS = {'Saved, waiting for screen': 'saved', 'Applying': 'applyi
 
 
 def tint_second(tile, states):
-    """The entity a tile's second line reads and its state (app 0.4.90), for a colour by temperature that comes from it
-    (tint.py, app 0.4.91); None when the line is the screen's own or Home Assistant has no state for that entity."""
-    choice = ha_catalogue.subtitle_choice(tile)
-    target = ha_catalogue.entity_line_target(choice[1]) if choice and choice[0] == 'entity' else None
-    state = (states or {}).get(target[0]) if target else None
-    return (target[0], state) if state else None
+    """The entity a tile's line reads and its state (app 0.4.90), for a colour by temperature that comes from it
+    (tint.py, app 0.4.91): the first part of the line that reads one and has a state, its second part too ("Its state
+    and another entity"). None when the line reads no other entity or Home Assistant has no state for it."""
+    for entity in ha_catalogue.line_entities(tile):
+        state = (states or {}).get(entity)
+        if state:
+            return (entity, state)
+    return None
 
 
 def status_text(status):
@@ -2476,14 +2478,11 @@ class Manager:
         return self._by_device.get(device, []) if device else []
 
     def related_entities(self, tile, inbox=None):
-        """`_related_entities`, and the entity a second line of the tile reads (app 0.4.90): its own change reaches
-        the tile the same way, so the line follows without a resend of the whole layout."""
+        """`_related_entities`, and the entities the tile's line reads, in either of its parts (app 0.4.90, 0.4.94): their
+        own change reaches the tile the same way, so the line follows without a resend of the whole layout."""
         related = self._related_entities(tile, inbox)
-        choice = ha_catalogue.subtitle_choice(tile)
-        target = ha_catalogue.entity_line_target(choice[1]) if choice and choice[0] == 'entity' else None
-        if not target or target[0] == tile['entity']:
-            return related
-        return tuple(dict.fromkeys((*related, target[0])))
+        line = ha_catalogue.line_entities(tile)
+        return tuple(dict.fromkeys((*related, *line))) if line else related
 
     def _related_entities(self, tile, inbox=None):
         """Entities a card reads besides its own: a vacuum's cleaning mode and water selects and its battery sensor, a
