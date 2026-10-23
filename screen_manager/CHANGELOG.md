@@ -1,5 +1,27 @@
 ## Unreleased
 
+- **0.4.100: everything the original Tessera added since this fork began, and firmware 0.60.0.** A turned ESP32-P4
+  screen no longer restarts behind a live camera tile, the Waveshare 4.3C is a board of its own, a doorbell wakes a
+  screen and opens its camera, a vacuum tile shows its map and rooms, and a screen that misbehaves can send a report.
+  Every screen is offered the firmware update.
+
+- **"Its state and another entity" follows that entity.** The line `On · 12.4 °C` only changed when the tile's own
+  entity did, because the app looked for the other entity in the line's first part alone. It reads both parts now, so
+  the temperature follows the thermometer, and a colour by temperature reads it as well.
+
+- **A line of the tile's own state counts in the screen's memory.** "Its state" is a line the app writes and the screen
+  keeps, like a value of the entity, and is now counted as one, so a screen without PSRAM is never sent more than it
+  holds.
+
+- **A screen set up from the original repository is known before it moves here.** The app recognised a screen's YAML by
+  this repository's address alone, so until it was moved, such a screen had no board shape and a 4 MB board never got
+  its wider flash table.
+
+- **Builds start from the original's build cache.** This repository publishes none, so every build compiled
+  everything. The app now fetches the original's, and only what this fork changed is compiled.
+
+- **Greek for everything new.** The 121 texts the merge brought (report, doorbell, vacuum map, video) are in Greek.
+
 - **The second line can say what the entity is doing, with a value of another entity beside it.** Second line gains two
   choices: "Its state" (Home Assistant's own word for the state, "Heating", "Open", "Sunny", or a measurement with its
   unit), and "Its state and another entity", which does both in one step: pick it, pick the entity, choose its state or
