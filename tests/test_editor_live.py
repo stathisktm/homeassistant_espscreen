@@ -398,7 +398,8 @@ class Endpoints(unittest.IsolatedAsyncioTestCase):
         self.manager.ha.state_words = {**(getattr(self.manager.ha, 'state_words', None) or {}),
                                        'component.climate.entity_component._.state_attributes.current_humidity.name': 'Humidity'}
         response = await self.client.get('/api/states?entity=climate.hall')
-        self.assertEqual((await response.json())['states']['climate.hall']['sub'], {'current_humidity': '61.6%'})
+        # The entity's own state goes along under '' (app 0.4.96), the part "Its state" of the line.
+        self.assertEqual((await response.json())['states']['climate.hall']['sub'], {'current_humidity': '61.6%', '': 'heat'})
 
     async def test_firmware_preview_uses_device_packets_without_saving_or_actions(self):
         from core import Grid

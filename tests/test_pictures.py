@@ -351,6 +351,43 @@ class Frames(unittest.TestCase):
         self.assertIsNotNone(picture_legacy.read(request, P4))
 
 
+class Rgb565(unittest.TestCase):
+    """`bmp16` (app 0.4.101): the pixels an RGB565 glass shows, as the screen's decoder reads them (picture_fetch.h:
+    BI_BITFIELDS, 16 bits, rows top-down, each padded to four bytes), and named by a question only where it asks."""
+
+    @unittest.skipUnless(HAS_PIL, 'Pillow')
+    def test_every_pixel_is_its_rgb565_and_a_row_its_padding(self):
+        from PIL import Image
+        for width, height in ((7, 5), (480, 270)):
+            colours = [((x * 37) % 256, (y * 53) % 256, (x * y) % 256) for y in range(height) for x in range(width)]
+            image = Image.new('RGB', (width, height))
+            image.putdata(colours)
+            data = picture_paint.encode(image, 'bmp16')
+            row = (width * 2 + 3) // 4 * 4
+            self.assertEqual(data[:2], b'BM')
+            self.assertEqual(int.from_bytes(data[10:14], 'little'), 66)
+            self.assertEqual(int.from_bytes(data[22:26], 'little', signed=True), -height, 'top-down')
+            self.assertEqual((int.from_bytes(data[28:30], 'little'), int.from_bytes(data[30:34], 'little')), (16, 3))
+            self.assertEqual([int.from_bytes(data[54 + 4 * i:58 + 4 * i], 'little') for i in range(3)], [0xF800, 0x07E0, 0x001F])
+            self.assertEqual(len(data), 66 + row * height)
+            for y in range(height):
+                for x in range(0, width, 13):
+                    r, g, b = colours[y * width + x]
+                    at = 66 + y * row + 2 * x
+                    self.assertEqual(data[at] | data[at + 1] << 8, (r >> 3) << 11 | (g >> 2) << 5 | b >> 3, (x, y))
+            with Image.open(io.BytesIO(data)) as back:
+                self.assertEqual(back.size, (width, height))
+
+    def test_an_app_takes_it_where_named_and_skips_what_it_does_not_know(self):
+        asked = {**Parse.BASE, 'fmt': ['bmp16', 'bmp24']}
+        self.assertEqual(pq.parse(json.dumps(asked), 42, (480, 480)).formats, ('bmp16', 'bmp24'))
+        # An app that knows only the older three answers in the next format the screen named.
+        with mock.patch.object(pq, 'FORMATS', ('bmp8', 'bmp24', 'jpeg')):
+            self.assertEqual(pq.parse(json.dumps(asked), 42, (480, 480)).formats, ('bmp24',))
+        self.assertIn('bmp16', pq.FORMATS)
+        self.assertEqual(picture_service.SUFFIX['bmp16'], 'bmp')
+
+
 # ----- the rules of each source (picture_sources.Sources.may) -----
 
 class Manager:

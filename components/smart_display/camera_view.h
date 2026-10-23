@@ -13,6 +13,11 @@
 namespace camera_view {
 constexpr uint32_t REFRESH_MS = 4000;      // from the start of one load to the start of the next: a steady rhythm
 constexpr uint32_t GAP_MS = 800;           // at least this long between the end of one load and the next
+// A camera opened full screen (firmware 0.61.0): its next picture as soon as the last one is in and GAP_MS has passed,
+// rather than every REFRESH_MS. The download runs in a task of its own (picture_fetch, firmware 0.49.0+), so the glass and
+// the touch no longer wait on it, and on a board without a P4's stream (an ESP32-S3) the camera moves about twice as
+// often: a 16-bit picture of a 16:9 camera on the 4-inch Guition takes a little over a second to come.
+constexpr uint32_t FULL_MS = GAP_MS;
 constexpr uint32_t ASK_AGAIN_MS = 10000;   // a link that does not come (or an app without an image) is asked for again
 // A picture the app draws itself (a map) is always there to be had, so an answer without one is a failure on the way
 // (firmware 0.30.0+): asked for again after ASK_AGAIN_MS, then twice as long each time, up to this.

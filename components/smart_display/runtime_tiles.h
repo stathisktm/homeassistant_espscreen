@@ -12159,6 +12159,9 @@ inline void camera_request(const std::string &entity, int size, uint32_t backgro
     q.sources = {picture_question::camera_source(entity)};
     place.fit = Fit::SHRINK;
     q.pace = camera.every;
+    // RGB565 first (firmware 0.61.0): the glass's own pixels, two thirds of a 24-bit picture's bytes, so each comes
+    // sooner. An app that does not know it answers in 24 bits; a P4 names its JPEG before both (picture_ask).
+    q.formats = {"bmp16", "bmp24"};
     if (live_wanted()) {
       const auto room = live_area();
       q.live_w = room.w;
@@ -12400,6 +12403,9 @@ inline void camera_open(const std::string &entity, const std::string &name, int 
   map_focus = focus;
   map_pinned = !focus.empty();
   camera.open(entity);
+  // A camera full screen loads its next picture as soon as the last is in (camera_view::FULL_MS, firmware 0.61.0); a
+  // map and an image entity keep the view's pace, and the screensaver sets its own below.
+  if (map_index < 0 && entity.rfind("camera.", 0) == 0) camera.every = camera_view::FULL_MS;
   camera_opened_at = esphome::millis();
   const int width = lv_display_get_horizontal_resolution(lv_display_get_default());
   const bool large = ui::large();

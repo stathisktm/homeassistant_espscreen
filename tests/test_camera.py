@@ -1613,5 +1613,50 @@ class TwoNetworks(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(asked, ['10.0.50.33', None])
 
 
+
+class FetchedAhead(unittest.IsolatedAsyncioTestCase):
+    """A full view that loads as soon as its last picture is in (firmware 0.61.0) asks at a short pace. The snapshot the
+    last load set going ahead is new to the screen, so the next load takes it and fetches nothing more; a load with no
+    fetch ahead since the last one fetches as before."""
+
+    async def test_a_snapshot_fetched_ahead_is_not_fetched_again(self):
+        clock, fetched = Clock(), []
+
+        async def fetch(entity):
+            fetched.append(clock.now)
+            return b'snapshot %d' % len(fetched)
+
+        async def at_once(delay):
+            return None
+
+        snapshots = picture_sources.Snapshots(fetch, clock=clock, sleep=at_once)
+        await snapshots.still('camera.porch', pace=1)
+        for _ in range(5):
+            await asyncio.sleep(0)
+        self.assertEqual(len(fetched), 2, 'the first load, and the fetch ahead it set going')
+        clock.now += 2
+        raw, _ = await snapshots.still('camera.porch', pace=1)
+        self.assertEqual(len(fetched), 2, 'the snapshot fetched ahead is the one this load takes')
+        self.assertEqual(raw, b'snapshot 2')
+        for _ in range(5):
+            await asyncio.sleep(0)
+        self.assertEqual(len(fetched), 3, 'and it sets the next one going')
+
+    async def test_without_a_fetch_ahead_a_load_past_its_pace_fetches(self):
+        clock, fetched = Clock(), []
+
+        async def fetch(entity):
+            fetched.append(clock.now)
+            return b'snapshot'
+
+        async def never(delay):
+            await asyncio.Event().wait()
+
+        snapshots = picture_sources.Snapshots(fetch, clock=clock, sleep=never)
+        await snapshots.still('camera.porch', pace=4)
+        clock.now += 5
+        await snapshots.still('camera.porch', pace=4)
+        self.assertEqual(fetched, [1000.0, 1005.0])
+
 if __name__ == '__main__':
     unittest.main()

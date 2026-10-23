@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.101: a camera full screen moves about twice as often on boards without a P4.** On the 4-inch Guition and every
+  other ESP32-S3 board the next picture loads as soon as the last one is in, instead of every four seconds, and comes as
+  a 16-bit picture, the glass's own colours at two thirds of the bytes. A 16:9 camera changes about every two seconds.
+  The app no longer fetches a camera twice for one picture. It is not video: the P4 boards stream, an S3 cannot. Screens
+  need firmware 0.61.0.
+
 - **0.4.100: everything the original Tessera added since this fork began, and firmware 0.60.0.** A turned ESP32-P4
   screen no longer restarts behind a live camera tile, the Waveshare 4.3C is a board of its own, a doorbell wakes a
   screen and opens its camera, a vacuum tile shows its map and rooms, and a screen that misbehaves can send a report.

@@ -77,6 +77,7 @@ class Watch:
         self.retry_at = 0.0
         self.failed = None  # a media player's picture address whose last fetch failed, until one of it comes
         self.fetched_at = 0.0
+        self.fetched_ahead = False  # the last fetch was started ahead, after the last load: its snapshot is new
         self.task = None
         self.took = None            # how long the camera took to answer, smoothed: the lead of the next fetch ahead
         self.ahead, self.ahead_at = None, 0.0  # the fetch ahead waiting for its moment, and that moment
@@ -110,10 +111,12 @@ class Snapshots:
         watch.used = now
         return watch
 
-    def refresh(self, entity, watch):
-        """Start fetching the next snapshot, unless one is on its way or the camera failed a moment ago."""
+    def refresh(self, entity, watch, ahead=False):
+        """Start fetching the next snapshot, unless one is on its way or the camera failed a moment ago. `ahead`: a fetch
+        for the next load, started after the last one."""
         if (watch.task is None or watch.task.done()) and self.clock() >= watch.retry_at:
             watch.fetched_at = self.clock()
+            watch.fetched_ahead = ahead
             watch.task = asyncio.ensure_future(self.fetch_one(entity, watch))
 
     def ahead(self, entity, watch, pace):
@@ -132,13 +135,15 @@ class Snapshots:
         async def later():
             await self.sleep(delay)
             if self.watches.get(entity) is watch:  # still watched: someone loaded it lately (a failing camera keeps its pause)
-                self.refresh(entity, watch)
+                self.refresh(entity, watch, ahead=True)
         watch.ahead = asyncio.ensure_future(later())
 
     async def fresh(self, entity, watch, pace):
         """Before a load at `pace` seconds: a snapshot older than the pace is fetched now, and a fetch on its way is waited
-        for a moment, so the load gets the snapshot of now, not the last."""
-        if self.clock() - watch.fetched_at >= pace:
+        for a moment, so the load gets the snapshot of now, not the last. A snapshot fetched since the last load is new to
+        the screen already: a full view that loads as soon as its last picture is in (firmware 0.61.0) has a short pace,
+        and fetching again on every load would add the camera's own time to every picture."""
+        if self.clock() - watch.fetched_at >= pace and not watch.fetched_ahead:
             self.refresh(entity, watch)
         if watch.task is not None and not watch.task.done():
             try:
@@ -197,6 +202,7 @@ class Snapshots:
         if watch.raw is None:
             return None
         if pace > 0:
+            watch.fetched_ahead = False  # this load took it: the next needs another
             self.ahead(entity, watch, pace)
         return watch.raw, watch.digest
 

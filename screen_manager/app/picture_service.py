@@ -21,7 +21,7 @@ LOG = logging.getLogger(__name__)
 # Painted pictures kept by what they show: a page's tiles of a few screens, their covers and their full views.
 KEPT = 48
 KEPT_BYTES = 48 * 1024 * 1024
-SUFFIX = {'jpeg': 'jpg', 'bmp8': 'bmp', 'bmp24': 'bmp'}
+SUFFIX = {'jpeg': 'jpg', 'bmp8': 'bmp', 'bmp16': 'bmp', 'bmp24': 'bmp'}
 # What a screen names as the formats it takes, best first, is what this app answers in, but a drawn picture (a map, a
 # vacuum's map: lines, words and flat colours) goes as the first BMP the screen takes, since JPEG blurs its lines and
 # the 8-bit palette keeps them sharp and small. Photographs (a camera, a cover, a photo, a poster) go as the screen

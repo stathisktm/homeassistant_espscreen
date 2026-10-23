@@ -356,11 +356,36 @@ def corners_of(question, size):
     return tuple(found[:MAX_CORNERS])
 
 
+def _bmp16(image):
+    """`image` as a 16-bit BMP in RGB565 (BI_BITFIELDS, rows top-down): the very pixels an RGB565 glass shows, two thirds
+    of a 24-bit BMP's bytes and none of an 8-bit one's dithering. Each pixel's two bytes are made as two 8-bit bands, low
+    byte (green's low three bits, blue) and high byte (red, green's high three bits), and interleaved by Pillow itself."""
+    from PIL import Image, ImageChops
+    r, g, b = image.convert('RGB').split()
+    low = ImageChops.add(g.point(lambda v: ((v >> 2) & 7) << 5), b.point(lambda v: v >> 3))
+    high = ImageChops.add(r.point(lambda v: (v >> 3) << 3), g.point(lambda v: v >> 5))
+    pixels = Image.merge('LA', (low, high)).tobytes()
+    width, height = image.size
+    row, pad = width * 2, (4 - width * 2 % 4) % 4
+    if pad:
+        pixels = b''.join(pixels[y * row:(y + 1) * row] + b'\0' * pad for y in range(height))
+    offset = 14 + 40 + 12
+    head = (b'BM' + (offset + len(pixels)).to_bytes(4, 'little') + bytes(4) + offset.to_bytes(4, 'little')
+            + (40).to_bytes(4, 'little') + width.to_bytes(4, 'little') + (-height).to_bytes(4, 'little', signed=True)
+            + (1).to_bytes(2, 'little') + (16).to_bytes(2, 'little') + (3).to_bytes(4, 'little')
+            + len(pixels).to_bytes(4, 'little') + bytes(16)
+            + b''.join(m.to_bytes(4, 'little') for m in (0xF800, 0x07E0, 0x001F)))
+    return head + pixels
+
+
 def encode(image, fmt='bmp24', corners=()):
-    """`image` in the format a screen takes: `bmp24`, `bmp8` (on a palette of the picture's own 256 colours, dithered so a
-    shade stays smooth: a third of the bytes, at about the quality of an RGB565 glass; Pillow's fast octree keeps it cheap
-    on a Raspberry Pi) or `jpeg` (baseline, for the ESP32-P4's hardware decoder)."""
+    """`image` in the format a screen takes: `bmp24`, `bmp16` (RGB565, what the glass shows, two thirds of the bytes; app
+    0.4.101), `bmp8` (on a palette of the picture's own 256 colours, dithered so a shade stays smooth: a third of the
+    bytes, at about the quality of an RGB565 glass; Pillow's fast octree keeps it cheap on a Raspberry Pi) or `jpeg`
+    (baseline, for the ESP32-P4's hardware decoder)."""
     from PIL import Image
+    if fmt == 'bmp16':
+        return _bmp16(image)
     out = io.BytesIO()
     if fmt == 'jpeg':
         # Whole MCUs: the P4's decoder refuses a picture whose sides do not divide (a cover of 226x254, 2026-10-20: "Picture

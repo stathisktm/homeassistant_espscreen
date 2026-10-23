@@ -8,7 +8,8 @@ The CYD, the Waveshare 3.5-inch and the Hosyond 4-inch cannot (see below). Which
 
 - **A camera tile.** Add a `camera.*` or `image.*` entity as a tile. A tap opens the image full
   screen, with the round back key at the top left like every card, and a spinner until the first
-  image is there (firmware 0.2.73). The image is refreshed every four seconds while it is open. It
+  image is there (firmware 0.2.73). While it is open, the next image loads as soon as the last one is in (firmware
+  0.61.0; every four seconds before), about one every two seconds on the 4-inch Guition. It
   is not video: ESPHome has no video decoder. A P4 board plays the camera live instead (see
   [Live on the P4 boards](#live-on-the-p4-boards)).
 - **An alert with a picture.** Add `camera: camera.front_door` to the `esp_screens_show_alert`
@@ -223,10 +224,14 @@ The screen never talks to Home Assistant about images, and it never holds a Home
    `no connection to` the link's address. The full screen, the alert and the cover are 24-bit; live tile
    pictures go to firmware 0.3.3+ in 8-bit (see above).
 
-While a camera is open, the screen loads its link every four seconds, one image at a time. Each load sets the
-camera's next fetch for just before the next load: four seconds on, less the time the camera took to answer last
-time and half a second (`picture_sources.Snapshots.ahead`), so the next load finds a snapshot a fraction of a second old
-and the picture changes at the screen's steady pace. A load whose fetch is still on its way waits up to 1.5 seconds
+While a camera is open, the screen loads its link one image at a time: from firmware 0.61.0 the next as soon as the
+last is in and 0.8 seconds have passed (`camera_view::FULL_MS`), every four seconds before. It asks for a 16-bit RGB565
+BMP first (`bmp16`, app 0.4.101): the pixels the glass shows, two thirds of a 24-bit picture's bytes, so on the 4-inch
+Guition a 16:9 camera's picture comes in a little over a second and the view changes about every two seconds. An app
+without `bmp16` answers in 24 bits. Each load sets the camera's next fetch for just before the next load: the pace on,
+less the time the camera took to answer last time and half a second (`picture_sources.Snapshots.ahead`), so the next
+load finds a recent snapshot. A snapshot fetched ahead like that is the next load's, which fetches nothing more; at a
+short pace, fetching again on every load would add the camera's own time to every picture. A load whose fetch is still on its way waits up to 1.5 seconds
 for it, then takes the last snapshot. (Firmware before 0.52.0 got the snapshot fetched at the load before, a picture
 four seconds old; a fetch on its own clock next to the screen's made the picture change after 1.5 s one time and 6 s
 the next.) A slow camera makes the images older, never the screen slower, and nothing queues up. Nobody loading means
@@ -242,7 +247,7 @@ Guition it comes in about 1.8 s (2.8 s with 4 KB).
 
 A camera opened full screen on a board with an ESP32-P4 (the reTerminal D1001, the M5Stack Tab5, the Waveshare
 ESP32-P4 panel and the Guition P4 boards) plays live, at the camera's own pace, about a tenth of a second behind the
-camera. Every other board keeps the still of every four seconds above. A map, an image entity and the screensaver stay
+camera. Every other board shows the stills above, one as soon as the last is in. A map, an image entity and the screensaver stay
 stills on a P4 too.
 
 **How it travels.** The screen asks for the camera as for a still, with one key more: `live`, the room below its top

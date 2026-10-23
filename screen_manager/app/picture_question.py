@@ -23,8 +23,10 @@ LARGE_BYTES = 4 * 1024 * 1024
 # The most places one question may have: a page of an older screen's tiles (64), a plugin's card (8, MAX_PARTS).
 MAX_PLACES = 64
 # The formats a screen's decoder may take, best first in what it names: an 8-bit BMP on the picture's own palette
-# (firmware 0.3.3+), a 24-bit BMP (every screen), a baseline JPEG (the hardware decoder of an ESP32-P4).
-FORMATS = ('bmp8', 'bmp24', 'jpeg')
+# (firmware 0.3.3+), a 16-bit RGB565 BMP (firmware 0.49.0+ decodes it; asked for by the camera's full view from firmware
+# 0.61.0), a 24-bit BMP (every screen), a baseline JPEG (the hardware decoder of an ESP32-P4). A format an older app does
+# not know is left out of the question, so it answers with the next one the screen named.
+FORMATS = ('bmp8', 'bmp16', 'bmp24', 'jpeg')
 # How a picture fills its place: `cover` cuts it to the place, `contain` shows it whole on black, `within` whole on
 # what lies under the place (its ground), `whole` whole on its own colour darkened, `auto` fills when the picture is about
 # the place's shape and shows it `whole` otherwise (the photos of the screensaver), `shrink` sends the picture at its own
