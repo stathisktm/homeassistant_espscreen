@@ -69,6 +69,21 @@ async function install() {
   try { await inv.installClaudeSkill(); } finally { installing.value = false; }
 }
 
+// Video in Home Assistant: the tessera_video integration, installed on request, then loaded by a restart of Home
+// Assistant; the app adds the screens with Screen camera's part Video to it by itself (screen_video.py).
+const video = computed(() => inv.inventory.video);
+const videoBusy = ref(false);
+const videoWaitsRestart = computed(() => !!video.value?.installed && (!video.value.loaded || video.value.loaded !== video.value.version));
+async function installVideo() {
+  videoBusy.value = true;
+  try { await inv.installVideo(); } finally { videoBusy.value = false; }
+}
+async function restartForVideo() {
+  if (!(await confirm(t("editor.settings.video.restart_confirm"), { confirm: t("editor.settings.video.restart") }))) return;
+  videoBusy.value = true;
+  try { await inv.restartForVideo(); } finally { videoBusy.value = false; }
+}
+
 // ---- Language & region (app 0.2.90): one place for every screen ----
 // The screen language ("auto" is Home Assistant's), the time format and the number format. An add-on without them
 // shows no card.
@@ -201,6 +216,25 @@ const useProfile = () => whileSaving(() => region.saveLanguage(different.value))
         <div class="tools">
           <button type="button" class="tool" @click="ui.go('#alerts')"><span class="tool-icon">!</span><span class="tx"><b>{{ t("editor.nav.alerts") }}</b><small>{{ t("editor.settings.alerts.detail") }}</small></span></button>
         </div>
+      </section>
+      <section v-if="inv.pluginsEnabled" class="card" id="video">
+        <h2>{{ t("editor.settings.video.title") }}</h2>
+        <p>{{ t("editor.settings.video.text") }}</p>
+        <div class="actions">
+          <button type="button" id="video-install" class="btn" :class="video?.installed && video.current ? 'quiet' : 'primary'" :disabled="!video || videoBusy" @click="installVideo">
+            {{ !video || !video.installed ? t("editor.settings.video.install") : video.current ? t("editor.settings.video.install_again") : t("editor.settings.video.update") }}
+          </button>
+          <button v-if="videoWaitsRestart" type="button" id="video-restart" class="btn primary" :disabled="videoBusy" @click="restartForVideo">
+            {{ t("editor.settings.video.restart") }}
+          </button>
+          <span id="video-status" class="chip" :class="!video ? '' : !video.installed ? '' : !video.current ? 'update' : videoWaitsRestart ? 'update' : 'good'" role="status">
+            {{ !video ? t("editor.common.loading") : !video.installed ? t("editor.settings.claude.not_installed") : !video.current ? t("editor.settings.video.newer") : videoWaitsRestart ? t("editor.settings.video.waits_restart") : t("editor.settings.video.running") }}
+          </span>
+        </div>
+        <small id="video-screens">{{ video?.screens.length ? t("editor.settings.video.screens", { names: video.screens.join(", ") }) : t("editor.settings.video.no_screens") }}</small>
+        <i18n-t keypath="editor.settings.video.writes" tag="small" scope="global">
+          <template #path><code id="video-path">{{ video?.path || "/homeassistant/custom_components/tessera_video" }}</code></template>
+        </i18n-t>
       </section>
       <section class="card" id="claude">
         <h2>Claude</h2>

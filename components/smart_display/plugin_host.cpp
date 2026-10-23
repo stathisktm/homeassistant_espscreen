@@ -463,9 +463,17 @@ static bool tone_color(Tone tone, uint32_t &color) {
 }
 
 void refresh() {
+  bool marked = false;
   for (auto &w : rt::widgets)
-    if (w.plugin && w.index < rt::model.count) rt::mark_tile(w.index);
-  if (rt::refresh) rt::refresh();
+    if (w.plugin && w.index < rt::model.count) {
+      rt::mark_tile(w.index);
+      marked = true;
+    }
+  // No plugin tile on the glass (a plugin with only a top bar item or a popup, or its tiles on other pages): the top
+  // bar alone. A render that has nothing marked draws everything (mark_all), which also puts every kept page behind,
+  // and each of them was then freshened in turn.
+  if (marked && rt::refresh) rt::refresh();
+  else if (!marked) rt::refresh_header_only();
 }
 
 // The screen wakes as Home Assistant's Wake button does (0.16): packages/core.yaml points plugin_host::wake at the

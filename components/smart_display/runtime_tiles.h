@@ -61,6 +61,10 @@
 #include "energy_view.h"
 #include "calendar_view.h"
 #include "meter_view.h"
+#include "module_vacuum_tile.h"
+#ifdef SD_MOD_DOORBELL
+#include "module_doorbell.h"
+#endif
 #include "plugin_api.h"
 #include "plugin_host.h"
 #include "screen_hooks.h"
@@ -614,6 +618,10 @@ struct Widgets {
   calendar_view::View *calendar{};
   // A sensor's meter (firmware 0.56.0+, meter_view.cpp); it goes with the card's extra layer.
   meter_view::View *meter{};
+#ifdef SD_MOD_VACUUM_CARD
+  // A robot vacuum's larger tile (module_vacuum_tile.cpp); it goes with the card's extra layer.
+  vacuum_face::View *vacuum_face{};
+#endif
   // A plugin tile's card (docs/PLUGINS.md, plugin_host.cpp): the plugin's object; it goes with the card's extra layer.
   plugin_host::Card *plugin{};
 };
@@ -6060,6 +6068,10 @@ inline void event(lv_event_t *event) {
   if(tile.favorite()&&!held&&tile.tap=="auto"){favorite_tap(w.index);return;}
   // A room's calendar card books on its keys (calendar_view.cpp); the rest of the card opens its full screen.
   if(d=="calendar"&&!held&&calendar_view::card_tap(w,tile))return;
+#ifdef SD_MOD_VACUUM_CARD
+  // A robot's larger tile acts on its own parts (its keys, rooms, routines, mode); the rest of it opens its card.
+  if(d=="vacuum"&&!held&&w.vacuum_face&&vacuum_face::card_tap(w,tile))return;
+#endif
   // tile_controls::tap_route decides; tests/test_tile_controls.cpp keeps every older tap choice routed as before.
   auto tap = tile_controls::tap_route(tile, code == LV_EVENT_LONG_PRESSED);
   switch (tap.route) {
@@ -6427,6 +6439,9 @@ inline void end_extra(Widgets &w) {
     if(w.energy)energy_view::release(w);
     if(w.calendar)calendar_view::release(w);
     if(w.meter)meter_view::release(w);
+#ifdef SD_MOD_VACUUM_CARD
+    if(w.vacuum_face)vacuum_face::release(w);
+#endif
     if(w.plugin)plugin_host::release(w);
     lv_obj_clean(w.extra);w.parts.fill(nullptr);w.extra_mode.clear();free_points(w.points);}
 }
@@ -8817,7 +8832,13 @@ inline void render_slot(size_t slot) {
   bool meter=t.is_meter() && !w.key;
   // A plugin's tile (docs/PLUGINS.md) draws itself too, when this screen has its plugin; else it is a plain card.
   bool plugin=t.is_plugin() && plugin_host::known(t);
-  bool custom=clock||forecast||sunpath||bedside||energy||plugin||calendar||meter;
+#ifdef SD_MOD_VACUUM_CARD
+  // A robot's larger tile (docs/VACUUM.md, "A larger tile"): a map, rooms or routines with its keys, on a tall card.
+  bool vacuum=d=="vacuum" && !w.key && vacuum_face::shows(t);
+#else
+  constexpr bool vacuum=false;
+#endif
+  bool custom=clock||forecast||sunpath||bedside||energy||plugin||calendar||meter||vacuum;
   if(!large_tile)pad_vertical(w.tile,watch||custom||graph?2:4);
   // A big value that stepped up to the setpoint's digits (the watch block below) keeps them until that block
   // decides again, so a card is not restyled twice a render.
@@ -8869,6 +8890,14 @@ inline void render_slot(size_t slot) {
     lap(swipe_profile::GEOMETRY);
     meter_view::render(w,t,content_w,content_h);
     lap(swipe_profile::CUSTOM);
+#ifdef SD_MOD_VACUUM_CARD
+  }else if(vacuum){
+    lv_obj_add_flag(w.slider,LV_OBJ_FLAG_HIDDEN);hide_panel(w);lv_obj_add_flag(w.progress,LV_OBJ_FLAG_HIDDEN);
+    if(w.picture)lv_obj_add_flag(w.picture,LV_OBJ_FLAG_HIDDEN);
+    lap(swipe_profile::GEOMETRY);
+    vacuum_face::render(w,t,content_w,content_h);
+    lap(swipe_profile::CUSTOM);
+#endif
   }else if(plugin){
     lv_obj_add_flag(w.slider,LV_OBJ_FLAG_HIDDEN);hide_panel(w);lv_obj_add_flag(w.progress,LV_OBJ_FLAG_HIDDEN);
     if(w.picture)lv_obj_add_flag(w.picture,LV_OBJ_FLAG_HIDDEN);
@@ -9159,17 +9188,19 @@ inline void render_slot(size_t slot) {
 // such as the minute tick and time sync) draws every card.
 inline TileSet dirty_tiles;
 inline bool dirty_all=false, dirty_header=false;
-// The minute turned or a display setting changed (packages/core.yaml says so before its refresh): every card on the
-// glass is drawn, as for a refresh that names nothing, and on a kept page the cards that show the time (firmware 0.3.2+).
+// A display setting changed (packages/core.yaml says so before its refresh): every card on the glass is drawn, as for a
+// refresh that names nothing, and on a kept page the cards that show the time (firmware 0.3.2+). The minute turning is
+// mark_minute: only the cards that show the time.
 inline bool dirty_time=false;
 // A card whose text or drawing moves on with the clock: a clock, a timer, the sun's arc, a graph's window, a playing
-// track's bar, "5 min ago" under a script or a scene, and a second line that names a moment. A forecast changes with
-// its entity, which Home Assistant updates on its own.
+// track's bar, "5 min ago" under a script or a scene, a second line that names a moment, and a calendar's now and
+// minutes left. A forecast changes with its entity, which Home Assistant updates on its own; its today and its hours'
+// window follow the clock once an hour (mark_minute).
 inline bool shows_time(const Tile &t) {
   const std::string d=t.domain();
   return t.is_clock() || t.is_bedside() || t.display=="graph" || t.extra().subtitle_at || d=="timer" || d=="sun" ||
          (d=="media_player" && media_card::playing(t.state)) ||
-         d=="script" || d=="scene" || d=="button" || d=="input_button" || d=="automation";
+         d=="script" || d=="scene" || d=="button" || d=="input_button" || d=="automation" || d=="calendar";
 }
 inline void mark_time() {
   dirty_time=true;
@@ -9183,6 +9214,15 @@ inline void mark_all() { dirty_all=true; changes.mark_all(); }
 inline void mark_tile(size_t index) { changes.mark_tile(index); if(index<dirty_tiles.size())dirty_tiles.set(index); else dirty_all=true; }
 inline void refresh_tile(size_t index) { mark_tile(index); if(refresh)refresh(); }
 inline void refresh_header_only() { dirty_header=true; if(refresh)refresh(); }
+// The minute turned, or Home Assistant set the clock: the top bar's clock and the cards that show the time, on the glass
+// now and on a kept page when it comes back. Not every card: on a 10-inch that redrew the whole glass twice a minute
+// (200 ms each), and a sound that played meanwhile stuttered.
+inline void mark_minute() {
+  dirty_header=true;
+  const bool hour=minute_of_day()%60==0;
+  for(size_t i=0;i<model.count;++i)
+    if(shows_time(model.tiles[i]) || (hour && model.tiles[i].domain()=="weather"))mark_tile(i);
+}
 inline void refresh_all() { mark_all(); if(refresh)refresh(); }
 // The starting screen (firmware 0.2.73+): what the screen waits for in the middle of the page with a spinner under it,
 // until the first layout arrives. The first render() makes it and the first layout deletes it, spinner and all.
@@ -9688,8 +9728,8 @@ inline void render(lv_obj_t *room) {
   name_label(room, !model.configured ? std::string() : !model.ready() ? tr(txt::status_loading_tiles) : !ha_connected() ? tr(txt::status_ha_not_connected) : !feed_alive() ? tr(txt::status_manager_not_active) : model.title_of(applied_page));
   render_header();
   lap(swipe_profile::HEADER);
-  // A refresh that names nothing draws every card (and counts as a change of everything); the minute tick says it is
-  // only the time (dirty_time).
+  // A refresh that names nothing draws every card (and counts as a change of everything); a changed display setting
+  // says it is only the look and the time (dirty_time), the minute marks its own cards (mark_minute).
   if(!dirty_all && dirty_tiles.none() && !dirty_header && !dirty_time)mark_all();
   const bool all=dirty_all || dirty_time;
   const uint32_t upto=changes.last;  // every change asked for so far is drawn below, for the cards on the glass
@@ -9786,6 +9826,13 @@ inline void render_header() {
   // an unavailable entity opens nothing, as its tile does.
   header_renderer.on_item([](size_t item) {
     const auto *bar = shown_bar();
+#ifdef SD_MOD_DOORBELL
+    // A missed ring (module doorbell) opens that ring's view again.
+    if (bar && item < bar->count && bar->items[item].card == header_bar::DOORBELL_CARD) {
+      if (allowed(esphome::millis(), 14, "header doorbell")) doorbell::reopen();
+      return;
+    }
+#endif
     if (!bar || item >= bar->count || bar->items[item].card >= model.count || !fresh()) return;
     const auto &tile = model.tiles[bar->items[item].card];
     if (!tile.received || !tile.available() || !allowed(esphome::millis(), 14, "header item")) return;
@@ -10312,6 +10359,9 @@ inline void drop_card(Widgets &w) {
   if (w.energy) energy_view::release(w);
   if (w.calendar) calendar_view::release(w);
   if (w.meter) meter_view::release(w);
+#ifdef SD_MOD_VACUUM_CARD
+  if (w.vacuum_face) vacuum_face::release(w);
+#endif
   if (w.plugin) plugin_host::release(w);
   if (captured_slider && (captured_slider == w.slider || captured_slider == w.control_slider)) { captured_slider = nullptr; slider_changed = false; }
   if (w.tile) lv_obj_delete(w.tile);
@@ -10383,6 +10433,15 @@ inline unsigned kept_count() { return (unsigned) shelf.pages(); }
 // that next shows a tile without custom parts only hides them (hide_extra, made for paging a slot back and forth), so
 // over a few layouts every kept card held a hidden one, and on a 4-inch Guition two pages added and taken away took
 // the memory inside the chip from 49 to 20 KB until layouts were refused (2026-10-13). The card itself stays.
+// The picture a card's own face draws beside its picture object (a robot's map on its larger tile), for the store's count.
+inline lv_obj_t *face_picture(const Widgets &w) {
+#ifdef SD_MOD_VACUUM_CARD
+  return vacuum_face::picture(w);
+#else
+  (void) w;
+  return nullptr;
+#endif
+}
 inline void forget_kept() {
   shelf.forget();
   for (auto *set : kept_sets) if (set) for (auto &w : *set) {
@@ -10392,7 +10451,7 @@ inline void forget_kept() {
     // Their pictures go with what they showed: a picture object still pointing at a copy counts as drawing it, and the
     // store frees nothing a card draws, so the old layout's pictures stayed beside the new ones until the set showed
     // another page (GitHub #183). The cards are drawn anew with their own.
-    for (lv_obj_t *picture : {w.picture, w.extra_mode == "media" ? w.parts[MEDIA_PICTURE] : nullptr})
+    for (lv_obj_t *picture : {w.picture, w.extra_mode == "media" ? w.parts[MEDIA_PICTURE] : nullptr, face_picture(w)})
       if (picture) { lv_image_set_src(picture, nullptr); lv_obj_add_flag(picture, LV_OBJ_FLAG_HIDDEN); }
     plugin_host::picture_let_go(w, nullptr);
     w.cover_shown.clear();
@@ -10490,8 +10549,11 @@ inline bool warm_page(int page) {
   }
   warming = false;
   lv_display_enable_invalidation(display, true);
-  // The page bar was set for the other page and back: drawn again, the rest of the glass never changed.
-  if (nav_prev && lv_obj_get_parent(nav_prev)) lv_obj_invalidate(lv_obj_get_parent(nav_prev));
+  // The page bar was set for the other page and back: drawn again, the rest of the glass never changed. Its own keys,
+  // never their parent: that is the whole screen, and a freshen drew the whole glass again each time (300 ms on a
+  // 10-inch, and the sound that played meanwhile stuttered).
+  for (lv_obj_t *part : {nav_prev, nav_next, nav_number})
+    if (part) lv_obj_invalidate(part);
   return visit.entry != kept_pages::NONE;
 }
 // The next page to work on: first one that is neither on the glass nor kept (while there is room to keep it), then,
@@ -10949,6 +11011,32 @@ constexpr uint8_t ALERT_IMAGE_RETRIES = 3;
 
 inline bool camera_supported() { return static_cast<bool>(camera_full.load); }
 inline bool camera_visible() { return camera_root != nullptr; }
+// A ring's view keeps the screen from standby (module doorbell, packages/core.yaml's standby interval); lite has none.
+inline bool doorbell_holds() {
+#ifdef SD_MOD_DOORBELL
+  return doorbell::holds();
+#else
+  return false;
+#endif
+}
+// Its bindings, for the YAML of every board: a lambda that holds a ${...} cannot hold an #ifdef (ESPHome reads it as a
+// template), so these take the module's place there. How a ring ended goes to ESP Screens (packages/core.yaml); the chime
+// plays on `speaker` and `enabled` reads the switch Doorbell under Extras (features/audio-player.yaml).
+inline void doorbell_reports(std::function<void(const std::string &, const std::string &)> report) {
+#ifdef SD_MOD_DOORBELL
+  doorbell::report = std::move(report);
+#else
+  (void) report;
+#endif
+}
+template<class Speaker> inline void doorbell_audio(Speaker *speaker, std::function<bool()> enabled) {
+#ifdef SD_MOD_DOORBELL
+  doorbell::bind_speaker(speaker);
+  doorbell::enabled = std::move(enabled);
+#else
+  (void) speaker; (void) enabled;
+#endif
+}
 
 // ---- Pictures kept until they change (firmware 0.3.2+, picture_store.h) ----
 // On a board with PSRAM every picture a card draws (a page's strip, an album cover) is the store's own copy, never the
@@ -10998,7 +11086,7 @@ inline bool picture_shown(const lv_image_dsc_t *image) {
 #if LV_USE_IMAGE
   bool shown = false;
   auto on = [&](lv_obj_t *obj) { if (draws(obj, image)) shown = true; };
-  each_card([&](Widgets &w) { on(w.picture); if (w.extra_mode == "media") on(w.parts[MEDIA_PICTURE]); if (plugin_host::picture_draws(w, image)) shown = true; });
+  each_card([&](Widgets &w) { on(w.picture); if (w.extra_mode == "media") on(w.parts[MEDIA_PICTURE]); if (plugin_host::picture_draws(w, image)) shown = true; on(face_picture(w)); });
   on(media_detail_picture);
   on(camera_picture);
   on(alert_picture);
@@ -11016,7 +11104,7 @@ inline bool picture_shown(const lv_image_dsc_t *image) {
 // it may make way (picture_store::collect), and its page asks for it again when it comes back.
 inline bool picture_away(const lv_image_dsc_t *image) {
 #if LV_USE_IMAGE
-  const auto drawn = [&](Widgets &w) { return draws(w.picture, image) || (w.extra_mode == "media" && draws(w.parts[MEDIA_PICTURE], image)) || plugin_host::picture_draws(w, image); };
+  const auto drawn = [&](Widgets &w) { return draws(w.picture, image) || (w.extra_mode == "media" && draws(w.parts[MEDIA_PICTURE], image)) || plugin_host::picture_draws(w, image) || draws(face_picture(w), image); };
   for (auto &w : widgets) if (drawn(w)) return false;
   if (draws(media_detail_picture, image) || draws(camera_picture, image) || draws(alert_picture, image) || media_library::draws(image) ||
       plugin_host::card_draws(image))
@@ -11037,7 +11125,7 @@ inline void picture_let_go(const lv_image_dsc_t *image) {
 #if LV_USE_IMAGE
   for (auto *set : kept_sets) if (set) for (auto &w : *set) {
     bool took = false;
-    for (lv_obj_t *picture : {w.picture, w.extra_mode == "media" ? w.parts[MEDIA_PICTURE] : nullptr})
+    for (lv_obj_t *picture : {w.picture, w.extra_mode == "media" ? w.parts[MEDIA_PICTURE] : nullptr, face_picture(w)})
       if (draws(picture, image)) { lv_image_set_src(picture, nullptr); lv_obj_add_flag(picture, LV_OBJ_FLAG_HIDDEN); took = true; }
     if (plugin_host::picture_let_go(w, image)) took = true;
     if (!took) continue;
@@ -11250,6 +11338,21 @@ inline bool card_open() { return detail_shown() || colour_shown() || effects_pag
 inline bool tile_ask(const Widgets &w, const Tile &t, tile_picture::Ask &a) {
   // A plugin tile's places (plugin API 0.10): its parts, measured by the host.
   if (w.plugin) return plugin_host::picture_ask(w, t, a);
+#ifdef SD_MOD_VACUUM_CARD
+  // A robot's map on its larger tile: the map's place, on the frame's colour, drawn by the app from the robot's map.
+  if (vacuum_face::picture(w)) {
+    int x, y, width, height;
+    if (!t.pictured() || !vacuum_face::map_place(w, x, y, width, height) || width <= 0 || height <= 0) return false;
+    a.frame = tile_picture::frame(width, height, 0, 0, theme::hex(theme::TRACK), theme::hex(theme::TRACK), picture_cap());
+    a.index = w.index;
+    a.entity = t.entity;
+    a.mark = t.extra().vacuum ? t.extra().vacuum->map_mark : std::string();
+    a.dark = theme::dark;
+    a.drawn = true;
+    a.source = picture_question::vacuum_source(t.entity);
+    return true;
+  }
+#endif
   if (!w.tile || !w.circle || !t.pictured()) return false;
   const bool art = card_art(t);
   lv_obj_t *place = art ? w.tile : w.circle;
@@ -11306,6 +11409,9 @@ inline bool tile_picture_waiting(const Widgets &w, const Tile &t) {
 // track's cover, a map before someone moved) until the next is here.
 inline void tile_picture_place(Widgets &w, const Tile &t, int size, int x, int y) {
   w.art_size = size; w.art_x = x; w.art_y = y;
+#ifdef SD_MOD_VACUUM_CARD
+  if (vacuum_face::picture(w)) { vacuum_face::picture_place(w, t); return; }
+#endif
   // A plugin tile's picture is an atlas of its places' pieces (plugin API 0.10): the host lays each on its place.
   if (w.plugin) {
     const bool its = tile_picture::belongs(w.art_key, w.index, t.entity);
@@ -11432,11 +11538,12 @@ inline void tile_pictures_letgo() {
   if (!download) return;
   each_card([&](Widgets &w) {
     bool took = plugin_host::picture_let_go(w, download);
-    if (draws(w.picture, download)) {
-      lv_image_set_src(w.picture, nullptr);
-      lv_obj_add_flag(w.picture, LV_OBJ_FLAG_HIDDEN);
-      took = true;
-    }
+    for (lv_obj_t *picture : {w.picture, face_picture(w)})
+      if (draws(picture, download)) {
+        lv_image_set_src(picture, nullptr);
+        lv_obj_add_flag(picture, LV_OBJ_FLAG_HIDDEN);
+        took = true;
+      }
     if (took && w.index < model.count) refresh_tile(w.index);
   });
 #endif
@@ -11493,6 +11600,10 @@ inline bool drawn_over(lv_obj_t *owner, int x, int y, int w, int h) {
 }
 // The room below the top bar: the back key and the name stay LVGL's, on the view's black, never over the picture.
 inline live_view::Rect live_area() {
+#ifdef SD_MOD_DOORBELL
+  // A ring's view (module doorbell): the room beside or above its keys.
+  if (doorbell::shown()) return doorbell::area();
+#endif
   const int top = detail_bar::bottom();
   return {0, top, overlay_card::screen_width(), overlay_card::screen_height() - top};
 }
@@ -11511,12 +11622,18 @@ inline bool camera_muted = false;
 inline lv_obj_t *camera_sound_key = nullptr;
 inline lv_obj_t *view_key(lv_obj_t *parent, int size, const char *glyph, bool over_map);
 inline void camera_sound_glyph() {
+#ifdef SD_MOD_DOORBELL
+  if (doorbell::shown()) { doorbell::sound_changed(); return; }
+#endif
   if (!camera_sound_key) return;
   lv_label_set_text(lv_obj_get_child(camera_sound_key, 0), camera_muted ? "\U000F0581" : "\U000F057E");  // volume-off, -high
 }
 // The key at the right of the view's top bar, once the camera's sound comes (Event::SOUND): a tap mutes it or lets it in.
 inline void camera_sound_show() {
   if (!camera_root || camera_sound_key) return;
+#ifdef SD_MOD_DOORBELL
+  if (doorbell::shown()) return;  // a ring's view has its sound key from the start
+#endif
   const auto slot = detail_bar::right_slot(camera_root);
   camera_sound_key = view_key(camera_root, slot.h, camera_muted ? "\U000F0581" : "\U000F057E", false);
   lv_obj_set_pos(camera_sound_key, slot.x, slot.y);
@@ -11546,6 +11663,10 @@ inline void camera_warm(bool on) {
     if (!camera_warm_spinner) return;
     lv_obj_set_style_arc_color(camera_warm_spinner, theme::color(theme::CAMERA_TRACK), LV_PART_MAIN);
   }
+#ifdef SD_MOD_DOORBELL
+  // A ring's view has its close key at the edge: the spinner turns beside it.
+  if (doorbell::shown()) { doorbell::spinner_place(camera_warm_spinner, size); lv_obj_remove_flag(camera_warm_spinner, LV_OBJ_FLAG_HIDDEN); return; }
+#endif
   const auto slot = detail_bar::right_slot(camera_root);
   lv_obj_set_pos(camera_warm_spinner, slot.x + (slot.w - size) / 2, slot.y + (slot.h - size) / 2);
   lv_obj_remove_flag(camera_warm_spinner, LV_OBJ_FLAG_HIDDEN);
@@ -11995,9 +12116,14 @@ inline void camera_request(const std::string &entity, int size, uint32_t backgro
     return;
   }
   // The whole glass, within the board's cap (picture_cap, GitHub #183): a board with the memory gets its own pixels.
-  const int scale = picture_store::fit_scale(overlay_card::screen_width(), overlay_card::screen_height(), cap);
-  q.w = place.w = std::max(1, picture_store::scaled(overlay_card::screen_width(), scale));
-  q.h = place.h = std::max(1, picture_store::scaled(overlay_card::screen_height(), scale));
+  int glass_w = overlay_card::screen_width(), glass_h = overlay_card::screen_height();
+#ifdef SD_MOD_DOORBELL
+  // A ring's picture fills the room beside its keys.
+  if (doorbell::shown() && camera_map_index < 0 && !saver_camera) { glass_w = doorbell::area().w; glass_h = doorbell::area().h; }
+#endif
+  const int scale = picture_store::fit_scale(glass_w, glass_h, cap);
+  q.w = place.w = std::max(1, picture_store::scaled(glass_w, scale));
+  q.h = place.h = std::max(1, picture_store::scaled(glass_h, scale));
   const char *kind = "full";
   if (saver_camera) {
     // The screensaver's picture: the player's cover over the glass, a camera, or the photo of the photos step, darkened
@@ -12061,6 +12187,9 @@ inline void camera_release() {
 
 inline void camera_close() {
   if (!camera_root) return;
+#ifdef SD_MOD_DOORBELL
+  doorbell::closing();  // a ring's view says how it ended
+#endif
   // A live picture stops first: nothing of it writes the glass once LVGL draws the page there again.
   live_view::close(camera.live_handle);
   lv_obj_delete(camera_root);
@@ -12296,6 +12425,16 @@ inline void camera_open(const std::string &entity, const std::string &name, int 
     lv_obj_set_style_arc_color(camera_spinner, theme::color(on_page ? theme::TRACK : theme::CAMERA_TRACK), LV_PART_MAIN);
     lv_obj_center(camera_spinner);
   }
+#ifdef SD_MOD_DOORBELL
+  // A ring (module doorbell): the doorbell's own header and keys instead of the back key and the name.
+  if (doorbell::shown()) {
+    doorbell::build(camera_root, name);
+    camera_name = name;
+    ESP_LOGI("camera", "open %s for a ring", entity.c_str());
+    pictures_round();
+    return;
+  }
+#endif
   // The top bar of every page a tap opens (detail_bar), its back key dark over a map.
   const auto home = detail_bar::back_slot(camera_root);
   const int bar = home.h, bar_y = home.y;
@@ -12359,6 +12498,9 @@ inline void camera_open(const std::string &entity, const std::string &name, int 
 // The board's interval (250 ms): the store lets go of what no card draws, every picture says what it wants and the
 // loader asks, loads and breaks off (pictures_round), and the screensaver follows.
 inline void camera_tick() {
+#ifdef SD_MOD_DOORBELL
+  doorbell::tick(esphome::millis());  // its chime, how long ago it rang, the close of a ring nobody answered
+#endif
   pictures_collect();  // copies no card shows any more, and the oldest over the budget
   live_tiles_round();
   pictures_round();
@@ -12545,6 +12687,9 @@ inline void view_done(picture_loader::Outcome outcome) {
     saver_words();
   } else if (first && camera_picture) {
     camera_note_text("");
+#ifdef SD_MOD_DOORBELL
+    if (doorbell::shown()) doorbell::picture_shown(camera_picture);
+#endif
     if (camera_back) lv_obj_move_foreground(camera_back);
     lv_obj_move_foreground(camera_title);
     // A map's card (firmware 0.21.0+) may have come before its first picture: it lies over the map as the bar does.

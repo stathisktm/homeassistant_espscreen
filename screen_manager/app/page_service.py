@@ -7,7 +7,8 @@ it does not import the server or keep another copy of a page document.
 import time
 import picture_question
 import page_delivery
-from core import bar_cards, bar_entities, plugin_tile, BAR_CARDS_FEATURE, BUILTIN, FIRMWARE_MAX_TILES, CAMERA_DOMAINS, FREE_PAGES_MIN_FIRMWARE, board_of, firmware_features, page_target, sizes_on, state_message, version_text
+from doorbell import FEATURE as DOORBELL_FEATURE, with_missed
+from core import bar_cards, bar_entities, plugin_tile, BAR_CARDS_FEATURE, HEADER_MAX_ITEMS, BUILTIN, FIRMWARE_MAX_TILES, CAMERA_DOMAINS, FREE_PAGES_MIN_FIRMWARE, board_of, firmware_features, page_target, sizes_on, state_message, version_text
 from i18n import t, shown, english
 from page_layout import (FORMAT as PAGE_FORMAT, LayoutError, bar_items, compile_tiles,
                          grid_of_record, grown, legacy_projection, screen_grid_of_record, validate_document)
@@ -201,8 +202,11 @@ async def sync_pages(manager, inbox, record, screen, dirty=None, force=False, co
         values.append(cached['values'][i] if reuse else await manager.tile_message(i, tile, lamps=lamps, features=features, inbox=inbox))
     # Each entity's item names the tile whose card it opens, to a screen that takes cards from its top bar.
     cards = bar_cards(tiles) if BAR_CARDS_FEATURE in features else None
-    bars = [cached['bars'][i] if not full and dirty.isdisjoint(dependencies[i]) else
-            manager.header_message({'header': {'items': bar_items(page)}}, features, cards)['items'] for i, page in enumerate(record['layout']['pages'])]
+    # A doorbell's missed ring (docs/DOORBELL.md) first in every page's bar, for a screen that draws doorbells.
+    missed = manager.doorbells.bar_item() if DOORBELL_FEATURE in features and hasattr(manager, 'doorbells') else None
+    bars = [cached['bars'][i] if not full and dirty.isdisjoint(dependencies[i]) and cached.get('missed') == missed else
+            with_missed(manager.header_message({'header': {'items': bar_items(page)}}, features, cards)['items'], missed, HEADER_MAX_ITEMS)
+            for i, page in enumerate(record['layout']['pages'])]
     expected = record['revision']
     def current():
         saved = manager.store.get(inbox)
@@ -227,7 +231,7 @@ async def sync_pages(manager, inbox, record, screen, dirty=None, force=False, co
         return True
     manager.sent[inbox] = {'protocol': 2, 'rev': rev, 'saved_revision': expected}
     manager.page_values[inbox] = {'revision': expected, 'context': context, 'dependencies': dependencies, 'values': values, 'bars': bars,
-                                  'lamps': lamps, 'features': features, 'bar': bar}
+                                  'lamps': lamps, 'features': features, 'bar': bar, 'missed': missed}
     # The hello of this delivery told us the screen takes lamps, or anything else new: the next round sends them.
     if getattr(sender, 'group_lamps', False) != lamps or frozenset(getattr(sender, 'features', ()) or ()) != features:
         manager.ha.changed.set()

@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 import math
 from urllib.parse import urlsplit
 import calendar_feed
+import doorbell
 import durations
 import picture_legacy
 import picture_links
@@ -25,11 +26,13 @@ import picture_service
 import picture_sources
 import live_feed
 import claude_skill
+import screen_video
 import screen_hang
 import screen_labels
 import screen_saver
 import saver_photos
 import feedback
+import reports
 import build_server
 from build_queue import BuildQueue
 from firmware import Firmware
@@ -242,6 +245,9 @@ class HomeAssistant:
         self.broadcasts = asyncio.Queue()
         # (event type, data) of tile events (app 0.2.51+), for Manager.tile_loop.
         self.tile_events = asyncio.Queue()
+        # ('ring', state_changed body) of a doorbell that rang and ('report', data) of a screen's report of a ring
+        # (docs/DOORBELL.md), for Manager.doorbell_loop.
+        self.doorbell_events = asyncio.Queue()
         # ESPHome actions that can answer (`esphome.<node>_screen_message` of firmware 0.2.49+), from Home
         # Assistant's own list; refreshed when a device registers its actions again.
         self.responses = set()
@@ -325,6 +331,9 @@ class HomeAssistant:
                         self.states.pop(eid, None)
                     # Unsaved/virtual previews also follow entities not used by a physical screen.
                     self.state_events.notify(eid)
+                    # A doorbell rang (an event entity of the doorbell class, its event type ring): its camera opens on the screens.
+                    if doorbell.rang(body):
+                        self.doorbell_events.put_nowait(('ring', body))
                     if self.relevant is None or eid in self.relevant:
                         self.dirty.add(eid)
                         self.changed.set()
@@ -347,6 +356,8 @@ class HomeAssistant:
                     self.broadcasts.put_nowait((event['event_type'], body))
                 elif event.get('event_type') in TILE_EVENTS:
                     self.tile_events.put_nowait((event['event_type'], body))
+                elif event.get('event_type') == doorbell.EVENT:
+                    self.doorbell_events.put_nowait(('report', body))
         raise ConnectionError('Home Assistant connection lost.')
 
     def describe_close(self, connected):
@@ -594,7 +605,7 @@ class HomeAssistant:
                     await self.request('subscribe_events', event_type=media_library.PLAY_EVENT)
                     await self.request('subscribe_events', event_type=speakers.SPEAKER_EVENT)
                     await self.request('subscribe_events', event_type='repairs_issue_registry_updated')
-                    for event_type in (*REGISTRY_EVENTS, *BROADCAST_EVENTS, ALERT_EVENT, *TILE_EVENTS, *SERVICE_EVENTS):
+                    for event_type in (*REGISTRY_EVENTS, *BROADCAST_EVENTS, ALERT_EVENT, *TILE_EVENTS, *SERVICE_EVENTS, doorbell.EVENT):
                         await self.request('subscribe_events', event_type=event_type)
                     self.states = {s['entity_id']: s for s in await self.request('get_states')}
                     await self.registries()
@@ -978,6 +989,9 @@ class Manager:
         self.updates = Updater(self, self.path.parent / 'updates.json')
         # Does this screen work as you expect? One shared answer per board, with its own key (app 0.3.10).
         self.feedback = feedback.Feedback(self.path.parent / 'feedback.json')
+        # My screen doesn't work right (app 0.4.91, reports.py): one troubleshooting report per screen, and the crashes
+        # the app saw each screen reboot from.
+        self.reports = reports.Reports(self, self.path.parent)
         # The names the editor shows instead of Home Assistant's (app 0.4.2).
         self.labels = screen_labels.ScreenLabels(self.path.parent / 'screen-labels.json')
         # Which way each screen is to hang, as the editor chose beside the mockup (app 0.4.85, firmware 0.53.0+).
@@ -1003,6 +1017,8 @@ class Manager:
         self._clock_resync = None
         self.set_screens()
         self.skill_dir = claude_skill.skill_dir()
+        # Video in Home Assistant (Settings): the tessera_video integration, installed only on request (screen_video.py).
+        self.videos = screen_video.Videos(screen_video.target())
         self._registry_source, self._registry_index = None, {}
         self._items_source, self._items = None, []
         self._screens_key, self._screens = None, []
@@ -1064,6 +1080,8 @@ class Manager:
         self.map_hits = {}
         # The action behind an alert's button (app 0.2.91): node -> (key, action, data) of the alert on that screen.
         self.alert_actions = {}
+        # The rings of doorbells and the last one nobody answered (doorbell.py, docs/DOORBELL.md).
+        self.doorbells = doorbell.Doorbells()
         self.store = LayoutStore(self.path, self.record_grid)
         # An app from before Language & region (app 0.2.90): its screens keep the 24 hours they show, until Home Assistant
         # says every screen's own clock setting was 12 hours (resolve_clock_pin). A new install starts on Automatic, and
@@ -1509,6 +1527,26 @@ class Manager:
                 for meta in self.firmware.profile_names().values()
                 if meta.get('screen') and meta.get('node') and ha_pairing.usable_key(meta.get('api_key'))}
         await self.pairing.run(self.ha, ours, self.screens())
+
+    def video_status(self):
+        """Settings, Video in Home Assistant: the integration's copy in Home Assistant's folder, whether Home Assistant
+        runs it, and the screens with the video."""
+        wanted, _ = screen_video.video_screens(self.plugins, self.screens()) if core.plugins_enabled() else ({}, set())
+        return {**screen_video.status(self.videos.directory), 'loaded': self.videos.loaded,
+                'screens': sorted(wanted.values()), 'entries': self.videos.entries}
+
+    async def video_loop(self):
+        """An entry of tessera_video for each screen with the video, once Home Assistant runs the integration."""
+        while True:
+            await asyncio.sleep(screen_video.INTERVAL)
+            if not self.ha.online or not self.ha.registry or not core.plugins_enabled():
+                continue
+            try:
+                await self.videos.sync(self.ha, *screen_video.video_screens(self.plugins, self.screens()))
+            except (ClientError, ConnectionError, TimeoutError, OSError, ValueError, Refused) as error:
+                LOG.debug('Video in Home Assistant waits (%s)', type(error).__name__)
+            except Exception:   # a slip in one round never ends the app
+                LOG.exception('Video in Home Assistant failed this round')
 
     async def pairing_loop(self):
         """Adds the screens this app made to Home Assistant as soon as it finds them on the network, and lets them
@@ -2407,6 +2445,24 @@ class Manager:
             self._registry_source, self._registry_index = registry, {item['entity_id']: item for item in registry}
         return self._registry_index
 
+    def device_has(self, entity, what):
+        """Whether the device of `entity` has `what` a control may need of it (catalogue `needs: device`): a vacuum's map
+        (an image or camera entity on it) or its routines (buttons that run something)."""
+        if not entity.startswith('vacuum.'):
+            return True
+        device = self.device_entries(entity)
+        if what == 'map':
+            return vacuum_card.map_entity(entity, device, self.ha.states) is not None
+        if what == 'routines':
+            return bool(vacuum_card.routines(entity, device, self.ha.states, getattr(self.ha, 'state_words', None), self.device_name_of(entity)))
+        return True
+
+    def vacuum_block(self, entity, device=None):
+        """The `vc` block of a vacuum (vacuum_card.payload): its map, its rooms, its routines and why it stopped."""
+        return vacuum_card.payload(entity, self.ha.states, device if device is not None else self.device_entries(entity), self.registry_index(),
+                                   getattr(self.ha, 'areas', None), getattr(self.ha, 'floors', None), getattr(self.ha, 'state_words', None),
+                                   self.device_name_of(entity), lambda icon: tile_icons.GLYPHS.get(icon[4:]) if icon.startswith('mdi:') else None)
+
     def device_entries(self, entity):
         """Registry entries on the device of `entity` (itself included); the index follows the registry object."""
         registry = getattr(self.ha, 'registry', [])
@@ -2846,9 +2902,7 @@ class Manager:
             # The card of the module (vacuum_card.py): its map, its rooms, its routines and why it stopped, to a screen
             # that draws them (its hello says vacuum_card).
             if features is not None and vacuum_card.FEATURE in features:
-                card=vacuum_card.payload(tile['entity'],self.ha.states,device,self.registry_index(),getattr(self.ha,'areas',None),
-                                         getattr(self.ha,'floors',None),getattr(self.ha,'state_words',None),self.device_name_of(tile['entity']),
-                                         lambda icon: tile_icons.GLYPHS.get(icon[4:]) if icon.startswith('mdi:') else None)
+                card=self.vacuum_block(tile['entity'],device)
                 if card:
                     extra={**(extra or {}),'vc':card}
                     # The map read ahead, so the card that opens only waits for its own size (vacuum_map_warm).
@@ -3843,6 +3897,74 @@ class Manager:
             except Exception as error:
                 LOG.warning('%s failed (%s)', event_type, type(error).__name__)
 
+    def doorbell_screens(self):
+        """The screens a ring goes to: online, reachable, and their hello said `doorbell` (module doorbell, a P4)."""
+        out = []
+        for screen in self.screens():
+            sender = self.page_senders.get(screen['id'])
+            if screen.get('online') and sender and doorbell.FEATURE in (getattr(sender, 'features', ()) or ()) and self.transport(screen['id'], screen):
+                out.append(screen)
+        return out
+
+    async def doorbell_send(self, screens, message):
+        results = await asyncio.gather(*(self.send_auxiliary(screen['id'], message, self.transport(screen['id'], screen), self.page_scope(screen['id']))
+                                         for screen in screens), return_exceptions=True)
+        return sum(1 for result in results if result is True)
+
+    async def doorbell_ring(self, body):
+        """A doorbell rang (doorbell.rang): its camera, live with its sound, on every screen that streams."""
+        entity = body.get('entity_id')
+        camera = doorbell.camera_of(self.device_entries(entity), self.ha.states)
+        if not camera:
+            LOG.info('Doorbell %s rang; its device has no camera to show', entity)
+            return
+        screens = self.doorbell_screens()
+        if not screens:
+            LOG.info('Doorbell %s rang; no screen shows a doorbell (a P4 with firmware that has it)', entity)
+            return
+        name = doorbell.name_of(entity, self.device_name_of(entity), self.ha.states)
+        # The screens may open this camera now (camera_allowed), as after an alert with its picture.
+        self.alert_cameras[camera] = time.monotonic()
+        key = self.doorbells.start(camera, name, doorbell.moment(body), [screen['id'] for screen in screens])
+        sent = await self.doorbell_send(screens, self.doorbells.message(key))
+        LOG.info('Doorbell %s rang: %s on %d of %d screens', entity, camera, sent, len(screens))
+        asyncio.ensure_future(self.doorbell_unanswered(key))
+
+    async def doorbell_unanswered(self, key):
+        """Nobody answered the ring: it is the missed ring, which the top bars of those screens show."""
+        await asyncio.sleep(doorbell.MISSED_AFTER)
+        if self.doorbells.unanswered(key):
+            LOG.info('Doorbell ring missed: it shows in the top bars')
+            self.ha.changed.set()
+
+    async def doorbell_report(self, data):
+        """A screen says how a ring ended there (esphome.screen_doorbell): answered or closed closes it on the others,
+        seen takes a missed ring out of the top bars."""
+        if not isinstance(data, dict):
+            return
+        action, key, node = data.get('action'), data.get('key'), data.get('screen')
+        if action in doorbell.ANSWERS and isinstance(key, str):
+            had_missed = self.doorbells.missed is not None
+            targets = set(self.doorbells.answered(key))
+            others = [screen for screen in self.screens() if screen['id'] in targets and screen.get('node') != node and self.transport(screen['id'], screen)]
+            if others:
+                closed = await self.doorbell_send(others, self.doorbells.message(key, close=True))
+                LOG.info('Doorbell ring %s on %s: closed on %d other screens', action, node, closed)
+            if had_missed and self.doorbells.missed is None:
+                self.ha.changed.set()
+        elif action == 'seen' and self.doorbells.seen():
+            self.ha.changed.set()
+
+    async def doorbell_loop(self):
+        """Rings and the screens' reports of them, in arrival order."""
+        queue = getattr(self.ha, 'doorbell_events', None)
+        while queue is not None:
+            kind, data = await queue.get()
+            try:
+                await (self.doorbell_ring(data) if kind == 'ring' else self.doorbell_report(data))
+            except Exception as error:
+                LOG.warning('Doorbell %s failed (%s)', kind, type(error).__name__)
+
     async def alert_ended(self, data):
         """A screen reports how its alert ended (esphome.screen_alert). The button performs the action the alert
         came with, once for the alert however many screens showed it; any other ending forgets it on that screen."""
@@ -4021,6 +4143,10 @@ def create_app(manager, development=False):
             screen['live_camera'] = manager.live_camera(screen)
             # The Dock (docs/MODULES.md): the editor offers "Show in Dock" on a page of a board that has it.
             screen['dock'] = has_module(screen, 'dock')
+            # A vacuum's larger tile (docs/VACUUM.md, "A larger tile"): its map, rooms and routines on a board with the
+            # vacuum card's module; the editor offers them there only, and a screen whose hello lacks vacuum_tile gets
+            # the keys (catalogue screen else).
+            screen['vacuum_tile'] = has_module(screen, 'vacuum_card')
             # Whether the board draws pictures (camera tiles, an alert's snapshot, an album cover): the boards with
             # memory for them say so with their camera sizes (boards.json); the firmware that draws them is a
             # separate question the editor asks by version, so an older screen still learns what an update brings.
@@ -4099,6 +4225,7 @@ def create_app(manager, development=False):
         # What's new for the Update badge: here only, not in every live update (app 0.2.78).
         payload['changelog'] = manager.updates.changelog
         payload['claude_skill'] = claude_skill.status(manager.skill_dir)
+        payload['video'] = manager.video_status()
         # The name in the editor's language for the library, and as the screens show it for the mockup (app 0.2.90).
         payload['builtin'] = [{'id': key, 'name': builtin_name(key, t), 'screen_name': builtin_name(key),
                                'device': t('addon.labels.built_into_screen'), 'area': '', 'state': 'ok'} for key in BUILTIN]
@@ -4257,7 +4384,12 @@ def create_app(manager, development=False):
         lookup = getattr(manager.ha, 'capabilities', None)
         async def one(entity):
             try:
-                return await lookup(entity) if lookup else None
+                found = await lookup(entity) if lookup else None
+                # What a control needs of the entity's device (a vacuum's map, its routines) the app finds there itself.
+                if isinstance(found, dict) and isinstance(found.get('controls'), list):
+                    domain = entity.split('.', 1)[0]
+                    found['controls'] = [key for key in found['controls'] if catalogue.device_holds(domain, key, entity, manager.device_has)]
+                return found
             except Exception as error:
                 LOG.info('No capabilities for %s (%s)', entity, type(error).__name__)
                 return None
@@ -4626,6 +4758,22 @@ def create_app(manager, development=False):
     async def install_claude_skill(request):
         """Settings → Claude → Install: writes the skill into Home Assistant's configuration folder, only on request."""
         return web.json_response(claude_skill.install(manager.skill_dir))
+    async def install_video(request):
+        """Settings, Video in Home Assistant, Install: writes tessera_video into Home Assistant's configuration folder,
+        only on request. Home Assistant loads it at its next start (restart_for_video)."""
+        return web.json_response({**screen_video.install(manager.videos.directory), **{
+            k: v for k, v in manager.video_status().items() if k in ('loaded', 'screens', 'entries')}})
+    async def restart_for_video(request):
+        """Settings, Video in Home Assistant, Restart Home Assistant: as its own Restart does (homeassistant.restart,
+        which checks the configuration first and refuses to restart a broken one)."""
+        if not screen_video.status(manager.videos.directory)['installed']:
+            raise web.HTTPConflict(text=t('addon.errors.video.not_installed'))
+        try:
+            await manager.ha.call_service('homeassistant', 'restart', {})
+        except (ConnectionError, TimeoutError, ClientError):
+            pass    # Home Assistant may close the connection before it answers: it is restarting
+        LOG.info('Home Assistant restarts to load Tessera video')
+        return web.json_response({'restarting': True})
     async def download_claude_skill(request):
         """Settings → Claude → Download: the same skill as a zip for claude.ai; writes nothing."""
         return web.Response(body=claude_skill.archive(), content_type='application/zip',
@@ -4715,7 +4863,57 @@ def create_app(manager, development=False):
                        'revision': 'addon.errors.feedback.invalid', 'action': 'addon.errors.invalid_input'}
     async def feedback_start(app):
         manager.feedback.start()
+        manager.reports.watch()
     app.on_startup.append(feedback_start)
+    # ---- My screen doesn't work right (reports.py, app 0.4.91) ----
+    def report_screen(request):
+        screen = manager.screen(request.match_info['inbox'])
+        if screen is None:
+            raise ValueError(t('addon.errors.unknown_screen'))
+        return screen
+    async def report_status(request):
+        screen = report_screen(request)
+        return web.json_response(manager.reports.status(screen['id'], screen))
+    async def report_start(request):
+        screen = report_screen(request)
+        data = await request.json()
+        depth = data.get('depth', 'basic') if isinstance(data, dict) else 'basic'
+        return web.json_response({'id': manager.reports.start(screen['id'], screen, depth)}, status=202)
+    async def report_view(request):
+        return web.json_response(manager.reports.get(request.match_info['id']).view())
+    async def report_file(request):
+        text = manager.reports.file(request.match_info['id'], request.match_info['name'])
+        return web.Response(text=text, content_type='text/plain', charset='utf-8', headers={'Cache-Control': 'no-store'})
+    async def report_zip(request):
+        id = request.match_info['id']
+        return web.Response(body=manager.reports.zip_bytes(id), content_type='application/zip',
+                            headers={'Content-Disposition': f'attachment; filename="{manager.reports.filename(id)}"', 'Cache-Control': 'no-store'})
+    async def report_send(request):
+        report = manager.reports.get(request.match_info['id'])
+        screen = manager.screen(report.inbox)
+        if screen is None:
+            raise ValueError(t('addon.errors.unknown_screen'))
+        data = await request.json()
+        if not isinstance(data, dict):
+            raise ValueError(t('addon.errors.invalid_input'))
+        try:
+            result = await manager.reports.send(report.id, data.get('consent'), data.get('note'), data.get('email'),
+                                                data.get('remember_email') is True, screen)
+        except ValueError as error:
+            if str(error) in ('note', 'email'):
+                raise ValueError(t(f'addon.errors.report.{error}')) from None
+            raise
+        return web.json_response(result)
+    async def report_delete(request):
+        manager.reports.delete(request.match_info['id'])
+        return web.Response(status=204)
+    app.router.add_get('/api/screens/{inbox}/report', report_status)
+    app.router.add_post('/api/screens/{inbox}/report', report_start)
+    app.router.add_get('/api/reports/{id}.zip', report_zip)
+    app.router.add_get('/api/reports/{id}', report_view)
+    app.router.add_get('/api/reports/{id}/files/{name}', report_file)
+    app.router.add_post('/api/reports/{id}/send', report_send)
+    app.router.add_delete('/api/reports/{id}', report_delete)
     async def feedback_action(request):
         """The owner's choice on the feedback card: answer, later, never, cancel, retry or delete. The page names the
         screen; the key, the revision and the model are this app's own, for a screen paired with this Home Assistant."""
@@ -4800,6 +4998,7 @@ def create_app(manager, development=False):
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError): await task
         await manager.feedback.close()
+        await manager.reports.close()
     app.on_cleanup.append(shutdown)
     app.router.add_get('/api/screens/{inbox}/inspect', inspector)
     app.router.add_post('/api/screens/{inbox}/update', update_screen)
@@ -4941,6 +5140,11 @@ def create_app(manager, development=False):
             return web.json_response(manager.plugins.editor_plugin(entry, REQUEST_LANGUAGE.get()))
         app.router.add_post('/api/plugins/link', plugins_link)
 
+        async def plugins_forget(request):
+            manager.plugins.forget_link(request.match_info['plugin'])
+            return web.json_response({'ok': True})
+        app.router.add_delete('/api/plugins/{plugin}/link', plugins_forget)
+
         async def plugins_settings(request):
             return web.json_response(manager.plugins.settings_for(request.match_info['inbox'], REQUEST_LANGUAGE.get()))
 
@@ -4994,6 +5198,50 @@ def create_app(manager, development=False):
                     state['attributes']['supported_features'] & calendar_feed.CREATE_EVENT]
         return web.json_response({'cal': card, 'places': [place for place, _ in places.most_common(24)], 'bookable': sorted(bookable)})
     app.router.add_post('/api/calendar/preview', calendar_preview)
+
+    def vacuum_of(request):
+        entity = request.query.get('entity', '')
+        if not entity.startswith('vacuum.') or entity not in manager.ha.states:
+            raise ValueError(t('addon.errors.invalid_input'))
+        return entity, manager.vacuum_block(entity) or {}
+
+    async def vacuum_preview(request):
+        """A vacuum's tile as a screen with the card's module gets it, for the editor's mockup: whether it has a map, its
+        rooms (name and icon, in Home Assistant's order) and its routines."""
+        entity, card = vacuum_of(request)
+        rooms = [[row[1], str(row[2] or '')] for row in card.get('rooms') or ()]
+        # The cleaning mode's kinds, one letter per option (core.vacuum_extras 'r'), and the one in use.
+        extras = core.vacuum_extras({'entity': entity}, manager.ha.states, manager.device_entries(entity)) or {}
+        mode = extras.get('mode') or {}
+        current = mode.get('o', []).index(mode['s']) if mode.get('s') in mode.get('o', []) else -1
+        return web.json_response({'modes': mode.get('r', ''), 'mode': current, 'map': isinstance(card.get('map'), dict), 'mark': (card.get('map') or {}).get('m', ''),
+                                  'rooms': rooms, 'routines': [row[1] for row in card.get('rt') or ()], 'unmapped': bool(card.get('unmapped'))})
+
+    async def vacuum_map_picture(request):
+        """The robot's map as the screen draws it (vacuum_map.py), at the size and on the colour the mockup asks for."""
+        import vacuum_map
+        _, card = vacuum_of(request)
+        found = card.get('map') if isinstance(card.get('map'), dict) else None
+        drawing = await manager.snapshots.vacuum(found['e'], found['m']) if found else None
+        if drawing is None:
+            raise web.HTTPNotFound()
+        try:
+            size = (max(16, min(1600, int(request.query.get('w', 0)))), max(16, min(1600, int(request.query.get('h', 0)))))
+            ground = int(request.query.get('ground', 'FFFFFF'), 16) & 0xFFFFFF
+        except ValueError:
+            raise ValueError(t('addon.errors.invalid_input')) from None
+        dark = request.query.get('dark') == '1'
+
+        def draw():
+            from PIL import Image
+            with Image.open(io.BytesIO(vacuum_map.render(drawing[0], size, ground, dark))) as image:
+                out = io.BytesIO()
+                image.save(out, 'PNG')
+                return out.getvalue()
+        body = await asyncio.get_running_loop().run_in_executor(None, draw)
+        return web.Response(body=body, content_type='image/png', headers={'Cache-Control': 'max-age=60'})
+    app.router.add_get('/api/vacuum/preview', vacuum_preview)
+    app.router.add_get('/api/vacuum/map', vacuum_map_picture)
     app.router.add_get('/api/screens/{inbox}/extras', extras)
     app.router.add_get('/api/screens/{inbox}/extras/events', extras_events)
     app.router.add_post('/api/screens/{inbox}/extras', extra)
@@ -5023,6 +5271,8 @@ def create_app(manager, development=False):
     app.router.add_post('/api/header-preview', header_preview)
     app.router.add_post('/api/claude-skill', install_claude_skill)
     app.router.add_get('/api/claude-skill.zip', download_claude_skill)
+    app.router.add_post('/api/video', install_video)
+    app.router.add_post('/api/video/restart', restart_for_video)
     app.router.add_get('/api/events', events)
     app.router.add_put('/api/screens/{inbox}', save)
     app.router.add_post('/api/screens/{inbox}/import', import_document)
@@ -5064,9 +5314,10 @@ async def main():
     if not token:
         raise SystemExit('No Home Assistant access. Start the app via Supervisor.')
     async with ClientSession(timeout=ClientTimeout(total=20)) as session:
-        # The branch the screens build from (docs/RELEASING.md, "Testing dev"): dev for an app added from the `#dev` URL.
+        # The branch the screens build from (docs/RELEASING.md, "Testing dev"): dev for an app added from the `#dev` URL,
+        # or for the image GitHub builds from dev (docs/DOCKER.md, "Testing dev").
         slug, version = await addon_self(session)
-        core.set_channel(core.channel_of(slug))
+        core.set_channel(core.start_channel(slug))
         core.set_version(version)
         LOG.info('App %s %s, channel %s, screens build from %s', slug or 'without a Supervisor', version or '',
                  core.channel() or 'none', core.ref() if core.channel() else 'the ref they have')
@@ -5092,8 +5343,8 @@ async def main():
             LOG.error('Camera images are off: port %d is not available (%s)', picture_links.port(), error)
         try:
             await asyncio.gather(ha.run(), manager.run(), manager.history_loop(), manager.updates.run(),
-                                 manager.alert_loop(), manager.tile_loop(), manager.card_history_loop(), manager.camera_loop(), manager.card_options_loop(),
-                                 manager.media_loop(), manager.pairing_loop(), manager.photo_loop(),
+                                 manager.alert_loop(), manager.doorbell_loop(), manager.tile_loop(), manager.card_history_loop(), manager.camera_loop(), manager.card_options_loop(),
+                                 manager.media_loop(), manager.pairing_loop(), manager.photo_loop(), manager.video_loop(),
                                  *([manager.plugins.loop(), manager.plugin_loop()] if core.plugins_enabled() else []))
         finally:
             await cameras.cleanup()

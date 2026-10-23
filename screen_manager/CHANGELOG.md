@@ -60,6 +60,23 @@
 - **Greek.** The editor, the app's messages and the screens speak Greek: a new `el.json`, and `SCRIPT_GLYPHS_GREEK`
   beside the Cyrillic list, so only a screen built in Greek carries the Greek letters and no other screen spends flash
   on them. A screen takes Greek with its next firmware update, chosen under Settings → Language & region.
+- **The Waveshare ESP32-S3-Touch-LCD-4.3C, experimental.** The 4.3C (also in the 4.3C-BOX) has the 4.3's glass but
+  Waveshare's CH32V003 expander in place of the 4.3's CH422G, so a 4.3C built as a 4.3 started with its touch in reset
+  ("touchscreen is marked FAILED: Calibration error") and a dark screen. It is a board of its own now, under New
+  screen, with a dimmable backlight. Built from Waveshare's own pin table and timings, not yet tried on the glass.
+
+- **My screen doesn't work right (docs/REPORTS.md).** A button on a screen's page makes one troubleshooting report of that screen: the board and every version, the plugins, the screen's YAML, the crash it kept from its previous boot and a minute of its log, Home Assistant's log lines about it and its diagnostics, the app's log and the last build, with passwords, keys, addresses and names taken out. Every file can be read on the page and the zip downloaded; with a consent per report it goes to Tessera, which answers a reference to quote on GitHub or Discord, keeps it 30 days, and can ask a question back if you leave an e-mail address. A fuller report (your pages with their entity ids, every ESPHome log line) is an opt-in that says what it adds. The app also notices a screen that rebooted, reads the crash ESPHome kept and shows it on the page, decoded when the screen was built here.
+
+- **A turned ESP32-P4 screen no longer restarts behind a live camera tile.** The M5Stack Tab5 (a 720x1280 panel shown as 1280x720) turns everything it draws with the P4's picture engine, and under the ESP-IDF that ESPHome builds with, a turned copy of some sizes never finishes: the screen froze behind it and its watchdog restarted it, every few minutes with live camera tiles. Such a copy now goes to the engine in pieces it finishes (docs/CAMERA.md, "A turned copy the 2D-DMA never finishes").
+
+- **The doorbell on the ESP32-P4 screens.** When a video doorbell in Home Assistant rings, every P4 screen wakes up, plays a chime and opens the doorbell's camera full screen, live, with its sound on, without an automation. The first screen someone touches answers the ring and the others close it. A ring nobody answers closes after a minute and stays in the top bar ("2 min ago") until someone taps it, which opens the camera again. A switch **Doorbell** under Extras (on the screen, in the editor and in Home Assistant) turns it off for one screen. It works with every doorbell Home Assistant knows as a doorbell (an event entity with the doorbell class and its standard event type `ring`) that has a camera on the same device (docs/DOORBELL.md). Needs the screen's Update.
+
+- **A robot vacuum's larger tile.** On a screen with 8 MB of flash or more, a robot's tile two rows high can now show its map, its rooms to pick, its routines, or the map with the rooms, beside its keys: a small screen of its own with the robot's state and battery at the top and Start and Dock (and the cleaning mode as icons) at the bottom. Tap rooms in the order you want them cleaned and press Start. Choose it under the tile's controls in the editor, or from the tip that shows when you drag the tile larger. Only what your robot has is offered. The CYD and the other 4 MB screens keep the tile with its keys (docs/VACUUM.md, "A larger tile").
+
+- **A screen's own camera as live video with sound in Home Assistant** (the P4 screens with a camera: the reTerminal D1001 and the M5Stack Tab5). Screen camera 0.4.0 brings a part Video: H.264 from the screen's video encoder and the microphone as Opus, in sync, playing in Home Assistant's browser page and app about a third of a second behind. Under Settings, **Video in Home Assistant** installs the Home Assistant integration it needs (Tessera video) when you press Install, and restarts Home Assistant when you say so; then Tessera adds a camera **Video** to each screen with the part by itself, without a password to type (docs/CAMERA.md, "The screen's own camera as video in Home Assistant"). Every ESP32-P4 screen gets a larger network send buffer for it.
+
+- **A plugin added with a link can be taken off the list again.** A release added with a link that no screen runs (an old try-out) had no way off the Plugins page except restarting the app. Its details now have "Remove from the list". A plugin a screen still runs is taken off the screen first.
+
 - **Pictures in one system (docs/PICTURES.md).** Every picture a screen shows now goes one way: the camera full
   screen, a camera's or a cover's tile, a map, the media card's cover, a player's library, a vacuum's map, the
   screensaver's cover, camera and photos, an alert's picture and a plugin's places. A screen asks for each as one
@@ -92,6 +109,10 @@
 - **One picture after the next without a third copy in memory.** When a picture changed (the next screensaver photo,
   another track's cover, a map that moved) the screen held the old one, the download and a copy of it for a moment; it
   now takes the download as it is. A map or cover that did not change comes as "not changed" again instead of whole.
+- **Smoother screens, above all the large ones.** A screen drew its whole glass again whenever it brought another
+  page up to date in the background, and twice a minute it drew every card again for the clock. On a 10-inch screen
+  each of those took about a fifth of a second, in which nothing moved and a sound that played stuttered. Now only the
+  page keys and the cards that show the time are drawn again, and a plugin's sounds keep half a second ready.
 - **Plugin API 0.18: popups.** A plugin can show a popup over the screen, the card an alert shows, as high as what it
   says and as wide as the screen allows, for a moment that wants your eye: the Voice assistant shows what it heard and
   its answer as it speaks, with rings that ripple while it listens and an arc that turns while it thinks
@@ -102,6 +123,16 @@
   camera (docs/PLUGINS.md). Tessera's own Cinema, New music and Picture frame use it: no more grey bars in a cover flow
   after the screen fetched its pictures again, Picture frame shows what a player plays, and a camera in Picture frame
   is live on a P4 screen.
+
+- **The editor's cards look like the cards on your screen.** While you lay out a page, every card is now drawn at the
+  sizes of your own screen: its letters in the screen's Roboto (a bold name, a plain line), its icon circle, corner and
+  padding, and each part where the screen puts it. Before, the inside of a card had sizes of the editor's own, close on
+  a 4-inch Guition but far too small on a CYD, a 4.3-inch or a 10-inch screen. A long name is cut where the screen cuts
+  it, a light that is on says its brightness, a blind and a player on a small card say what the screen says, a lock and
+  a player show their own icon, and a thermostat's number has the screen's decimal. Larger cards follow the screen as
+  well: a thermostat's big number between its keys with the temperature now under it, a robot vacuum's keys, a player's
+  track, artist and volume, and a player over a whole page with its cover, progress bar and keys. A card you drag keeps
+  its look while it moves.
 - **Stars for plugins, and a heart for any plugin.** A few days after a screen first runs a plugin from the Plugins
   page, a card above the screen asks how it works for you: one to five stars, then Send. Later asks again in two
   weeks; Don't ask again, what is shared and the privacy page are behind the card's ⋯ menu. A plugin's details take
@@ -247,6 +278,18 @@
   [@icodeforyou](https://github.com/icodeforyou) ([#281](https://github.com/MaxGramser/homeassistant_espscreen/pull/281)).
   This board file itself has not been run on one yet. Its speaker and microphones are in use too (the first entry here).
   Choose it under New screen.
+- **Dev in Docker.** A Docker install can try what comes with the next release: the image
+  `ghcr.io/maxgramser/homeassistant_espscreen:dev` is the dev app, as the repository URL with `#dev` is in Home
+  Assistant. Its screens build from dev, its Plugins page lists the plugins that wait for the next release, and each
+  screen can be reinstalled from dev. Set `SCREEN_CHANNEL` to `main` to point the screens back at main
+  (docs/DOCKER.md, "Testing dev").
+
+## 0.4.90 (firmware 0.57.1 for waveshare43, waveshare5)
+
+- **The Waveshare 4.3-inch and 5-inch update again with ESPHome 2026.10.** ESPHome 2026.10.0 checks more closely
+  whether a pin is used twice, and on these boards the display and the backlight named the same line of the board's
+  expander, so every update stopped with "Pin 2 is used in multiple places". The backlight now has that line to itself,
+  as on the 7-inch, and the screen lights as before.
 
 ## 0.4.89 (firmware 0.57.0)
 

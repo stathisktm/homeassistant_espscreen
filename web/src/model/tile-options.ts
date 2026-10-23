@@ -9,7 +9,7 @@ import { t } from "../i18n";
 import rules from "./page-rules.json";
 import { isTallSize, isWideSize } from "./sizes";
 import { validateCardOptions } from "./page-validation";
-import { controlOption, controlParts, drawable, fits, growOrder, ofType, resolveControls, roomControls } from "./catalogue";
+import { controlOption, controlParts, drawable, fits, growOrder, ofType, resolveControls, roomControls, screenFeatures } from "./catalogue";
 import { ACTS_ON_TAP, holdHintKey, SLIDER_DOMAINS, SWITCHES_ON_TAP, TOGGLE_BEFORE } from "./layout";
 import { coverPrimary, hasCoverTilt, withCoverTilt } from "./tall-controls";
 import type { Capability, PageTile, Tile, TileOptions } from "../types";
@@ -203,6 +203,8 @@ export type TilePanel = {
   attributes: Record<string, any>;
   /** The screen draws no thermostat range (its firmware's climate_range is false). */
   rangeless: boolean;
+  /** The screen's board has the vacuum card's module (docs/MODULES.md): its larger vacuum tile. */
+  vacuumTile?: boolean;
 };
 export type Hint = { text: string; warn: boolean };
 const option = (tile: Tile, key: string, fallback: unknown) => tile.options?.[key] ?? fallback;
@@ -267,6 +269,13 @@ export function tileControls(tile: Tile, panel: TilePanel, inlineKind: string) {
   return isTallSize(size) && option(tile, "inline", "none") === "slider" ? inlineKind
     : option(tile, "controls", ["tall", "full", "single"].includes(size) ? "none" : panel.catalogue?.default) as string;
 }
+/** The features of the catalogue the screen draws, as drawable takes them: none on firmware without a thermostat's range,
+ * every one but the larger vacuum tile on a board without the vacuum card's module, else all (null). */
+export function panelFeatures(panel: TilePanel): Set<string> | null {
+  if (panel.rangeless) return new Set<string>();
+  if (panel.vacuumTile === false) { const all = screenFeatures(); all.delete("vacuum_tile"); return all; }
+  return null;
+}
 /** The control sets the panel offers: a blind's slats are a switch of their own; room for it on a card of this size (the
  * mode keys and the slats ask a second row) and a screen that draws it for this entity (a range: firmware 0.19.0+), as
  * the tile catalogue says (model/catalogue.ts); what Home Assistant says the entity can do. The tile's own stays. */
@@ -275,7 +284,7 @@ export function controlChoices(tile: Tile, panel: TilePanel, controls: string) {
   const primary = domain === "cover" ? coverPrimary(controls) : controls, tilt = domain === "cover" && hasCoverTilt(controls);
   const choices = (panel.catalogue?.choices || []).filter((ch) => domain !== "cover" || !hasCoverTilt(ch.key))
     .filter((ch) => ch.key === "none" || fits(controlOption(domain, ch.key), size, panel.columns))
-    .filter((ch) => ch.key === "none" || drawable(domain, ch.key, panel.attributes, panel.rangeless ? new Set<string>() : null) === ch.key)
+    .filter((ch) => ch.key === "none" || drawable(domain, ch.key, panel.attributes, panelFeatures(panel)) === ch.key)
     .filter((ch) => !c || ch.key === "none" || ch.key === primary || c.controls.includes(ch.key)).map((ch) => [ch.key, ch.label] as [string, string]);
   return offer(tile, panel, "controls", choices, primary, (key) => domain === "cover" ? withCoverTilt(key, tilt) : key);
 }
@@ -293,7 +302,7 @@ export function controlSets(tile: Tile, panel: TilePanel, size: string): string[
   if (size === "single" || !panel.catalogue) return [];
   return panel.catalogue.choices.map((choice) => choice.key).filter((key) => key !== "none"
     && fits(controlOption(domain, key), size, panel.columns)
-    && drawable(domain, key, panel.attributes, panel.rangeless ? new Set<string>() : null) === key
+    && drawable(domain, key, panel.attributes, panelFeatures(panel)) === key
     && (!c || c.controls.includes(key)) && choiceOffered(sized, "controls", key, true));
 }
 export type Growth = { sets: string[]; suggested: string | null; drawn: string; gained: boolean };

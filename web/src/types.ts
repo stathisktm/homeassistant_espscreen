@@ -209,6 +209,34 @@ export type BoardChoice = BoardCatalog & {
 };
 // Does this screen work as you expect (app 0.3.10): what the add-on says about the board's shared answer. The key and
 // the revision never reach the page; the add-on keeps them.
+// The troubleshooting report of a screen ("My screen doesn't work right", components/ReportPanel.vue): what the add-on
+// offers for a screen, the report as it is collected, and the answer of a send. Field names are the add-on's.
+export type ReportDepth = "basic" | "full";
+export type ReportBlocker = "no_profile" | "collecting";
+export type ReportCrash = { at: string; reason: string; decoded: string[]; count: number };
+export type ReportLast = { id: string; reference: string; sent_at: string; depth: ReportDepth };
+export type ReportOffer = {
+  ready: boolean; blockers: ReportBlocker[]; retention_days: number; last: ReportLast | null; crash: ReportCrash | null;
+  email: string | null; privacy_url: string;
+};
+export type ReportState = "collecting" | "ready" | "failed" | "sent";
+export type ReportStep = "identity" | "profile" | "screen_log" | "ha_log" | "addon_log" | "build_log" | "crash" | "zip";
+export type ReportFile = { name: string; size: number; lines: number; kind: "md" | "json" | "yaml" | "log" | "txt" };
+export type ReportWarning = "screen_offline" | "no_api_key" | "no_elf" | "ha_log_unavailable" | "addon_log_unavailable" | "no_crash_record";
+export type ReportSummary = {
+  board: string; board_name: string; chip: string; firmware: string | null; channel: string; esphome: string | null;
+  addon: string; ha: string | null; plugins: { id: string; version: string }[]; crash: { reason: string; at: string } | null;
+  online: boolean; built_on: "addon" | "build_server" | "unknown"; elf: boolean;
+};
+export type Report = {
+  id: string; screen: string; depth: ReportDepth; state: ReportState; step: ReportStep | null; progress: number;
+  files: ReportFile[]; summary: ReportSummary | null; warnings: ReportWarning[]; size: number;
+  reference: string | null; sent_at: string | null; error: string | null;
+};
+export type ReportSendResult =
+  | { state: "sent"; reference: string; expires_at: string }
+  | { state: "retry" | "invalid" | "too_large" | "offline"; error: string };
+
 export type FeedbackIssue = "display" | "touch" | "connection" | "installation" | "other";
 export type FeedbackAnswer = { outcome: "working" | "not_working"; issues?: FeedbackIssue[] | null; comment?: string | null };
 export type FeedbackView = {
@@ -268,16 +296,17 @@ export type Screen = {
   // A board with 4 MB of flash that still has ESPHome's partition table (app 0.4.82): its next update has to come from
   // Tessera, which moves the table; ESPHome Device Builder's firmware no longer fits its slot (core.update_in_tessera).
   update_in_tessera?: boolean;
-  firmware_known?: string | null; tile_limit?: number; page_limit?: number; full_page?: boolean; page_tiles_repeat?: boolean; entity_tiles_repeat?: boolean; no_title?: boolean; climate_range?: boolean;
+  firmware_known?: string | null; tile_limit?: number; page_limit?: number; full_page?: boolean; page_tiles_repeat?: boolean; entity_tiles_repeat?: boolean; no_title?: boolean; climate_range?: boolean; vacuum_tile?: boolean;
   // The language its firmware was built in (app 0.2.90); null for older firmware, which is English.
   language?: string | null;
   // What the screen looks like (app 0.2.94): the glass it draws on, the cells of one page, its density and its look,
   // from the screen itself (firmware 0.2.80) or from the board it was built for (core.shape_of); the editor draws it.
   shape?: { width: number; height: number; columns: number; rows: number; dpi?: number; look?: string; catalog?: BoardCatalog;
     fonts?: { watch_value?: number; sublabel_big?: number; sublabel?: number; icon_mini?: number; label?: number; headline?: number; icon_home?: number;
-      watch_icon?: number; setpoint?: number };
-    // The grid in glass pixels (boards.json); its heights (gap_y, top, page_bar) and a card's circle from app 0.4.74.
-    spacing?: { margin: number; gap: number; tile_pad: number; gap_y?: number; top?: number; page_bar?: number; circle?: number } } | null;
+      watch_icon?: number; setpoint?: number; icon?: number };
+    // The grid in glass pixels (boards.json); its heights (gap_y, top, page_bar) and a card's circle from app 0.4.74, a
+    // card's corner and its icon's face (fonts.icon) from app 0.4.90.
+    spacing?: { margin: number; gap: number; tile_pad: number; gap_y?: number; top?: number; page_bar?: number; circle?: number; radius?: number } } | null;
   // Which way it was built to hang (app 0.2.107): a screen standing up has another canvas and another grid, and
   // while it is offline only the YAML of its own profile says so.
   orientation?: Orientation;
@@ -350,6 +379,11 @@ export type LineBuild = {
   place?: number; after?: string | null; stage?: string | null; memory?: import("./model/install-progress").BuildMemory | null;
   reason?: string | null;
 } & ServerSide;
+export type VideoIntegration = {
+  path: string; installed: boolean; current: boolean; version: string; loaded: string | null;
+  screens: string[]; entries: number; restart?: boolean;
+};
+
 export type Inventory = {
   editor_features?: { tall_tiles?: boolean; plugins?: boolean };
   csrf?: string;
@@ -376,6 +410,9 @@ export type Inventory = {
   // The CHANGELOG by release, newest first: only in the full inventory, not in the live payload (app 0.2.78).
   changelog?: ChangelogSection[];
   claude_skill?: { path: string; installed: boolean; current: boolean; restart?: boolean };
+  // Video in Home Assistant (Settings, screen_video.py): the tessera_video integration in Home Assistant's folder, the
+  // version Home Assistant runs (null until it restarted with it), and the screens with Screen camera's part Video.
+  video?: VideoIntegration;
   icons?: {
     groups: { label: string; icons: IconInfo[] }[];
     builtin?: Record<string, string>; weather: Record<string, string>; sun: Record<string, string>; calendar?: Record<string, string>;

@@ -34,6 +34,7 @@
 - [WT32SC01PLUS.md](WT32SC01PLUS.md): the Wireless-Tag WT32-SC01 Plus, 3.5 inch.
 - [WAVESHARE4B.md](WAVESHARE4B.md): the Waveshare ESP32-S3-Touch-LCD-4B.
 - [WAVESHARE4V4.md](WAVESHARE4V4.md): the Waveshare ESP32-S3-Touch-LCD-4, revision 4.0 (without the "B").
+- [WAVESHARE43C.md](WAVESHARE43C.md): the Waveshare ESP32-S3-Touch-LCD-4.3C, the 4.3-inch glass with the 7B's expander.
 - [WAVESHARE5.md](WAVESHARE5.md): the Waveshare ESP32-S3-Touch-LCD-5, the 4.3-inch's board with 5-inch glass.
 - [WAVESHAREP4.md](WAVESHAREP4.md): the Waveshare ESP32-P4-86-Panel-ETH-2RO, 4 inch, 720 × 720, using Wi-Fi.
 - [WAVESHAREP47B.md](WAVESHAREP47B.md): the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B, 7 inch, rev3 ESP32-P4.
@@ -62,6 +63,7 @@
   way every control does it.
 - [CARD_PARTS.md](CARD_PARTS.md): a card built once and painted in place when a value changes, instead of built again.
 - [PLUGINS.md](PLUGINS.md): plugins on the core's side: the plugin API, a plugin tile end to end, the plugins file, fetch.
+- [REPORTS.md](REPORTS.md): the troubleshooting report of a screen: what it holds, what never leaves, where it goes, how a crash is read.
 - [BUILDS.md](BUILDS.md): the one line every build waits in (updates, plugins, New screen, Firmware & USB), and how a
   build is followed.
 - [TILE_MEMORY.md](TILE_MEMORY.md): how many tiles and pages a board holds, and the memory budget that says how many a
@@ -69,6 +71,7 @@
 - [FLASH_LAYOUT.md](FLASH_LAYOUT.md): the partition table of a board with 4 MB of flash, and how a screen gets it
   without losing its settings (the technical side of UPDATING_4MB_SCREENS.md).
 - [CAMERA.md](CAMERA.md): camera pictures and album covers, from Home Assistant to the screen.
+- [DOORBELL.md](DOORBELL.md): a doorbell's ring opens its camera live with sound on the P4 screens.
 - [MAP.md](MAP.md): the map card, drawn by the add-on and sent as a picture.
 - [ENERGY.md](ENERGY.md): the energy card, from Home Assistant's Energy settings to the diagram on the glass.
 - [EMULATOR_ARCHITECTURE.md](EMULATOR_ARCHITECTURE.md): the editor's firmware preview, the firmware built to

@@ -1721,6 +1721,138 @@ class Run:
         await self.call('render_finger', x=x, y=y, down=False)
         await asyncio.sleep(0.4)
 
+    async def vacuum_tiles(self, grid):
+        """A robot's larger tile (module_vacuum_tile.cpp, docs/VACUUM.md "A larger tile") the way it is used: each face on
+        a 2x2 and the map with the rooms on the whole page, docked; two rooms tapped (Start counts them); cleaning with how
+        far it is; an error; dark. The map is the add-on's own vacuum_map at the size the tile asks for. Every part a
+        finger acts on is read back (render_vacuum) and must lie on the glass."""
+        import vacuum_map
+        from core import state_message
+        calls = []
+        self.client.subscribe_service_calls(calls.append)
+        ENTITY = 'vacuum.robot'
+        FULL = 4 | 8 | 16 | 32 | 512 | 4096 | 8192 | 16384
+        region = dict(keepalive=120, clock_24h=True, numbers='point', group_min=1, percent_space=False)
+        from PIL import Image as _Image, ImageDraw as _Draw
+        cells = _Image.new('RGBA', (160, 84), (0, 0, 0, 0))
+        d = _Draw.Draw(cells)
+        for box, colour in [((2, 2, 60, 22), (165, 105, 189, 255)), ((2, 22, 50, 82), (217, 136, 128, 255)),
+                            ((50, 50, 96, 82), (240, 178, 122, 255)), ((60, 2, 158, 82), (133, 193, 233, 255))]:
+            d.rectangle(box, fill=colour, outline=(93, 109, 126, 255))
+        plan = io.BytesIO()
+        cells.resize((640, 336), _Image.NEAREST).save(plan, 'PNG')
+        drawing = vacuum_map.read(plan.getvalue())
+        rows = {'mode': {'e': 'select.robot_cleaning_mode', 's': 'vac_and_mop', 'o': ['vacuum', 'vac_and_mop', 'mop'],
+                         'l': ['Vacuum', 'Vac & mop', 'Mop'], 'r': 'vbm'}}
+        six = [['kitchen', 'Kitchen', 'F0B7C', 0], ['living_room', 'Living room', 'F04B9', 0], ['hall', 'Hallway', 'F081A', 0],
+               ['bedroom', 'Bedroom', 'F02E3', 0], ['study', 'Office', 'F1239', 0], ['bathroom', 'Bathroom', 'F09A0', 0]]
+        routines = [['button.robot_after_dinner', 'After dinner'], ['button.robot_daily', 'Daily clean'],
+                    ['button.robot_deep', 'Deep clean'], ['button.robot_bin', 'Empty the bin'], ['button.robot_mop', 'Mop the kitchen']]
+        card_map = {'e': 'image.robot_home', 'm': '2026-09-15T08:00:00+00:00'}
+        def scene(state, battery=100, charging=True, room=None, vc=None):
+            x = dict(rows, bat=battery)
+            if charging:
+                x['chg'] = 1
+            if room:
+                x['room'] = room
+            x['vc'] = {'map': card_map, 'rooms': six, 'rt': routines, **(vc or {})}
+            return {'state': state, 'attributes': {'friendly_name': 'Robot', 'supported_features': FULL}}, x
+        faces = [('rooms', 'square'), ('map', 'square'), ('routines', 'square'), ('map_rooms', 'full')]
+        legacy = [dict(entity=ENTITY, name='Robot', options={'size': size, 'controls': face}, slot=n * grid.slots)
+                  for n, (face, size) in enumerate(faces)]
+        record = send_layout.migrate_legacy(dict(title='Robot', tiles=legacy, pages=len(faces)), grid)
+        tiles = send_layout.compile_tiles(record['layout'], grid)
+        bars = [[{'k': 'clock'}] for _ in record['layout']['pages']]
+        served = [0]
+        async def answer_maps():
+            for call, read in self.unanswered(calls):
+                if read.question.sources[0].kind != 'vacuum':
+                    continue
+                ground, dark = read.question.places[0].ground, read.question.dark
+                body, _ = painted(read.question, [lambda w, h: vacuum_map.render(drawing, (w, h), ground, dark)])
+                await self.reply(read, self.pictures.url(f'{self.item.key}-vtile-{served[0]}.bmp', body))
+                served[0] += 1
+                call.data['_answered'] = '1'
+        async def push(state, x):
+            await self.sender.synchronize(self.inbox.object_id, record, region,
+                                          [state_message(i, tile, {ENTITY: state}, x) for i, tile in enumerate(tiles)], bars)
+            await asyncio.sleep(0.8)
+        async def settle():
+            for _ in range(3):
+                await asyncio.sleep(0.7)
+                await answer_maps()
+        async def parts(page):
+            start = len(self.lines)
+            await self.call('render_vacuum')
+            await self.until(lambda l: 'vacuum open=' in l, 10, 'render_vacuum', start)
+            await asyncio.sleep(0.3)
+            found = {}
+            for line in self.lines[start:]:
+                if 'vacuum tile slot=' not in line:
+                    continue
+                face = line.split('vacuum tile slot=', 1)[1].split(' ', 1)[1]
+                spots = {}
+                for item in face.split('|')[1].split(';'):
+                    if '@' in item:
+                        key, point = item.split('@')
+                        spots[key] = tuple(int(n) for n in point.split(','))
+                        if min(spots[key]) < 0:
+                            self.warnings.append(f'vacuum tile {face.split("|")[0]}: part {key} off the glass at {point}')
+                found[face.split('|')[0]] = (spots, face)
+            return found
+        async def show(page, name, dark=False):
+            await self.call('render_page', page=page)
+            await self.page_done(page)
+            await settle()
+            await self.render(name)
+            if dark:
+                self.client.switch_command(self.dark_switch.key, True)
+                await settle()
+                await self.render(name + '-dark')
+                self.client.switch_command(self.dark_switch.key, False)
+                await asyncio.sleep(1.5)
+            card = await self.alarm_probe()
+            if card['faults']:
+                self.warnings.append(f'vacuum tile {name}: {card["faults"]}')
+        # No finger has touched the glass for minutes: its Back to page 1 would take every page home within a second.
+        home = next((e for e in (await self.client.list_entities_services())[0] if getattr(e, 'name', '') == 'Back to page 1'), None)
+        if home:
+            self.client.switch_command(home.key, False)
+        await push(*scene('docked'))
+        for page, (face, size) in enumerate(faces):
+            await show(page, f'vacuum-tile-{face}', dark=face in ('rooms', 'map_rooms'))
+        # Two rooms tapped on the 2x2 of rooms, the bedroom first: Start counts them, each says its place.
+        await self.call('render_page', page=0)
+        await self.page_done(0)
+        found = await parts(0)
+        spots = found.get('rooms', ({}, ''))[0]
+        # The last room on the tile first, then the first: a short tile shows fewer rooms and a "+N".
+        rooms = sorted((int(key[2:]) for key in spots if key.startswith('4:')), reverse=True)
+        tapped = [rooms[0], rooms[-1]] if len(rooms) > 1 else rooms
+        for room in tapped:
+            await self.tap(*spots[f'4:{room}'])
+            await asyncio.sleep(0.6)
+        await self.render('vacuum-tile-rooms-picked')
+        after = await parts(0)
+        if 'picks=' + ''.join(f'{room},' for room in tapped) not in after.get('rooms', ({}, ''))[1]:
+            self.warnings.append(f'vacuum tile: picks after two taps: {after.get("rooms")}')
+        # Start cleans those two, in the order of the taps.
+        since = len(calls)
+        if '1:0' in spots:
+            await self.tap(*spots['1:0'])
+            await asyncio.sleep(1.6)
+            sent = [c for c in calls[since:] if 'clean_area' in c.service or 'clean_area' in str(c.data)]
+            if not sent:
+                self.warnings.append(f'vacuum tile: Start with two rooms sent no vacuum.clean_area: {[c.service for c in calls[since:]]}')
+        await push(*scene('cleaning', battery=64, charging=False, room='Living room', vc={'pg': 42}))
+        await show(0, 'vacuum-tile-rooms-cleaning')
+        await show(3, 'vacuum-tile-map_rooms-cleaning')
+        await push(*scene('error', battery=38, charging=False, vc={'err': 'Main brush jammed'}))
+        await show(3, 'vacuum-tile-map_rooms-error')
+        if home:
+            self.client.switch_command(home.key, True)
+        return 1
+
     async def lock_panel(self, grid):
         """The lock (firmware 0.5.0+) the way it is used: a tap locks at once, a locked lock asks for a second tap on its
         tile, the card (hold) has Lock or Unlock and Open door with its own second tap, a jammed lock shows both keys, a
@@ -2577,6 +2709,49 @@ class Run:
             if time.monotonic() > end:
                 raise RuntimeError(f'media: {what}: {card}')
             await asyncio.sleep(0.15)
+
+    async def doorbell_round(self):
+        """A doorbell's ring (module doorbell, docs/DOORBELL.md): the op doorbell opens the camera full view as a ring, with
+        its picture as ESP Screens paints it in the room beside its keys; a touch answers it (esphome.screen_doorbell), a
+        second ring keeps it open, and the close of a ring answered on another screen closes it."""
+        calls = []
+        self.client.subscribe_service_calls(calls.append)
+        # Page 1 stands first: a layout that lands closes a camera's view (cancel_layout_input), a ring's too.
+        await self.page_done(0)
+        await asyncio.sleep(2)
+        key, start, since = 'ring0001', len(self.lines), 0
+        ring = {'v': 1, 'op': 'doorbell', 'e': 'camera.front_door', 'n': 'Front door', 'k': key, 'r': int(MOMENT.timestamp()) - 20}
+        await self.send(ring)
+        await self.until(lambda l: 'for a ring' in l, 10, 'doorbell: the view never opened', start)
+        end, answered = time.monotonic() + 10, False
+        while time.monotonic() < end and not answered:
+            for call, read in self.unanswered(calls, since):
+                body, _ = painted(read.question, [porch(*self.camera)], [{}])
+                await self.reply(read, self.pictures.url(f'{self.item.key}-doorbell.bmp', body))
+                call.data['_answered'] = '1'
+                answered = True
+                self.warnings.append(f'doorbell: its picture asked at {read.question.box[0]} x {read.question.box[1]}')
+                break
+            await asyncio.sleep(0.05)
+        if not answered:
+            self.failures.append('doorbell: the view asked for no picture')
+        await self.render('doorbell')
+        # A touch in the middle of the picture answers the ring, once.
+        since = len(calls)
+        await self.tap(self.canvas[0] // 3, self.canvas[1] // 2)
+        await self.tap(self.canvas[0] // 3, self.canvas[1] // 2)
+        reports = [dict(c.data) for c in calls[since:] if c.service == 'esphome.screen_doorbell']
+        if [r.get('action') for r in reports] != ['answered'] or any(r.get('key') != key for r in reports):
+            self.failures.append(f'doorbell: a touch should report answered once, reported {reports}')
+        # Answered elsewhere: the close of that ring closes it here, without a report of its own.
+        since, start = len(calls), len(self.lines)
+        await self.send({'v': 1, 'op': 'doorbell', 'k': key, 'c': 1})
+        await self.until(lambda l: 'answered on another screen' in l, 10, 'doorbell: the close never came', start)
+        await self.page_done(0)
+        await self.render('doorbell-closed')
+        if any(c.service == 'esphome.screen_doorbell' for c in calls[since:]):
+            self.failures.append('doorbell: a ring closed from elsewhere reported again')
+        return 1
 
     async def saver_panel(self):
         """The screensaver (firmware 0.29.0+) over the demo layout in standby: a cover that plays, a camera and the clock,
@@ -3645,10 +3820,14 @@ class Run:
             return 1, await self.media_tiles(grid)
         if self.only == 'saver':
             return 1, await self.saver_panel()
+        if self.only == 'doorbell':
+            return 1, await self.doorbell_round()
         if self.only == 'humidifier':
             return 1, await self.humidifier_panel(grid)
         if self.only == 'vacuum':
             return 1, await self.vacuum_panel(grid)
+        if self.only == 'vacuumtile':
+            return 1, await self.vacuum_tiles(grid)
         if self.only == 'bars':
             return 1, await self.bars_round(grid)
         if self.only == 'weather':
@@ -3747,7 +3926,7 @@ def main():
     parser.add_argument('--out', type=Path, default=REPO / '.esphome' / 'render' / 'out')
     parser.add_argument('--work', type=Path, help='where the host builds go (default: .esphome/render/build)')
     parser.add_argument('--camera', default='960x540', help='the camera picture of the camera alert, WxH')
-    parser.add_argument('--only', choices=['alarm', 'lock', 'automation', 'remote', 'bedside', 'media', 'mediatiles', 'saver', 'humidifier', 'weather', 'calendar', 'bars', 'dock', 'vacuum'], help='after the demo layout arrives, run only this stage')
+    parser.add_argument('--only', choices=['alarm', 'lock', 'automation', 'remote', 'bedside', 'media', 'mediatiles', 'saver', 'humidifier', 'weather', 'calendar', 'bars', 'dock', 'vacuum', 'vacuumtile', 'doorbell'], help='after the demo layout arrives, run only this stage')
     parser.add_argument('--plugin', type=Path, help='a plugin folder (docs/PLUGINS.md) to build into the variants, then run the plugin '
                         'round alone: tests/fixtures/plugins/host_probe proves the plugin host on the real firmware')
     parser.add_argument('--port-base', type=int, help='the first API port (default host.PORT_BASE); another worktree may use it')

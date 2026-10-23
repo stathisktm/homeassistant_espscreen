@@ -159,6 +159,7 @@
       "microphone": "Microfoon",
       "media_player": "Volume",
       "wake_when_moved": "Wakker bij bewegen",
+      "doorbell": "Deurbel",
       "dark_mode": "Donkere modus",
       "auto_standby": "Automatisch stand-by",
       "standby_after": "Stand-by na",
@@ -195,6 +196,10 @@
       "microphone_gain": "Microfoongain",
       "automatic_gain": "Automatische gain",
       "echo_cancellation": "Echo-onderdrukking"
+    },
+    "doorbell": {
+      "sound_on": "Geluid aan",
+      "sound_off": "Geluid uit"
     },
     "tile": {
       "tap_to_open": "Tik om te openen",
@@ -923,7 +928,8 @@
         "like_not_listed": "Alleen plugins uit de catalogus van Tessera kun je een hartje geven.",
         "rate_not_installed": "Zet de plugin eerst op een van je schermen, dan kun je hem beoordelen.",
         "rate_failed": "De sterren zijn niet verstuurd. Probeer het zo nog eens.",
-        "count_failed": "Meetellen kon niet uit: Tessera was niet bereikbaar. Probeer het zo nog eens."
+        "count_failed": "Meetellen kon niet uit: Tessera was niet bereikbaar. Probeer het zo nog eens.",
+        "forget_running": "Een scherm gebruikt deze plugin nog. Haal hem eerst van het scherm."
       },
       "extras": {
         "request": "Deze extra kan op dit scherm niet zo worden gewijzigd."
@@ -942,6 +948,25 @@
         "not_paired": "Koppel eerst een buildserver.",
         "unknown": "De buildserver kent Tessera niet meer. Koppel hem opnieuw.",
         "pending": "De buildserver heeft Tessera nog niet geaccepteerd."
+      },
+      "video": {
+        "not_written": "Tessera video kon niet naar {folder} worden geschreven: {reason}.",
+        "not_installed": "Installeer eerst Tessera video."
+      },
+      "report": {
+        "depth": "Kies het basisrapport of het volledige rapport.",
+        "busy": "Er wordt nog een rapport van dit scherm verzameld.",
+        "no_profile": "De YAML van dit scherm staat niet in de ESPHome-map van deze add-on, dus er valt van hieruit niets te rapporteren.",
+        "not_found": "Dat rapport is weg. Maak een nieuw rapport.",
+        "not_ready": "Het rapport is nog niet klaar.",
+        "failed": "Het verzamelen van het rapport is gestopt ({reason}). Probeer het opnieuw.",
+        "consent": "Zet een vinkje om het rapport te versturen.",
+        "note": "Houd de toelichting onder 2000 tekens.",
+        "email": "Dat lijkt niet op een e-mailadres.",
+        "too_large": "Het rapport is te groot om te versturen. Download het en voeg het toe aan een GitHub-issue.",
+        "retry": "Tessera nam het rapport zojuist niet aan. Probeer het over een minuut opnieuw, of download het.",
+        "offline": "Tessera is van hieruit niet bereikbaar. Download het rapport in plaats daarvan.",
+        "invalid": "Tessera heeft het rapport geweigerd. Download het en voeg het toe aan een GitHub-issue."
       }
     },
     "status": {
@@ -1019,7 +1044,11 @@
           "speed": "Snelheidsslider"
         },
         "vacuum": {
-          "buttons": "Start, stop, naar dock"
+          "buttons": "Start, stop, naar dock",
+          "map": "Kaart",
+          "rooms": "Kamers kiezen",
+          "routines": "Routines",
+          "map_rooms": "Kaart en kamers"
         },
         "cover": {
           "buttons": "Open, stop, dicht",
@@ -1135,6 +1164,10 @@
         "wake_when_moved": {
           "label": "Wakker bij bewegen",
           "hint": "Het scherm wordt wakker uit stand-by als iemand het oppakt, verplaatst of erop tikt. Het voelt het scherm zelf, niet iemand die langsloopt."
+        },
+        "doorbell": {
+          "label": "Deurbel",
+          "hint": "Als een deurbel in Home Assistant gaat, wordt dit scherm wakker, speelt een belgeluid en opent de camera live met geluid. Uit laat dit scherm met rust, bijvoorbeeld een slaapkamer in de nacht."
         },
         "microphone_gain": {
           "label": "Microfoongain",
@@ -1499,7 +1532,8 @@
       "alerts": "Alerts",
       "settings": "Instellingen",
       "new_screen_detail": "Aansluiten en installeren",
-      "plugins": "Plugins"
+      "plugins": "Plugins",
+      "manual": "Handleiding"
     },
     "api": {
       "failed": "Dat lukte niet. Vernieuw de pagina en probeer het opnieuw."
@@ -2658,6 +2692,23 @@
         "reinstall_all_confirm": "1 scherm opnieuw installeren van de nieuwste dev? Het herstart zodra de firmware erop staat. | {n} schermen opnieuw installeren van de nieuwste dev? Ze worden een voor een gebouwd, en elk herstart zodra de firmware erop staat.",
         "reinstall_all_go": "Opnieuw installeren"
       },
+      "video": {
+        "title": "Video in Home Assistant",
+        "text": "Een scherm met het onderdeel Video van Schermcamera laat zijn camera live zien in Home Assistant, met geluid: een camera Video bij het apparaat van het scherm, in de browser en de app. Home Assistant heeft daarvoor de integratie Tessera video nodig.",
+        "install": "Installeren in Home Assistant",
+        "install_again": "Opnieuw installeren",
+        "update": "Integratie bijwerken",
+        "newer": "Geïnstalleerd · een nieuwere versie staat klaar",
+        "waits_restart": "Geïnstalleerd · herstart Home Assistant om hem te laden",
+        "running": "● Draait in Home Assistant",
+        "restart": "Home Assistant herstarten",
+        "restart_confirm": "Home Assistant nu herstarten? Het is een minuut of twee weg, en zijn dashboards en automatiseringen ook.",
+        "restarting": "Home Assistant herstart. De video van de schermen volgt binnen een minuut nadat het terug is.",
+        "installed": "Tessera video geïnstalleerd. Herstart Home Assistant één keer om hem te laden.",
+        "screens": "Schermen met video: {names}",
+        "no_screens": "Nog geen scherm heeft video: voeg Schermcamera toe aan een P4-scherm met camera, met het onderdeel Video.",
+        "writes": "Schrijft de map {path}; opnieuw installeren vervangt hem. Tessera voegt elk scherm met video zelf toe."
+      },
       "claude": {
         "installed": "Skill geïnstalleerd. Claude Code vindt hem meteen.",
         "installed_restart": "Skill geïnstalleerd. Start Claude Code één keer opnieuw, zodat het de nieuwe skills-map vindt.",
@@ -3304,8 +3355,7 @@
       "comment_label": "Toelichting (optioneel)",
       "comment_hint": "Laat persoonsgegevens, logs, wachtwoorden en API-keys weg.",
       "report_title": "Wil je dat het opgelost wordt?",
-      "report_text": "Open een issue op GitHub. Je bord, de versies en wat je ons vertelde staan er al in. Voeg een log toe, dan kunnen we het uitzoeken en je ernaar vragen.",
-      "report_open": "Open een GitHub-issue",
+      "report_text": "Stuur een rapport: Tessera verzamelt het bord, de versies, de logs en de laatste crash, laat ze je eerst zien en verstuurt ze pas als jij akkoord gaat. Of lees wat je kunt doen als iets niet werkt.",
       "add_details": "Details toevoegen",
       "done": "Klaar",
       "settings_title": "Feedback",
@@ -3338,7 +3388,9 @@
         "addon": "De versie van Tessera: {version}",
         "nothing_else": "Verder niets: geen naam, account, entiteiten, logs of Home Assistant-instellingen. Elk scherm deelt onder een eigen willekeurige sleutel."
       },
-      "privacy": "Privacy"
+      "privacy": "Privacy",
+      "report_send": "Rapport sturen",
+      "report_manual": "Lees de probleemgids"
     },
     "webflash": {
       "target": "Installeren vanuit deze browser (Chrome of Edge)",
@@ -3927,6 +3979,10 @@
         "text": "Help anderen goede plugins te vinden. Hartjes en sterren gaan alleen als jij ze geeft, meetellen alleen zolang het aan staat.",
         "asking": "Vraag om sterren een paar dagen na een nieuwe plugin",
         "asking_hint": "Een kaart boven het scherm, één plugin tegelijk."
+      },
+      "forget": {
+        "go": "Uit de lijst halen",
+        "note": "Geen enkel scherm gebruikt deze plugin. Haal hem uit de lijst om de link te vergeten."
       }
     },
     "plugin_tile": {
@@ -4027,6 +4083,96 @@
       "move_to": "Verplaatsen naar pagina",
       "add_here": "Hier een tegel toevoegen",
       "paste_here": "Hier plakken"
+    },
+    "report": {
+      "button": "Mijn scherm werkt niet goed",
+      "card_title": "Is er iets mis?",
+      "card_hint": "Stel een rapport samen van wat de app over dit scherm weet, lees het en stuur het naar Tessera, zodat we de oorzaak kunnen vinden.",
+      "eyebrow": "Probleemoplossing",
+      "title": "Mijn scherm werkt niet goed",
+      "title_named": "{name} werkt niet goed",
+      "intro": "De app verzamelt wat hij over dit scherm weet in een paar bestanden. Je leest ze hier, en pas Versturen brengt ze naar Tessera.",
+      "loading": "Lezen wat de app weet…",
+      "collects_title": "Wat erin gaat",
+      "collects": "Het bord en de versies van het scherm, zijn eigen log (tot 45 seconden, live), de regels over het scherm in het log van Home Assistant, het log van de app en het laatste buildlog. Wachtwoorden, sleutels, netwerkadressen en de naam van het scherm worden onleesbaar gemaakt.",
+      "nothing_leaves": "Er verlaat niets je Home Assistant totdat je op Versturen drukt. Je kunt elk bestand eerst lezen.",
+      "crash_title": "Laatste crash",
+      "crash_line": "{reason}, {when}, {seen}",
+      "crash_seen": "één keer gezien deze week | {n} keer gezien deze week",
+      "crash_lines": "Gedecodeerde regels",
+      "full": "Ook mijn pagina-indeling, de namen van entiteiten en de overige regels uit het log van Home Assistant meesturen. Dit helpt enorm bij het vinden van de oorzaak.",
+      "note_label": "Wat gebeurde er? (optioneel)",
+      "note_hint": "Wat je zag, wat je vlak daarvoor deed en hoe vaak het gebeurt.",
+      "email_label": "Je e-mailadres (optioneel)",
+      "email_hint": "Als we je er iets over mogen vragen.",
+      "remember_email": "Mijn e-mailadres in deze app onthouden",
+      "collect": "Verzamelen",
+      "check_again": "Opnieuw controleren",
+      "blockers": {
+        "no_profile": "De YAML van dit scherm staat niet in de map van deze app, dus er kan geen rapport voor worden gemaakt.",
+        "collecting": "Er wordt al een rapport van dit scherm verzameld. Wacht even en controleer opnieuw."
+      },
+      "collecting": "Verzamelen…",
+      "collecting_hint": "Dit duurt tot een minuut: de app luistert een poosje naar het log van het scherm.",
+      "steps": {
+        "identity": "De identiteit van het scherm lezen",
+        "profile": "Zijn profiel kopiëren",
+        "screen_log": "Naar het log van het scherm luisteren",
+        "ha_log": "Het log van Home Assistant lezen",
+        "addon_log": "Het log van de app lezen",
+        "build_log": "Het laatste buildlog lezen",
+        "crash": "De laatste crash lezen",
+        "zip": "De bestanden inpakken"
+      },
+      "ready_title": "Klaar om te lezen",
+      "facts": {
+        "board": "Bord",
+        "firmware": "Firmware",
+        "addon": "Tessera",
+        "ha": "Home Assistant",
+        "esphome": "ESPHome",
+        "plugins": "Plugins",
+        "crash": "Laatste crash",
+        "none": "Geen",
+        "unknown": "Onbekend"
+      },
+      "warnings": {
+        "screen_offline": "Het scherm is offline: het rapport heeft geen live log, alleen wat de app bewaarde.",
+        "no_api_key": "De app heeft geen API-sleutel voor dit scherm, dus zijn live log kon niet gelezen worden.",
+        "no_elf": "Het debugbestand van de firmware ontbreekt, dus een crash kan niet naar zijn coderegels benoemd worden.",
+        "ha_log_unavailable": "Het log van Home Assistant kon niet gelezen worden.",
+        "addon_log_unavailable": "Het eigen log van de app kon niet gelezen worden.",
+        "no_crash_record": "Er is geen crash van dit scherm vastgelegd."
+      },
+      "files_title": "Bestanden in het rapport",
+      "file_lines": "1 regel | {n} regels",
+      "size": {
+        "b": "{n} B",
+        "kb": "{n} KB",
+        "mb": "{n} MB"
+      },
+      "download": "Zip downloaden",
+      "send_title": "Naar Tessera versturen",
+      "send_text": "Dit gaat naar Tessera en wordt {days} dagen bewaard. Het bevat de bestanden hierboven, je toelichting en je e-mailadres als je dat gaf.",
+      "privacy": "Privacy",
+      "with_note": "Met je toelichting.",
+      "with_email": "We mogen schrijven naar {email}.",
+      "change_note": "Toelichting of e-mailadres wijzigen",
+      "consent": "Ik heb gelezen wat er in het rapport staat en ga ermee akkoord dat het naar Tessera gaat.",
+      "send": "Versturen",
+      "sending": "Versturen…",
+      "sent": {
+        "title": "Verstuurd, bedankt",
+        "quote": "Noem deze referentie op GitHub of Discord, dan kunnen we je rapport terugvinden.",
+        "copy": "Kopiëren",
+        "copied": "Referentie gekopieerd.",
+        "selected": "De referentie is geselecteerd: kopieer hem met Ctrl+C of ⌘C.",
+        "github": "Open een GitHub-issue",
+        "discord": "Vraag het op Discord",
+        "new": "Nieuw rapport maken"
+      },
+      "failed_title": "Het rapport kon niet gemaakt worden",
+      "try_again": "Opnieuw proberen"
     }
   }
 }

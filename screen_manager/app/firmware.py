@@ -625,6 +625,16 @@ class Firmware:
         self._names.pop(profile.name, None)
         return True
 
+    async def clean_build(self, name):
+        """An empty build folder for this profile's next build (BuildQueue, a build marked `fresh`): the build folder is
+        this app's own (/data/build/<profile>, build_env), and ESPHome makes it anew, as after its own Clean. The compile
+        cache outside it stays, so the build takes minutes, not the first build's quarter of an hour."""
+        build = self.data / 'build' / self.profile(name).name.removesuffix('.yaml')
+        if build.is_dir() and not build.is_symlink():
+            self.logs.append('A plugin part changed: this build starts from an empty build folder.')
+            await asyncio.to_thread(shutil.rmtree, build, True)
+            LOG.info('Build folder of %s emptied for a changed plugin part', name)
+
     def image_size(self, name):
         """The size in bytes of the image this profile's last build sends over Wi-Fi, or None when there is none."""
         build = self.data / 'build' / self.profile(name).name.removesuffix('.yaml')

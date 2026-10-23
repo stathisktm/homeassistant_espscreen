@@ -703,6 +703,12 @@ VACUUM_PROBE = '''    - action: render_vacuum
             const bool open = detail_root && !lv_obj_has_flag(detail_root, LV_OBJ_FLAG_HIDDEN);
             #ifdef SD_MOD_VACUUM_CARD
             ESP_LOGI("render", "vacuum open=%d %s", (int) open, vacuum_card::describe().c_str());
+            // The larger tiles of robots on the glass (module_vacuum_tile.cpp): each slot's face and its parts.
+            for (auto &w : widgets)
+              if (w.tile && w.index < model.count) {
+                const std::string face = vacuum_face::describe(w);
+                if (!face.empty()) ESP_LOGI("render", "vacuum tile slot=%u %s", (unsigned) w.index, face.c_str());
+              }
             #else
             ESP_LOGI("render", "vacuum open=%d view=-1 keys=", (int) open);
             #endif

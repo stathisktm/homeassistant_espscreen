@@ -158,12 +158,14 @@ class Profiles(unittest.TestCase):
             # view itself in apply_screen_settings, and close_cards would close it again.
             self.assertRegex(dim, r"return screen_settings::current\.home_on_standby;'\s+then:\s+- script\.execute: go_home\s+else:\s+"
                                   r"- lambda: 'settings_screen::close\(\);'\s+- script\.execute: close_cards\s+(#[^\n]*\s+)?"
-                                  r"- lambda: 'id\(apply_screen_settings\)\.execute\(\);'", name)
+                                  r"- lambda: 'id\(apply_screen_settings\)\.execute\(false\);'", name)
             self.assertNotIn('lvgl.widget.hide', dim, f'{name}: cards close through close_cards')
             callers = re.findall(r'script\.execute: dim_display', text)
             self.assertEqual(len(callers), 2, f'{name}: the standby interval and the Sleep button')
             interval = re.search(r'if \(!screen_settings::current\.standby_enabled\) return false;\s+'
                                  r'if \(id\(display_dimmed\) \|\| id\(touch_down\) \|\| id\(calibration_active\) \|\| id\(alert_active\)\) return false;\s+'
+                                 # A doorbell's ring on the glass holds it lit too (module doorbell, docs/DOORBELL.md).
+                                 r'//[^\n]*\s+if \(runtime_tiles::doorbell_holds\(\)\) return false;\s+'
                                  r'return \(millis\(\) - id\(last_touch_ms\)\) > [^\n]+\n\s+then:\s+- script\.execute: dim_display', text)
             self.assertTrue(interval, f'{name}: the standby time only dims with Auto standby on')
 

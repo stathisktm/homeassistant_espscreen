@@ -110,8 +110,9 @@ REF = 'main'
 # Supervisor names an app `<hash>_<slug>`, the hash being the first eight characters of the sha1 of the repository URL
 # as it was added, in lower case (supervisor/store/utils.py, get_hash_from_repository). So the URL with `#dev` is
 # another app, with data of its own, and its screens build from dev. Any other hash (a local copy, a fork, another
-# spelling of the URL) and no Supervisor at all have no channel: new screens build from main, existing ones keep the
-# `ref:` they have.
+# spelling of the URL) has no channel: new screens build from main, existing ones keep the `ref:` they have. Without a
+# Supervisor (Docker, docs/DOCKER.md) SCREEN_CHANNEL names it, which the image GitHub builds from dev carries
+# (.github/workflows/docker.yml); unset, there is none.
 # This fork is a channel of its own: its address, and the `#dev` spelling of it, so the app knows where it was added
 # from and moves its own screens to its own release tags.
 CHANNELS = {'ec8ae0ed': 'main', 'fa6a7b50': 'dev',          # github.com/MaxGramser/homeassistant_espscreen
@@ -125,6 +126,13 @@ def channel_of(slug):
     if not isinstance(slug, str) or '_' not in slug:
         return None
     return CHANNELS.get(slug.split('_', 1)[0])
+
+def start_channel(slug, environ=os.environ):
+    """The channel at the start (server.main): the slug's under the Supervisor, SCREEN_CHANNEL without one."""
+    if slug:
+        return channel_of(slug)
+    value = str(environ.get('SCREEN_CHANNEL') or '').strip()
+    return value if value in CHANNELS.values() else None
 
 def set_channel(channel):
     """The channel this app runs in, found once at the start (server.main)."""
@@ -171,7 +179,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.59.0'
+FIRMWARE_VERSION = '0.60.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -3048,14 +3056,17 @@ def discover(registry, states, devices, areas):
                          'icon': tile_icons.ha_icon(state.get('attributes')) or tile_icons.default_glyph(eid, state.get('state'), state.get('attributes'), item),
                          # Top-bar-only domains (a phone's tracker, a lock) stay out of the tile picker.
                          **({} if tile else {'tile': False}), **unavailable_since(state)})
-    # YAML entities may not have an entity-registry entry.
+    # YAML entities may not have an entity-registry entry. Their icon is the one the screen gets (tile_icon): Home
+    # Assistant's own, else the one its frontend shows for the state, as for a registered entity (app 0.4.90; before, a
+    # player or a lock of YAML showed the power icon on the mockup and its cast or lock icon on the glass).
     registered = {e['id'] for e in entities}
     in_registry = {r['entity_id'] for r in registry}
     for eid, state in states.items():
         tile = entity_id(eid)
         if (tile or header_entity(eid)) and eid not in registered and eid not in in_registry:
             entities.append({'id': eid, 'name': state.get('attributes', {}).get('friendly_name', eid), 'device': '', 'area': '', 'state': state['state'],
-                             'icon': tile_icons.ha_icon(state.get('attributes')), **({} if tile else {'tile': False}), **unavailable_since(state)})
+                             'icon': tile_icons.ha_icon(state.get('attributes')) or tile_icons.default_glyph(eid, state.get('state'), state.get('attributes')),
+                             **({} if tile else {'tile': False}), **unavailable_since(state)})
     return screens, sorted(entities, key=lambda e: e['name'].casefold())
 
 def hotspot_name(friendly):

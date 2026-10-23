@@ -23,7 +23,7 @@ class TheBoards(unittest.TestCase):
     def test_every_listed_setting_is_an_entity_a_screen_row_and_words(self):
         listed = {board: shape['catalog'].get('settings') or [] for board, shape in SHAPES.items()
                   if not board.startswith(('checkout/', 'packages/'))}
-        self.assertEqual(listed['reterminald1001'], ['media_player', 'microphone', 'wake_when_moved'])
+        self.assertEqual(listed['reterminald1001'], ['media_player', 'microphone', 'wake_when_moved', 'doorbell'])
         labels = SCREEN_TEXT['addon']['labels']['extras']
         for board, keys in listed.items():
             text = '\n'.join(path.read_text() for path in profiles.chain(profiles.BOARDS[board], all_variants=True))
@@ -99,12 +99,14 @@ class HA:
         self.registry = [
             {'entity_id': 'switch.hall_microphone', 'device_id': 'd1', 'platform': 'esphome', 'original_name': 'Microphone'},
             {'entity_id': 'switch.hall_wake_when_moved', 'device_id': 'd1', 'platform': 'esphome', 'original_name': 'Wake when moved'},
+            {'entity_id': 'switch.hall_doorbell', 'device_id': 'd1', 'platform': 'esphome', 'original_name': 'Doorbell'},
             {'entity_id': 'switch.hall_dark_mode', 'device_id': 'd1', 'platform': 'esphome', 'original_name': 'Dark mode'},
             {'entity_id': 'switch.other_microphone', 'device_id': 'd2', 'platform': 'esphome', 'original_name': 'Microphone'},
             {'entity_id': 'media_player.hall_media_player', 'device_id': 'd1', 'platform': 'esphome', 'original_name': 'Media Player'},
         ]
         self.states = {'media_player.hall_media_player': {'state': 'idle', 'attributes': {'volume_level': 0.45}},
                        'switch.hall_microphone': {'state': 'on'}, 'switch.hall_wake_when_moved': {'state': 'off'},
+                       'switch.hall_doorbell': {'state': 'on'},
                        'switch.hall_dark_mode': {'state': 'off'}, 'switch.other_microphone': {'state': 'on'}}
 
     async def call_service(self, domain, service, data):
@@ -127,7 +129,7 @@ class TheApp(unittest.TestCase):
         manager.screen = lambda inbox: {**original(inbox), 'online': False}
         manager.package_of = lambda screen: 'packages/reterminald1001.yaml'
         rows = entity_settings.extras_for(manager, 'text.hall_tiles')
-        self.assertEqual([row['key'] for row in rows], ['media_player', 'microphone', 'wake_when_moved'])
+        self.assertEqual([row['key'] for row in rows], ['media_player', 'microphone', 'wake_when_moved', 'doorbell'])
         self.assertTrue(all(not row['available'] for row in rows))
 
     def test_the_rows_are_the_boards_entities_in_its_order_with_the_apps_words(self):
@@ -135,7 +137,8 @@ class TheApp(unittest.TestCase):
         self.assertEqual([(r['key'], r['entity'], r['kind'], r['value'], r['available']) for r in rows],
                          [('media_player', 'media_player.hall_media_player', 'number', 45, True),
                           ('microphone', 'switch.hall_microphone', 'switch', True, True),
-                          ('wake_when_moved', 'switch.hall_wake_when_moved', 'switch', False, True)])
+                          ('wake_when_moved', 'switch.hall_wake_when_moved', 'switch', False, True),
+                          ('doorbell', 'switch.hall_doorbell', 'switch', True, True)])
         self.assertEqual(rows[2]['label']['en'], 'Wake when moved')
         self.assertTrue(rows[2]['hint']['en'])
         # The speaker's volume is its media player's, in percent, as Home Assistant's dialog sets it.

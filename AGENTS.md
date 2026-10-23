@@ -29,6 +29,7 @@ Home Assistant entity belongs in a board file. docs/README.md lists every doc an
 | change a colour | docs/THEME.md | `components/smart_display/theme.h` |
 | change how pages are kept or prepared | docs/KEPT_PAGES.md, docs/PAGES.md | `kept_pages.h`, `page_protocol.h` |
 | make a control click or buzz as a finger presses or drags it | docs/PLUGINS.md, "Touch feedback" | `touch_feedback.h`, `touch_feedback_lvgl.h` |
+| change what a troubleshooting report holds, or how a crash is read | docs/REPORTS.md | `reports.py`, `redaction.py`, `ReportPanel.vue`, the website's `AddonReportController` |
 | make a control show its change before Home Assistant confirms it | docs/OPTIMISTIC.md | `optimistic.h`, `wish()` in `runtime_tiles.h` |
 | make a card follow a change without being built again | docs/CARD_PARTS.md | `card_bind()`, `card_shaped()` in `runtime_tiles.h` |
 | change what a plugin can do, or how plugins reach a screen | docs/PLUGINS.md, then the tessera-plugins repository's docs | `plugin_api.h`, `plugin_host.cpp`, `screen_manager/app/plugins.py`, `plugin_manifest.py` |
@@ -119,7 +120,8 @@ release is checked fully, once a week. docs/TESTING.md says what each layer prov
 - **On dev the proof is the bench**: the three real boards on the owner's bench Home Assistant and its local app
   (`.esphome/bench/README.md` on the owner's machine). Put the app on it, flash the change to the boards it concerns,
   and have the owner look and tap. Run a single test when that is the quickest way to see a piece of logic work. No
-  `tools/check.sh`, no builds of other boards and no renders on dev, and a push to dev starts no CI. After a change
+  `tools/check.sh`, no builds of other boards and no renders on dev, and a push to dev starts no CI but the Docker
+  image `:dev` when `screen_manager/` changed (docs/DOCKER.md, "Testing dev"). After a change
   under `web/src`, `cd web && npm run build` (the app serves that build) and commit `screen_manager/app/static` with it.
 - **At a release** (and a hotfix) everything runs, on the commit that goes out: `tools/check.sh`, CI on that commit
   (`tools/release.py ci`: every board on both ESPHome versions), the renders when the release changes what screens

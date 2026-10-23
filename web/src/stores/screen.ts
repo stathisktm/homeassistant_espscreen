@@ -38,8 +38,9 @@ export const useScreenStore = defineStore("screen", () => {
   /** Whether the open screen's firmware is this version or newer, the version as the add-on names one ("0.38.0"). */
   const supportsVersion = (version: string) => versionAtLeast(firmwareOf.value, version);
   // Whether the screen's board draws pictures (camera tiles, an album cover): the add-on says so per screen from the
-  // board's own camera sizes (app 0.2.94), and this page always comes with that add-on.
-  const pictures = computed(() => Boolean(currentScreen.value?.pictures));
+  // board's own camera sizes (app 0.2.94); a preview screen, which the add-on does not know, by its board (drawsPictures,
+  // as its firmware preview: a preview Guition has its album cover's square on the mockup too, app 0.4.90).
+  const pictures = computed(() => currentScreen.value?.virtual ? drawsPictures(currentScreen.value) : Boolean(currentScreen.value?.pictures));
   // A new media tile starts with its album cover where the screen draws one (app 0.4.42): a board with pictures, firmware 0.2.78+.
   const coversByDefault = computed(() => pictures.value && supports(0, 2, 78));
   // The memory this screen has for its tiles (firmware 0.34.0+, its hello): the meter beside the tile count, and the

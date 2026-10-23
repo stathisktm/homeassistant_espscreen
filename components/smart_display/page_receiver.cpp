@@ -25,7 +25,9 @@ static bool parse_bar_item(JsonVariant value, header_bar::Item &item) {
     item.icon_only = item.kind == header_bar::Kind::plugin && value["o"].is<unsigned>() && value["o"].as<unsigned>() == 1;
     // An entity's item (firmware 0.56.0+): the index of the tile whose card a tap on it opens, one on a page or a tile of
     // the top bar (Tile::BAR_TILE).
-    if (value["d"].is<unsigned>() && value["d"].as<unsigned>() < header_bar::NO_CARD) item.card = static_cast<uint16_t>(value["d"].as<unsigned>());
+    if (value["d"].is<unsigned>() && value["d"].as<unsigned>() < header_bar::DOORBELL_CARD) item.card = static_cast<uint16_t>(value["d"].as<unsigned>());
+    // A missed ring (module doorbell): its item opens that ring again.
+    if (item.kind == header_bar::Kind::ago && value["b"].is<unsigned>() && value["b"].as<unsigned>() == 1) item.card = header_bar::DOORBELL_CARD;
     if (item.kind == header_bar::Kind::ago && item.epoch == 0) return false;
     // A plugin's item names itself: plugin:<plugin>.<item> (docs/PLUGINS.md).
     if (item.kind == header_bar::Kind::plugin && !plugin_key(item.text)) return false;
@@ -362,6 +364,24 @@ std::string receive(const std::string &payload) {
       return true;
     }
     if (op != "tile" && !transfer.active) { result = "Resend needed"; return false; }
+    if (op == "doorbell") {
+      // A ring (module doorbell, docs/DOORBELL.md): ESP Screens saw a doorbell's event entity ring in Home Assistant and
+      // names its camera (`e`), its name (`n`), the ring's key (`k`) and when it rang (`r`, unix time); or, with `c`, that
+      // this ring was answered on another screen and closes here too. Only a screen whose hello says `doorbell` gets it.
+#ifdef SD_MOD_DOORBELL
+      const std::string key = string(root["k"], 16);
+      if (key.empty()) return false;
+      if (root["c"].is<unsigned>() && root["c"].as<unsigned>() == 1) {
+        doorbell::close_ring(key);
+      } else {
+        const std::string entity = string(root["e"], 120), name = string(root["n"], 60);
+        if (!valid_entity(entity)) return false;
+        doorbell::ring(entity, name.empty() ? entity : name, key, root["r"].is<unsigned>() ? root["r"].as<uint32_t>() : 0);
+      }
+#endif
+      result = model.ready() ? "Synced" : "Loading tiles";
+      return true;
+    }
     if (op == "camera") {
       // A link to a camera's image (app 0.2.66+): the answer to camera_request ("full"), or an alert's image ("alert",
       // announced with an empty link before show_alert and sent again with the link), or the media card's cover

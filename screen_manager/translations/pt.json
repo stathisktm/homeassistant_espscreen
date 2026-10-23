@@ -159,6 +159,7 @@
       "microphone": "Microfone",
       "media_player": "Volume",
       "wake_when_moved": "Acordar ao mover",
+      "doorbell": "Campainha",
       "dark_mode": "Modo escuro",
       "auto_standby": "Espera automática",
       "standby_after": "Espera após",
@@ -195,6 +196,10 @@
       "microphone_gain": "Ganho do microfone",
       "automatic_gain": "Ganho automático",
       "echo_cancellation": "Cancelamento eco"
+    },
+    "doorbell": {
+      "sound_on": "Som ligado",
+      "sound_off": "Som desligado"
     },
     "tile": {
       "tap_to_open": "Toque para abrir",
@@ -923,7 +928,8 @@
         "like_not_listed": "Só os plugins do catálogo do Tessera podem receber um gosto.",
         "rate_not_installed": "Ponha primeiro o plugin num dos seus ecrãs e depois pode avaliá-lo.",
         "rate_failed": "As estrelas não foram enviadas. Tente de novo daqui a pouco.",
-        "count_failed": "Não foi possível desligar a contagem: o Tessera não estava acessível. Tente de novo daqui a pouco."
+        "count_failed": "Não foi possível desligar a contagem: o Tessera não estava acessível. Tente de novo daqui a pouco.",
+        "forget_running": "Um ecrã ainda usa este plugin. Retire-o primeiro do ecrã."
       },
       "extras": {
         "request": "Esta alteração de um extra não é possível neste ecrã."
@@ -942,6 +948,25 @@
         "not_paired": "Emparelhe primeiro um servidor de compilação.",
         "unknown": "O servidor de compilação já não conhece o Tessera. Emparelhe-o de novo.",
         "pending": "O servidor de compilação ainda não aceitou o Tessera."
+      },
+      "video": {
+        "not_written": "Não foi possível escrever Tessera video em {folder}: {reason}.",
+        "not_installed": "Instale primeiro Tessera video."
+      },
+      "report": {
+        "depth": "Escolha o relatório básico ou o completo.",
+        "busy": "Ainda está a ser recolhido um relatório deste ecrã.",
+        "no_profile": "O YAML deste ecrã não está na pasta ESPHome deste complemento, por isso não há nada a relatar a partir daqui.",
+        "not_found": "Esse relatório já não existe. Faça um novo.",
+        "not_ready": "O relatório ainda não está terminado.",
+        "failed": "A recolha do relatório parou ({reason}). Tente novamente.",
+        "consent": "Marque a caixa para enviar o relatório.",
+        "note": "Mantenha a nota abaixo de 2000 caracteres.",
+        "email": "Isso não parece um endereço de email.",
+        "too_large": "O relatório é demasiado grande para enviar. Transfira-o e anexe-o a um issue no GitHub.",
+        "retry": "A Tessera não aceitou o relatório neste momento. Tente novamente dentro de um minuto, ou transfira-o.",
+        "offline": "A Tessera não está acessível a partir daqui. Transfira o relatório em vez disso.",
+        "invalid": "A Tessera recusou o relatório. Transfira-o e anexe-o a um issue no GitHub."
       }
     },
     "status": {
@@ -1019,7 +1044,11 @@
           "speed": "Controlo deslizante de velocidade"
         },
         "vacuum": {
-          "buttons": "Iniciar, parar, base"
+          "buttons": "Iniciar, parar, base",
+          "map": "Mapa",
+          "rooms": "Escolher divisões",
+          "routines": "Rotinas",
+          "map_rooms": "Mapa e divisões"
         },
         "cover": {
           "buttons": "Abrir, parar, fechar",
@@ -1135,6 +1164,10 @@
         "wake_when_moved": {
           "label": "Acordar ao mover",
           "hint": "O ecrã sai do modo de espera quando alguém o pega, move ou bate nele. Sente o próprio ecrã, não alguém que passa."
+        },
+        "doorbell": {
+          "label": "Campainha",
+          "hint": "Quando uma campainha do Home Assistant toca, este ecrã acorda, toca um aviso e abre a câmara em direto com som. Desligado deixa este ecrã em paz, por exemplo um quarto à noite."
         },
         "microphone_gain": {
           "label": "Ganho do microfone",
@@ -1499,7 +1532,8 @@
       "firmware": "Firmware e USB",
       "alerts": "Alertas",
       "settings": "Definições",
-      "new_screen_detail": "Ligar e instalar"
+      "new_screen_detail": "Ligar e instalar",
+      "manual": "Manual"
     },
     "api": {
       "failed": "Não funcionou. Recarregue a página e tente novamente."
@@ -2231,6 +2265,10 @@
         "text": "Ajude outros a encontrar bons plugins. Gostos e estrelas só seguem quando os dá, a contagem só enquanto estiver ligada.",
         "asking": "Pedir estrelas alguns dias depois de um plugin novo",
         "asking_hint": "Um cartão por cima do ecrã, um plugin de cada vez."
+      },
+      "forget": {
+        "go": "Remover da lista",
+        "note": "Nenhum ecrã usa este plugin. Remova-o da lista para esquecer a ligação."
       }
     },
     "plugin_tile": {
@@ -3083,6 +3121,23 @@
         "reinstall_all_confirm": "Reinstalar 1 ecrã a partir da dev mais recente? Reinicia assim que tiver o firmware. | Reinstalar {n} ecrãs a partir da dev mais recente? São compilados um após o outro, e cada um reinicia assim que tiver o firmware.",
         "reinstall_all_go": "Reinstalar"
       },
+      "video": {
+        "title": "Vídeo no Home Assistant",
+        "text": "Um ecrã com a parte Vídeo de Câmara do ecrã mostra a sua câmara em direto no Home Assistant, com som: uma câmara Vídeo no dispositivo do ecrã, no navegador e na app. O Home Assistant precisa da integração Tessera video para isso.",
+        "install": "Instalar no Home Assistant",
+        "install_again": "Instalar de novo",
+        "update": "Atualizar a integração",
+        "newer": "Instalada · há uma versão mais recente",
+        "waits_restart": "Instalada · reinicie o Home Assistant para a carregar",
+        "running": "● A funcionar no Home Assistant",
+        "restart": "Reiniciar o Home Assistant",
+        "restart_confirm": "Reiniciar o Home Assistant agora? Fica fora um ou dois minutos, tal como os seus painéis e automatizações.",
+        "restarting": "O Home Assistant reinicia. O vídeo dos ecrãs segue um minuto depois de voltar.",
+        "installed": "Tessera video instalada. Reinicie o Home Assistant uma vez para a carregar.",
+        "screens": "Ecrãs com vídeo: {names}",
+        "no_screens": "Nenhum ecrã tem vídeo ainda: adicione Câmara do ecrã, com a parte Vídeo, a um ecrã P4 com câmara.",
+        "writes": "Escreve a pasta {path}; instalar de novo substitui-a. O Tessera adiciona cada ecrã com vídeo por si."
+      },
       "claude": {
         "installed": "Habilidade instalada. O Claude Code deteta-a de imediato.",
         "installed_restart": "Habilidade instalada. Reinicie o Claude Code uma vez para que encontre a nova pasta de habilidades.",
@@ -3728,9 +3783,8 @@
       },
       "comment_label": "Nota (opcional)",
       "comment_hint": "Não inclua dados pessoais, registos, palavras-passe nem chaves de API.",
-      "report_title": "Quer que seja corrigido?",
-      "report_text": "Abra um issue no GitHub. A sua placa, as versões e o que nos disse já estão preenchidos. Adicione um registo e poderemos analisá-lo e fazer-lhe perguntas.",
-      "report_open": "Abrir um issue no GitHub",
+      "report_title": "Quer que seja resolvido?",
+      "report_text": "Envie um relatório: o Tessera reúne a placa, as versões, os registos e a última falha, mostra-os primeiro e só os envia com a sua aprovação. Ou leia o que fazer quando algo não funciona.",
       "add_details": "Acrescentar detalhes",
       "done": "Concluído",
       "settings_title": "Feedback",
@@ -3763,7 +3817,9 @@
         "addon": "A versão do Tessera: {version}",
         "nothing_else": "Mais nada: nem nome, conta, entidades, registos ou definições do Home Assistant. Cada ecrã partilha com a sua própria chave aleatória."
       },
-      "privacy": "Privacidade"
+      "privacy": "Privacidade",
+      "report_send": "Enviar um relatório",
+      "report_manual": "Ler o guia de problemas"
     },
     "webflash": {
       "target": "Instalar a partir deste navegador (Chrome ou Edge)",
@@ -4027,6 +4083,96 @@
       "move_to": "Mover para a página",
       "add_here": "Adicionar um mosaico aqui",
       "paste_here": "Colar aqui"
+    },
+    "report": {
+      "button": "O meu ecrã não funciona bem",
+      "card_title": "Algo está mal?",
+      "card_hint": "Junte um relatório com o que a app sabe sobre este ecrã, leia-o e envie-o à Tessera para que possamos encontrar a causa.",
+      "eyebrow": "Resolução de problemas",
+      "title": "O meu ecrã não funciona bem",
+      "title_named": "{name} não funciona bem",
+      "intro": "A app recolhe o que sabe sobre este ecrã em alguns ficheiros. Lê-os aqui, e só Enviar os leva à Tessera.",
+      "loading": "A ler o que a app sabe…",
+      "collects_title": "O que inclui",
+      "collects": "A placa e as versões do ecrã, o seu próprio registo (até 45 segundos, em direto), as linhas do registo do Home Assistant sobre ele, o registo da app e o último registo de compilação. Palavras-passe, chaves, endereços de rede e o nome do ecrã são ocultados.",
+      "nothing_leaves": "Nada sai do seu Home Assistant até carregar em Enviar. Pode ler cada ficheiro primeiro.",
+      "crash_title": "Última falha",
+      "crash_line": "{reason}, {when}, {seen}",
+      "crash_seen": "vista uma vez esta semana | vista {n} vezes esta semana",
+      "crash_lines": "Linhas descodificadas",
+      "full": "Incluir também a disposição das minhas páginas, os nomes das entidades e as outras linhas do registo do Home Assistant. Ajuda muito a encontrar a causa.",
+      "note_label": "O que aconteceu? (opcional)",
+      "note_hint": "O que viu, o que fez mesmo antes e com que frequência acontece.",
+      "email_label": "O seu email (opcional)",
+      "email_hint": "Caso possamos fazer-lhe uma pergunta sobre isto.",
+      "remember_email": "Lembrar o meu email nesta app",
+      "collect": "Recolher",
+      "check_again": "Verificar de novo",
+      "blockers": {
+        "no_profile": "O YAML deste ecrã não está na pasta desta app, por isso não é possível fazer um relatório dele.",
+        "collecting": "Já está a ser recolhido um relatório deste ecrã. Aguarde um momento e verifique de novo."
+      },
+      "collecting": "A recolher…",
+      "collecting_hint": "Demora até um minuto: a app escuta o registo do ecrã durante algum tempo.",
+      "steps": {
+        "identity": "A ler a identidade do ecrã",
+        "profile": "A copiar o seu perfil",
+        "screen_log": "A escutar o registo do ecrã",
+        "ha_log": "A ler o registo do Home Assistant",
+        "addon_log": "A ler o registo da app",
+        "build_log": "A ler o último registo de compilação",
+        "crash": "A ler a última falha",
+        "zip": "A empacotar os ficheiros"
+      },
+      "ready_title": "Pronto para ler",
+      "facts": {
+        "board": "Placa",
+        "firmware": "Firmware",
+        "addon": "Tessera",
+        "ha": "Home Assistant",
+        "esphome": "ESPHome",
+        "plugins": "Plugins",
+        "crash": "Última falha",
+        "none": "Nenhuma",
+        "unknown": "Desconhecido"
+      },
+      "warnings": {
+        "screen_offline": "O ecrã está offline: o relatório não tem registo em direto, só o que a app guardou.",
+        "no_api_key": "A app não tem chave de API para este ecrã, por isso o seu registo em direto não pôde ser lido.",
+        "no_elf": "Falta o ficheiro de depuração do firmware, por isso uma falha não pode ser identificada pelas suas linhas de código.",
+        "ha_log_unavailable": "Não foi possível ler o registo do Home Assistant.",
+        "addon_log_unavailable": "Não foi possível ler o registo da própria app.",
+        "no_crash_record": "Não foi encontrada nenhuma falha registada para este ecrã."
+      },
+      "files_title": "Ficheiros no relatório",
+      "file_lines": "1 linha | {n} linhas",
+      "size": {
+        "b": "{n} B",
+        "kb": "{n} KB",
+        "mb": "{n} MB"
+      },
+      "download": "Transferir zip",
+      "send_title": "Enviar à Tessera",
+      "send_text": "Isto vai para a Tessera e fica guardado {days} dias. Contém os ficheiros acima, a sua nota e o seu email, se o deu.",
+      "privacy": "Privacidade",
+      "with_note": "Com a sua nota.",
+      "with_email": "Podemos escrever para {email}.",
+      "change_note": "Alterar nota ou email",
+      "consent": "Li o que está no relatório e aceito enviá-lo à Tessera.",
+      "send": "Enviar",
+      "sending": "A enviar…",
+      "sent": {
+        "title": "Enviado, obrigado",
+        "quote": "Cite esta referência no GitHub ou no Discord para que possamos encontrar o seu relatório.",
+        "copy": "Copiar",
+        "copied": "Referência copiada.",
+        "selected": "A referência está selecionada: copie-a com Ctrl+C ou ⌘C.",
+        "github": "Abrir um issue no GitHub",
+        "discord": "Perguntar no Discord",
+        "new": "Fazer um novo relatório"
+      },
+      "failed_title": "Não foi possível fazer o relatório",
+      "try_again": "Tentar novamente"
     }
   }
 }

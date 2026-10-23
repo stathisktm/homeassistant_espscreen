@@ -26,7 +26,8 @@
    "order": 22,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -41,9 +42,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 19,
+   "icon": 29,
    "icon_home": 24,
    "icon_mini": 18,
    "label": 12,
@@ -63,7 +65,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -124,6 +127,7 @@
    "gap_y": 8,
    "margin": 11,
    "page_bar": 32,
+   "radius": 15,
    "tile_pad": 8,
    "top": 39
   },
@@ -160,9 +164,10 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 28,
    "icon_home": 25,
    "icon_mini": 18,
    "label": 11,
@@ -218,6 +223,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 36,
+   "radius": 18,
    "tile_pad": 8,
    "top": 37
   },
@@ -249,9 +255,10 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 28,
    "icon_home": 25,
    "icon_mini": 18,
    "label": 11,
@@ -307,6 +314,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 36,
+   "radius": 18,
    "tile_pad": 8,
    "top": 37
   },
@@ -338,9 +346,10 @@
   "dimmable": true,
   "dpi": 144,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 23,
+   "icon": 36,
    "icon_home": 29,
    "icon_mini": 22,
    "label": 15,
@@ -360,7 +369,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -401,6 +411,7 @@
    "gap_y": 10,
    "margin": 14,
    "page_bar": 40,
+   "radius": 19,
    "tile_pad": 10,
    "top": 48
   },
@@ -442,9 +453,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -464,7 +476,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -525,6 +538,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -556,9 +570,10 @@
   "dimmable": true,
   "dpi": 146,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 29,
    "icon_home": 26,
    "icon_mini": 18,
    "label": 11,
@@ -614,6 +629,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 37,
+   "radius": 18,
    "tile_pad": 8,
    "top": 38
   },
@@ -653,7 +669,8 @@
    "order": 9,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -668,9 +685,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -690,7 +708,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -751,6 +770,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -785,7 +805,8 @@
    "order": 10,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -801,9 +822,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -823,7 +845,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -884,6 +907,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -925,9 +949,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -947,7 +972,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1008,6 +1034,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -1042,7 +1069,8 @@
    "order": 21,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -1058,9 +1086,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 34,
+   "icon": 54,
    "icon_home": 43,
    "icon_mini": 33,
    "label": 23,
@@ -1080,7 +1109,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1141,6 +1171,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 60,
+   "radius": 28,
    "tile_pad": 15,
    "top": 64
   },
@@ -1175,7 +1206,8 @@
    "order": 4,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "new",
    "touch": "GSL3670"
@@ -1191,9 +1223,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -1213,7 +1246,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1274,6 +1308,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -1308,7 +1343,8 @@
    "order": 15,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3680"
@@ -1324,9 +1360,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -1346,7 +1383,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1407,6 +1445,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -1441,7 +1480,8 @@
    "order": 5,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3680"
@@ -1457,9 +1497,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -1479,7 +1520,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1540,6 +1582,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -1581,9 +1624,10 @@
   "dimmable": true,
   "dpi": 187,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 46,
    "icon_home": 37,
    "icon_mini": 29,
    "label": 20,
@@ -1603,7 +1647,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1664,6 +1709,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 51,
+   "radius": 24,
    "tile_pad": 13,
    "top": 58
   },
@@ -1699,7 +1745,8 @@
    "settings": [
     "media_player",
     "microphone",
-    "wake_when_moved"
+    "wake_when_moved",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3670"
@@ -1715,9 +1762,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 47,
    "icon_home": 38,
    "icon_mini": 29,
    "label": 20,
@@ -1737,7 +1785,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1798,6 +1847,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 52,
+   "radius": 24,
    "tile_pad": 13,
    "top": 59
   },
@@ -1829,9 +1879,10 @@
   "dimmable": true,
   "dpi": 172,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -1851,7 +1902,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -1892,6 +1944,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -1933,9 +1986,10 @@
   "dimmable": true,
   "dpi": 133,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 21,
+   "icon": 33,
    "icon_home": 26,
    "icon_mini": 20,
    "label": 14,
@@ -1955,7 +2009,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2016,6 +2071,7 @@
    "gap_y": 9,
    "margin": 13,
    "page_bar": 37,
+   "radius": 17,
    "tile_pad": 9,
    "top": 43
   },
@@ -2056,7 +2112,8 @@
    "settings": [
     "media_player",
     "microphone",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "new",
    "touch": "ST7121/ST7123"
@@ -2072,9 +2129,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 47,
+   "icon": 73,
    "icon_home": 59,
    "icon_mini": 45,
    "label": 31,
@@ -2094,7 +2152,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2155,6 +2214,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 81,
+   "radius": 38,
    "tile_pad": 21,
    "top": 81
   },
@@ -2192,7 +2252,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -2207,9 +2268,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -2229,7 +2291,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2290,6 +2353,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -2321,9 +2385,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -2343,7 +2408,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2384,6 +2450,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -2430,9 +2497,10 @@
   "dimmable": false,
   "dpi": 217,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 34,
+   "icon": 54,
    "icon_home": 43,
    "icon_mini": 33,
    "label": 23,
@@ -2452,7 +2520,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2513,6 +2582,134 @@
    "gap_y": 13,
    "margin": 16,
    "page_bar": 60,
+   "radius": 28,
+   "tile_pad": 15,
+   "top": 64
+  },
+  "tier": "full",
+  "wide_slots": false,
+  "width": 800
+ },
+ "checkout/waveshare43c.yaml": {
+  "alert": {
+   "line": 32,
+   "title_line": 40
+  },
+  "battery": false,
+  "board": "waveshare43c",
+  "camera": {
+   "full": [
+    800,
+    480
+   ],
+   "thumb": [
+    349,
+    196
+   ]
+  },
+  "can_standby": true,
+  "catalog": {
+   "calibrate": false,
+   "choices": {},
+   "inch": 4.3,
+   "model": "ESP32-S3-Touch-LCD-4.3C",
+   "name": "Waveshare",
+   "order": 30,
+   "settings": [],
+   "status": "experimental",
+   "touch": "GT911"
+  },
+  "chip": "ESP32-S3",
+  "columns": 3,
+  "dimmable": true,
+  "dpi": 217,
+  "features": [],
+  "firmware": "0.60.0",
+  "fonts": {
+   "headline": 34,
+   "icon": 54,
+   "icon_home": 43,
+   "icon_mini": 33,
+   "label": 23,
+   "setpoint": 82,
+   "sublabel": 20,
+   "sublabel_big": 27,
+   "watch_icon": 23,
+   "watch_value": 48
+  },
+  "height": 480,
+  "hotspot": true,
+  "look": "standard",
+  "max_bar_items": 12,
+  "max_pages": 24,
+  "max_tiles": 128,
+  "modules": [
+   "dock",
+   "vacuum_card",
+   "cover_groups",
+   "clock_faces",
+   "doorbell"
+  ],
+  "orientations": {
+   "landscape": {
+    "camera": {
+     "full": [
+      800,
+      480
+     ],
+     "thumb": [
+      349,
+      196
+     ]
+    },
+    "columns": 3,
+    "height": 480,
+    "max": [
+     4,
+     4
+    ],
+    "min": [
+     1,
+     1
+    ],
+    "rotation": 0,
+    "rows": 3,
+    "width": 800
+   },
+   "portrait": {
+    "camera": {
+     "full": [
+      480,
+      800
+     ],
+     "thumb": [
+      386,
+      217
+     ]
+    },
+    "columns": 1,
+    "height": 800,
+    "max": [
+     2,
+     8
+    ],
+    "min": [
+     1,
+     1
+    ],
+    "rotation": 90,
+    "rows": 4,
+    "width": 480
+   }
+  },
+  "rows": 3,
+  "spacing": {
+   "circle": 69,
+   "gap": 12,
+   "gap_y": 13,
+   "margin": 16,
+   "page_bar": 60,
+   "radius": 28,
    "tile_pad": 15,
    "top": 64
   },
@@ -2554,9 +2751,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -2576,7 +2774,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2637,6 +2836,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -2678,9 +2878,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -2700,7 +2901,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2761,6 +2963,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -2802,9 +3005,10 @@
   "dimmable": false,
   "dpi": 187,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 46,
    "icon_home": 37,
    "icon_mini": 29,
    "label": 20,
@@ -2824,7 +3028,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -2885,6 +3090,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 51,
+   "radius": 24,
    "tile_pad": 13,
    "top": 58
   },
@@ -2926,9 +3132,10 @@
   "dimmable": false,
   "dpi": 133,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 21,
+   "icon": 33,
    "icon_home": 26,
    "icon_mini": 20,
    "label": 14,
@@ -2948,7 +3155,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3009,6 +3217,7 @@
    "gap_y": 9,
    "margin": 13,
    "page_bar": 37,
+   "radius": 17,
    "tile_pad": 9,
    "top": 43
   },
@@ -3050,9 +3259,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 26,
    "icon_mini": 26,
    "label": 18,
@@ -3072,7 +3282,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3133,6 +3344,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 53
   },
@@ -3170,7 +3382,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -3185,9 +3398,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 40,
+   "icon": 63,
    "icon_home": 51,
    "icon_mini": 39,
    "label": 27,
@@ -3207,7 +3421,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3268,6 +3483,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 70,
+   "radius": 33,
    "tile_pad": 18,
    "top": 72
   },
@@ -3305,7 +3521,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -3320,9 +3537,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 33,
+   "icon": 52,
    "icon_home": 42,
    "icon_mini": 32,
    "label": 22,
@@ -3342,7 +3560,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3403,6 +3622,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 58,
+   "radius": 27,
    "tile_pad": 15,
    "top": 62
   },
@@ -3440,7 +3660,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -3455,9 +3676,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -3477,7 +3699,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3538,6 +3761,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -3579,9 +3803,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -3601,7 +3826,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3662,6 +3888,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -3696,7 +3923,8 @@
    "order": 22,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -3711,9 +3939,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 19,
+   "icon": 29,
    "icon_home": 24,
    "icon_mini": 18,
    "label": 12,
@@ -3733,7 +3962,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -3794,6 +4024,7 @@
    "gap_y": 8,
    "margin": 11,
    "page_bar": 32,
+   "radius": 15,
    "tile_pad": 8,
    "top": 39
   },
@@ -3830,9 +4061,10 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 28,
    "icon_home": 25,
    "icon_mini": 18,
    "label": 11,
@@ -3888,6 +4120,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 36,
+   "radius": 18,
    "tile_pad": 8,
    "top": 37
   },
@@ -3919,9 +4152,10 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 28,
    "icon_home": 25,
    "icon_mini": 18,
    "label": 11,
@@ -3977,6 +4211,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 36,
+   "radius": 18,
    "tile_pad": 8,
    "top": 37
   },
@@ -4008,9 +4243,10 @@
   "dimmable": true,
   "dpi": 144,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 23,
+   "icon": 36,
    "icon_home": 29,
    "icon_mini": 22,
    "label": 15,
@@ -4030,7 +4266,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4071,6 +4308,7 @@
    "gap_y": 10,
    "margin": 14,
    "page_bar": 40,
+   "radius": 19,
    "tile_pad": 10,
    "top": 48
   },
@@ -4112,9 +4350,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -4134,7 +4373,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4195,6 +4435,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -4226,9 +4467,10 @@
   "dimmable": true,
   "dpi": 146,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 29,
    "icon_home": 26,
    "icon_mini": 18,
    "label": 11,
@@ -4284,6 +4526,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 37,
+   "radius": 18,
    "tile_pad": 8,
    "top": 38
   },
@@ -4323,7 +4566,8 @@
    "order": 9,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -4338,9 +4582,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -4360,7 +4605,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4421,6 +4667,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -4455,7 +4702,8 @@
    "order": 10,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -4471,9 +4719,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -4493,7 +4742,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4554,6 +4804,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -4595,9 +4846,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -4617,7 +4869,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4678,6 +4931,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -4712,7 +4966,8 @@
    "order": 21,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -4728,9 +4983,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 34,
+   "icon": 54,
    "icon_home": 43,
    "icon_mini": 33,
    "label": 23,
@@ -4750,7 +5006,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4811,6 +5068,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 60,
+   "radius": 28,
    "tile_pad": 15,
    "top": 64
   },
@@ -4845,7 +5103,8 @@
    "order": 4,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "new",
    "touch": "GSL3670"
@@ -4861,9 +5120,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -4883,7 +5143,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -4944,6 +5205,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -4978,7 +5240,8 @@
    "order": 15,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3680"
@@ -4994,9 +5257,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -5016,7 +5280,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -5077,6 +5342,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -5111,7 +5377,8 @@
    "order": 5,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3680"
@@ -5127,9 +5394,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -5149,7 +5417,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -5210,6 +5479,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -5251,9 +5521,10 @@
   "dimmable": true,
   "dpi": 187,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 46,
    "icon_home": 37,
    "icon_mini": 29,
    "label": 20,
@@ -5273,7 +5544,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -5334,6 +5606,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 51,
+   "radius": 24,
    "tile_pad": 13,
    "top": 58
   },
@@ -5368,7 +5641,8 @@
    "order": 22,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -5383,9 +5657,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 19,
+   "icon": 29,
    "icon_home": 24,
    "icon_mini": 18,
    "label": 12,
@@ -5405,7 +5680,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -5466,6 +5742,7 @@
    "gap_y": 8,
    "margin": 11,
    "page_bar": 32,
+   "radius": 15,
    "tile_pad": 8,
    "top": 39
   },
@@ -5502,9 +5779,10 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 28,
    "icon_home": 25,
    "icon_mini": 18,
    "label": 11,
@@ -5560,6 +5838,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 36,
+   "radius": 18,
    "tile_pad": 8,
    "top": 37
   },
@@ -5591,9 +5870,10 @@
   "dimmable": true,
   "dpi": 143,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 28,
    "icon_home": 25,
    "icon_mini": 18,
    "label": 11,
@@ -5649,6 +5929,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 36,
+   "radius": 18,
    "tile_pad": 8,
    "top": 37
   },
@@ -5680,9 +5961,10 @@
   "dimmable": true,
   "dpi": 144,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 23,
+   "icon": 36,
    "icon_home": 29,
    "icon_mini": 22,
    "label": 15,
@@ -5702,7 +5984,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -5743,6 +6026,7 @@
    "gap_y": 10,
    "margin": 14,
    "page_bar": 40,
+   "radius": 19,
    "tile_pad": 10,
    "top": 48
   },
@@ -5784,9 +6068,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -5806,7 +6091,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -5867,6 +6153,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -5898,9 +6185,10 @@
   "dimmable": true,
   "dpi": 146,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 18,
+   "icon": 29,
    "icon_home": 26,
    "icon_mini": 18,
    "label": 11,
@@ -5956,6 +6244,7 @@
    "gap_y": 4,
    "margin": 9,
    "page_bar": 37,
+   "radius": 18,
    "tile_pad": 8,
    "top": 38
   },
@@ -5995,7 +6284,8 @@
    "order": 9,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -6010,9 +6300,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -6032,7 +6323,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6093,6 +6385,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -6127,7 +6420,8 @@
    "order": 10,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -6143,9 +6437,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -6165,7 +6460,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6226,6 +6522,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -6267,9 +6564,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -6289,7 +6587,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6350,6 +6649,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -6384,7 +6684,8 @@
    "order": 21,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -6400,9 +6701,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 34,
+   "icon": 54,
    "icon_home": 43,
    "icon_mini": 33,
    "label": 23,
@@ -6422,7 +6724,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6483,6 +6786,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 60,
+   "radius": 28,
    "tile_pad": 15,
    "top": 64
   },
@@ -6517,7 +6821,8 @@
    "order": 4,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "new",
    "touch": "GSL3670"
@@ -6533,9 +6838,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -6555,7 +6861,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6616,6 +6923,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -6650,7 +6958,8 @@
    "order": 15,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3680"
@@ -6666,9 +6975,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -6688,7 +6998,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6749,6 +7060,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -6783,7 +7095,8 @@
    "order": 5,
    "settings": [
     "media_player",
-    "microphone"
+    "microphone",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3680"
@@ -6799,9 +7112,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -6821,7 +7135,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -6882,6 +7197,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -6923,9 +7239,10 @@
   "dimmable": true,
   "dpi": 187,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 46,
    "icon_home": 37,
    "icon_mini": 29,
    "label": 20,
@@ -6945,7 +7262,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7006,6 +7324,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 51,
+   "radius": 24,
    "tile_pad": 13,
    "top": 58
   },
@@ -7041,7 +7360,8 @@
    "settings": [
     "media_player",
     "microphone",
-    "wake_when_moved"
+    "wake_when_moved",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3670"
@@ -7057,9 +7377,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 47,
    "icon_home": 38,
    "icon_mini": 29,
    "label": 20,
@@ -7079,7 +7400,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7140,6 +7462,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 52,
+   "radius": 24,
    "tile_pad": 13,
    "top": 59
   },
@@ -7171,9 +7494,10 @@
   "dimmable": true,
   "dpi": 172,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -7193,7 +7517,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7234,6 +7559,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -7275,9 +7601,10 @@
   "dimmable": true,
   "dpi": 133,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 21,
+   "icon": 33,
    "icon_home": 26,
    "icon_mini": 20,
    "label": 14,
@@ -7297,7 +7624,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7358,6 +7686,7 @@
    "gap_y": 9,
    "margin": 13,
    "page_bar": 37,
+   "radius": 17,
    "tile_pad": 9,
    "top": 43
   },
@@ -7398,7 +7727,8 @@
    "settings": [
     "media_player",
     "microphone",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "new",
    "touch": "ST7121/ST7123"
@@ -7414,9 +7744,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 47,
+   "icon": 73,
    "icon_home": 59,
    "icon_mini": 45,
    "label": 31,
@@ -7436,7 +7767,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7497,6 +7829,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 81,
+   "radius": 38,
    "tile_pad": 21,
    "top": 81
   },
@@ -7534,7 +7867,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -7549,9 +7883,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -7571,7 +7906,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7632,6 +7968,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -7663,9 +8000,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -7685,7 +8023,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7726,6 +8065,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -7772,9 +8112,10 @@
   "dimmable": false,
   "dpi": 217,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 34,
+   "icon": 54,
    "icon_home": 43,
    "icon_mini": 33,
    "label": 23,
@@ -7794,7 +8135,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7855,6 +8197,134 @@
    "gap_y": 13,
    "margin": 16,
    "page_bar": 60,
+   "radius": 28,
+   "tile_pad": 15,
+   "top": 64
+  },
+  "tier": "full",
+  "wide_slots": false,
+  "width": 800
+ },
+ "packages/waveshare43c.yaml": {
+  "alert": {
+   "line": 32,
+   "title_line": 40
+  },
+  "battery": false,
+  "board": "waveshare43c",
+  "camera": {
+   "full": [
+    800,
+    480
+   ],
+   "thumb": [
+    349,
+    196
+   ]
+  },
+  "can_standby": true,
+  "catalog": {
+   "calibrate": false,
+   "choices": {},
+   "inch": 4.3,
+   "model": "ESP32-S3-Touch-LCD-4.3C",
+   "name": "Waveshare",
+   "order": 30,
+   "settings": [],
+   "status": "experimental",
+   "touch": "GT911"
+  },
+  "chip": "ESP32-S3",
+  "columns": 3,
+  "dimmable": true,
+  "dpi": 217,
+  "features": [],
+  "firmware": "0.60.0",
+  "fonts": {
+   "headline": 34,
+   "icon": 54,
+   "icon_home": 43,
+   "icon_mini": 33,
+   "label": 23,
+   "setpoint": 82,
+   "sublabel": 20,
+   "sublabel_big": 27,
+   "watch_icon": 23,
+   "watch_value": 48
+  },
+  "height": 480,
+  "hotspot": true,
+  "look": "standard",
+  "max_bar_items": 12,
+  "max_pages": 24,
+  "max_tiles": 128,
+  "modules": [
+   "dock",
+   "vacuum_card",
+   "cover_groups",
+   "clock_faces",
+   "doorbell"
+  ],
+  "orientations": {
+   "landscape": {
+    "camera": {
+     "full": [
+      800,
+      480
+     ],
+     "thumb": [
+      349,
+      196
+     ]
+    },
+    "columns": 3,
+    "height": 480,
+    "max": [
+     4,
+     4
+    ],
+    "min": [
+     1,
+     1
+    ],
+    "rotation": 0,
+    "rows": 3,
+    "width": 800
+   },
+   "portrait": {
+    "camera": {
+     "full": [
+      480,
+      800
+     ],
+     "thumb": [
+      386,
+      217
+     ]
+    },
+    "columns": 1,
+    "height": 800,
+    "max": [
+     2,
+     8
+    ],
+    "min": [
+     1,
+     1
+    ],
+    "rotation": 90,
+    "rows": 4,
+    "width": 480
+   }
+  },
+  "rows": 3,
+  "spacing": {
+   "circle": 69,
+   "gap": 12,
+   "gap_y": 13,
+   "margin": 16,
+   "page_bar": 60,
+   "radius": 28,
    "tile_pad": 15,
    "top": 64
   },
@@ -7896,9 +8366,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -7918,7 +8389,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -7979,6 +8451,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -8020,9 +8493,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -8042,7 +8516,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8103,6 +8578,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -8144,9 +8620,10 @@
   "dimmable": false,
   "dpi": 187,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 46,
    "icon_home": 37,
    "icon_mini": 29,
    "label": 20,
@@ -8166,7 +8643,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8227,6 +8705,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 51,
+   "radius": 24,
    "tile_pad": 13,
    "top": 58
   },
@@ -8268,9 +8747,10 @@
   "dimmable": false,
   "dpi": 133,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 21,
+   "icon": 33,
    "icon_home": 26,
    "icon_mini": 20,
    "label": 14,
@@ -8290,7 +8770,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8351,6 +8832,7 @@
    "gap_y": 9,
    "margin": 13,
    "page_bar": 37,
+   "radius": 17,
    "tile_pad": 9,
    "top": 43
   },
@@ -8392,9 +8874,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 26,
    "icon_mini": 26,
    "label": 18,
@@ -8414,7 +8897,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8475,6 +8959,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 53
   },
@@ -8512,7 +8997,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -8527,9 +9013,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 40,
+   "icon": 63,
    "icon_home": 51,
    "icon_mini": 39,
    "label": 27,
@@ -8549,7 +9036,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8610,6 +9098,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 70,
+   "radius": 33,
    "tile_pad": 18,
    "top": 72
   },
@@ -8647,7 +9136,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -8662,9 +9152,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 33,
+   "icon": 52,
    "icon_home": 42,
    "icon_mini": 32,
    "label": 22,
@@ -8684,7 +9175,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8745,6 +9237,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 58,
+   "radius": 27,
    "tile_pad": 15,
    "top": 62
   },
@@ -8782,7 +9275,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -8797,9 +9291,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -8819,7 +9314,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -8880,6 +9376,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -8921,9 +9418,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -8943,7 +9441,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9004,6 +9503,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -9039,7 +9539,8 @@
    "settings": [
     "media_player",
     "microphone",
-    "wake_when_moved"
+    "wake_when_moved",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GSL3670"
@@ -9055,9 +9556,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 47,
    "icon_home": 38,
    "icon_mini": 29,
    "label": 20,
@@ -9077,7 +9579,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9138,6 +9641,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 52,
+   "radius": 24,
    "tile_pad": 13,
    "top": 59
   },
@@ -9169,9 +9673,10 @@
   "dimmable": true,
   "dpi": 172,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -9191,7 +9696,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9232,6 +9738,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -9273,9 +9780,10 @@
   "dimmable": true,
   "dpi": 133,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 21,
+   "icon": 33,
    "icon_home": 26,
    "icon_mini": 20,
    "label": 14,
@@ -9295,7 +9803,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9356,6 +9865,7 @@
    "gap_y": 9,
    "margin": 13,
    "page_bar": 37,
+   "radius": 17,
    "tile_pad": 9,
    "top": 43
   },
@@ -9396,7 +9906,8 @@
    "settings": [
     "media_player",
     "microphone",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "new",
    "touch": "ST7121/ST7123"
@@ -9412,9 +9923,10 @@
    "camera_sensor",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 47,
+   "icon": 73,
    "icon_home": 59,
    "icon_mini": 45,
    "label": 31,
@@ -9434,7 +9946,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9495,6 +10008,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 81,
+   "radius": 38,
    "tile_pad": 21,
    "top": 81
   },
@@ -9532,7 +10046,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -9547,9 +10062,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 24,
+   "icon": 37,
    "icon_home": 30,
    "icon_mini": 23,
    "label": 16,
@@ -9569,7 +10085,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9630,6 +10147,7 @@
    "gap_y": 11,
    "margin": 14,
    "page_bar": 41,
+   "radius": 19,
    "tile_pad": 11,
    "top": 50
   },
@@ -9661,9 +10179,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -9683,7 +10202,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9724,6 +10244,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },
@@ -9770,9 +10291,10 @@
   "dimmable": false,
   "dpi": 217,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 34,
+   "icon": 54,
    "icon_home": 43,
    "icon_mini": 33,
    "label": 23,
@@ -9792,7 +10314,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9853,6 +10376,134 @@
    "gap_y": 13,
    "margin": 16,
    "page_bar": 60,
+   "radius": 28,
+   "tile_pad": 15,
+   "top": 64
+  },
+  "tier": "full",
+  "wide_slots": false,
+  "width": 800
+ },
+ "waveshare43c": {
+  "alert": {
+   "line": 32,
+   "title_line": 40
+  },
+  "battery": false,
+  "board": "waveshare43c",
+  "camera": {
+   "full": [
+    800,
+    480
+   ],
+   "thumb": [
+    349,
+    196
+   ]
+  },
+  "can_standby": true,
+  "catalog": {
+   "calibrate": false,
+   "choices": {},
+   "inch": 4.3,
+   "model": "ESP32-S3-Touch-LCD-4.3C",
+   "name": "Waveshare",
+   "order": 30,
+   "settings": [],
+   "status": "experimental",
+   "touch": "GT911"
+  },
+  "chip": "ESP32-S3",
+  "columns": 3,
+  "dimmable": true,
+  "dpi": 217,
+  "features": [],
+  "firmware": "0.60.0",
+  "fonts": {
+   "headline": 34,
+   "icon": 54,
+   "icon_home": 43,
+   "icon_mini": 33,
+   "label": 23,
+   "setpoint": 82,
+   "sublabel": 20,
+   "sublabel_big": 27,
+   "watch_icon": 23,
+   "watch_value": 48
+  },
+  "height": 480,
+  "hotspot": true,
+  "look": "standard",
+  "max_bar_items": 12,
+  "max_pages": 24,
+  "max_tiles": 128,
+  "modules": [
+   "dock",
+   "vacuum_card",
+   "cover_groups",
+   "clock_faces",
+   "doorbell"
+  ],
+  "orientations": {
+   "landscape": {
+    "camera": {
+     "full": [
+      800,
+      480
+     ],
+     "thumb": [
+      349,
+      196
+     ]
+    },
+    "columns": 3,
+    "height": 480,
+    "max": [
+     4,
+     4
+    ],
+    "min": [
+     1,
+     1
+    ],
+    "rotation": 0,
+    "rows": 3,
+    "width": 800
+   },
+   "portrait": {
+    "camera": {
+     "full": [
+      480,
+      800
+     ],
+     "thumb": [
+      386,
+      217
+     ]
+    },
+    "columns": 1,
+    "height": 800,
+    "max": [
+     2,
+     8
+    ],
+    "min": [
+     1,
+     1
+    ],
+    "rotation": 90,
+    "rows": 4,
+    "width": 480
+   }
+  },
+  "rows": 3,
+  "spacing": {
+   "circle": 69,
+   "gap": 12,
+   "gap_y": 13,
+   "margin": 16,
+   "page_bar": 60,
+   "radius": 28,
    "tile_pad": 15,
    "top": 64
   },
@@ -9894,9 +10545,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -9916,7 +10568,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -9977,6 +10630,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -10018,9 +10672,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -10040,7 +10695,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10101,6 +10757,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -10142,9 +10799,10 @@
   "dimmable": false,
   "dpi": 187,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 30,
+   "icon": 46,
    "icon_home": 37,
    "icon_mini": 29,
    "label": 20,
@@ -10164,7 +10822,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10225,6 +10884,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 51,
+   "radius": 24,
    "tile_pad": 13,
    "top": 58
   },
@@ -10266,9 +10926,10 @@
   "dimmable": false,
   "dpi": 133,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 21,
+   "icon": 33,
    "icon_home": 26,
    "icon_mini": 20,
    "label": 14,
@@ -10288,7 +10949,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10349,6 +11011,7 @@
    "gap_y": 9,
    "margin": 13,
    "page_bar": 37,
+   "radius": 17,
    "tile_pad": 9,
    "top": 43
   },
@@ -10390,9 +11053,10 @@
   "dimmable": true,
   "dpi": 170,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 26,
    "icon_mini": 26,
    "label": 18,
@@ -10412,7 +11076,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10473,6 +11138,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 53
   },
@@ -10510,7 +11176,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -10525,9 +11192,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 40,
+   "icon": 63,
    "icon_home": 51,
    "icon_mini": 39,
    "label": 27,
@@ -10547,7 +11215,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10608,6 +11277,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 70,
+   "radius": 33,
    "tile_pad": 18,
    "top": 72
   },
@@ -10645,7 +11315,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -10660,9 +11331,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 33,
+   "icon": 52,
    "icon_home": 42,
    "icon_mini": 32,
    "label": 22,
@@ -10682,7 +11354,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10743,6 +11416,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 58,
+   "radius": 27,
    "tile_pad": 15,
    "top": 62
   },
@@ -10780,7 +11454,8 @@
     "microphone",
     "microphone_gain",
     "automatic_gain",
-    "echo_cancellation"
+    "echo_cancellation",
+    "doorbell"
    ],
    "status": "experimental",
    "touch": "GT911"
@@ -10795,9 +11470,10 @@
    "media_player",
    "bluetooth"
   ],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 27,
+   "icon": 42,
    "icon_home": 34,
    "icon_mini": 26,
    "label": 18,
@@ -10817,7 +11493,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -10878,6 +11555,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 47,
+   "radius": 22,
    "tile_pad": 12,
    "top": 56
   },
@@ -10919,9 +11597,10 @@
   "dimmable": true,
   "dpi": 165,
   "features": [],
-  "firmware": "0.59.0",
+  "firmware": "0.60.0",
   "fonts": {
    "headline": 26,
+   "icon": 41,
    "icon_home": 33,
    "icon_mini": 25,
    "label": 17,
@@ -10941,7 +11620,8 @@
    "dock",
    "vacuum_card",
    "cover_groups",
-   "clock_faces"
+   "clock_faces",
+   "doorbell"
   ],
   "orientations": {
    "landscape": {
@@ -11002,6 +11682,7 @@
    "gap_y": 12,
    "margin": 16,
    "page_bar": 45,
+   "radius": 21,
    "tile_pad": 12,
    "top": 55
   },

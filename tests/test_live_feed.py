@@ -337,6 +337,7 @@ class P4Build(unittest.TestCase):
         self.assertIn('return get_esp32_variant() == VARIANT_ESP32P4', source)
         self.assertIn('-Wl,--wrap=esp_lcd_new_panel_dpi', source)
         self.assertIn('-Wl,--wrap=ppa_register_client', source)  # every PPA burst shorter: live_view.cpp
+        self.assertIn('-Wl,--wrap=ppa_do_scale_rotate_mirror', source)  # a turned copy in pieces: ppa_guard.cpp
         # A screen's own sdkconfig_options keep the last word.
         self.assertIn('if name not in own', source)
 

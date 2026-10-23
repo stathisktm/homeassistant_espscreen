@@ -346,6 +346,17 @@ proportions: the top bar down to where the tile area starts (`SCROLL_Y`), the gr
 page bar (`PAGE_BAR_H`) once the layout has more than one page, all from `boards.json`, so a card is as high
 against its page as on the screen (`cardHeight` in `web/src/model/ui-scale.ts`).
 
+Inside a card the mockup draws in the glass's own pixels too, scaled by the page's zoom: the board's corner
+(`TILE_RADIUS`), padding, icon circle and fonts from `boards.json` (`fonts.icon` is the card's icon face,
+`spacing.radius` its corner), written in the screens' Roboto at the firmware's weights (a name is 700, a line 400),
+and every part where the firmware puts it. `web/src/model/card-layout.ts` ports a card of one row (`head_row`,
+`name_font`, `center_icon`, which steps an icon down to the keys' face where its ink does not fit its circle, and the
+control at a wide card's right, `layout_panel`); `tall-layout.ts` a card more than a row high (`tall_tile.h`,
+`climate_tile.h` and `render_tall`); `media-layout.ts` a player over a whole page (`media_card.h`). A name too long
+for its room is cut with the three dots LVGL writes, measured in Roboto. `tests/test_editor_parity.py` holds the
+heads to the WebAssembly build on every board (`CardHead`) and the tall, thermostat and media layouts to the C++ on a
+sweep of rooms (`TallGeometry`). A card carried in a drag keeps all of it: it is carried in a copy of its glass.
+
 ## What is still open, and the way it becomes durable
 
 - The sizes in `runtime_tiles.h` and the metric tables of the settings, effects, media and light cards go

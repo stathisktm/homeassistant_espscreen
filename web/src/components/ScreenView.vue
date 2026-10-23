@@ -52,6 +52,10 @@ function openOverride() {
   closeMenu();
   ui.openOverride(screen.value.update?.profile || null);
 }
+function openReport() {
+  closeMenu();
+  ui.openReport(screen.value.id);
+}
 function inspectAll() {
   closeMenu();
   doc.selectedTileId = null;
@@ -192,6 +196,7 @@ useEventListener(document, "keydown", onKey);
         <UiMenuItem id="identify" icon="monitor-eye" :hint="t('editor.screen_view.menu.identify_hint')" :disabled="!scr.canAlert(screen) || !screen.online"
           :title="scr.canAlert(screen) ? '' : t('editor.screen_view.menu.identify_needs')" @select="scr.identify(screen)">{{ t("editor.screen_view.menu.identify") }}</UiMenuItem>
         <UiMenuItem id="inspect" icon="database-search-outline" @select="inspectAll">{{ t("editor.common.read_current_data") }}</UiMenuItem>
+        <UiMenuItem v-if="!screen.virtual" id="report-screen" icon="help-circle-outline" @select="openReport">{{ t("editor.report.button") }}</UiMenuItem>
         <UiMenuItem v-if="updateReady" id="update-screen" icon="update" :hint="screen.update?.target" @select="builds.startUpdate(screen)">{{ t("editor.screen_view.menu.update") }}</UiMenuItem>
         <UiMenuSeparator />
         <UiMenuLabel>{{ t("editor.screen_view.menu.group_layout") }}</UiMenuLabel>

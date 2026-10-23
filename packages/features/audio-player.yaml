@@ -48,6 +48,12 @@ substitutions:
     settings_screen::board_rows.push_back(settings_screen::toggle(screen_text::txt::settings_microphone,
         []() -> int32_t { return id(ts_microphone_on).state ? 1 : 0; },
         [](int32_t on) { if (on) id(ts_microphone_on).turn_on(); else id(ts_microphone_on).turn_off(); }));
+    // The doorbell (module doorbell, docs/DOORBELL.md): its chime on the speaker for announcements, and whether a ring
+    // opens its camera here, a switch under Extras that Home Assistant sees too (a bedroom's screen at night).
+    runtime_tiles::doorbell_audio(id(ts_speaker), []() { return id(ts_doorbell).state; });
+    settings_screen::board_rows.push_back(settings_screen::toggle(screen_text::txt::settings_doorbell,
+        []() -> int32_t { return id(ts_doorbell).state ? 1 : 0; },
+        [](int32_t on) { if (on) id(ts_doorbell).turn_on(); else id(ts_doorbell).turn_off(); }));
 
 # Whether the microphone listens: off mutes it for everything that reads it, kept over a restart. The same switch in
 # Home Assistant, in the app (boards.yaml `settings`) and on the screen's settings page.
@@ -63,6 +69,16 @@ switch:
       - microphone.unmute: ts_microphone
     on_turn_off:
       - microphone.mute: ts_microphone
+  # Whether a doorbell's ring opens its camera on this screen (module doorbell, docs/DOORBELL.md): on unless someone
+  # switches it off, kept over a restart. The same switch in Home Assistant, in the app (boards.yaml `settings`) and on
+  # the screen's settings page under Extras.
+  - platform: template
+    id: ts_doorbell
+    name: "Doorbell"
+    icon: "mdi:doorbell-video"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
 
 speaker:
   # Two inputs in front of it: announcements over music.
@@ -81,6 +97,10 @@ speaker:
     id: ts_speaker
     output_speaker: ts_announcement_input
     task_stack_in_psram: true
+    # A plugin's sound (plugin_sound.h) is handed over from the screen's loop: half a second ahead, so a long redraw of
+    # the glass (a popup coming up over a 10-inch, 300 ms) never runs it dry. ESPHome's default of 100 ms stuttered the
+    # voice assistant's wake sound. Announcements and voice fill it from their own task, as before.
+    buffer_duration: 500ms
   - platform: resampler
     id: ts_media_speaker
     output_speaker: ts_media_input

@@ -850,6 +850,16 @@ class Plugins:
         self._know_tiles()
         return entry
 
+    def forget_link(self, plugin):
+        """Take a plugin someone added with a link (a release or a branch) off the Plugins page again. Only one that
+        runs on no screen: one a screen runs is taken off the screen first, which is what keeps its commit pinned."""
+        if plugin not in self.links:
+            raise ValueError(t('addon.errors.plugins.unknown', id=plugin))
+        if any(record['id'] == plugin for records in self.store.everywhere().values() for record in records):
+            raise ValueError(t('addon.errors.plugins.forget_running'))
+        del self.links[plugin]
+        self._know_tiles()
+
     async def refresh_links(self, force=False):
         """A plugin added with a link follows its repository: its newest release (a link) or the newest commit of its
         branch (a test) is asked for at most every LINK_TTL, and the editor offers it as an update. The repository is
@@ -1437,7 +1447,8 @@ class Plugins:
                 'consent': {'permissions': pm.permission_hash(entry.manifest), 'at': int(time.time())},
                 'state': 'building' if profile else 'active'}})
         removes = plan['remove']
-        records = [r for r in self.store.of(inbox) if r['id'] not in removes and r['id'] not in {c['record']['id'] for c in changes}]
+        had_records = self.store.of(inbox)
+        records = [r for r in had_records if r['id'] not in removes and r['id'] not in {c['record']['id'] for c in changes}]
         records += [dict(c['record'], changed=int(time.time())) for c in changes]
         text = self.sidecar(inbox, records)
         if profile:
@@ -1467,8 +1478,13 @@ class Plugins:
         # once, with everything asked for it, and so does one whose update waits; one asked while its build runs builds
         # once more after it, since that build may have read its YAML before this change.
         line = self.manager.build_queue
+        # A plugin whose parts changed builds from an empty build folder (BuildQueue, Build.fresh).
+        before = {r['id']: r for r in had_records}
+        fresh = any(c['record']['id'] in before and
+                    sorted(before[c['record']['id']].get('parts') or []) != sorted(c['record']['parts'] or [])
+                    for c in changes)
         build = line.add('plugins', profile, self._build, screen=inbox, target=host,
-                         plugins={'add': [c['record']['id'] for c in changes], 'remove': list(removes)})
+                         plugins={'add': [c['record']['id'] for c in changes], 'remove': list(removes), 'fresh': fresh})
         if self._built not in build.ends:
             build.ends.append(self._built)
         self.manager.notify()

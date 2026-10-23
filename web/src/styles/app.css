@@ -401,6 +401,8 @@ a:hover { text-decoration: underline; }
 .tiles { display: grid; grid-template-columns: repeat(var(--screen-columns, 2), minmax(0, 1fr)); grid-template-rows: repeat(var(--screen-rows, 3), minmax(0, 1fr)); gap: 8px; min-height: 0; }
 /* manipulation, not pan-y (app 0.2.78): on a phone the row of pages scrolls sideways, also when the swipe starts on a
    tile. The hold before a drag and the blocked touchmove during one still keep the page from scrolling. */
+/* A card's letters are the screens' Roboto, laid side by side without kerning as LVGL lays them (app 0.4.90). */
+.device .tile { font-family: "Bar Roboto", var(--ui-font); font-kerning: none; }
 .tile { position: relative; background: #fff; border: 1px solid #dcdcdc; border-radius: 12px; padding: 8px 9px; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; min-height: 0; cursor: pointer; text-align: left; overflow: hidden; isolation: isolate; color: #1b1b1b; touch-action: manipulation; }
 .tile:hover { border-color: #b9c4d3; }
 .tile.chosen { outline: 2px solid var(--kind-tile); outline-offset: 1px; }
@@ -485,6 +487,9 @@ a:hover { text-decoration: underline; }
 .cell small { font-size: 10.5px; color: inherit; }
 .cell:hover, .cell:focus-visible { border-color: #9eb6cf; color: #4b5563; background: #f6f7f9; }
 .cell.insert-here { border: 2px dashed var(--accent); color: var(--accent); background: var(--accent-soft); }
+/* A card carried in a copy of its glass (drag.ts carried): the glass's sizes without its frame, the card filling it. */
+.device.drag-glass { display: block; padding: 0; background: none; aspect-ratio: auto; }
+.device.drag-glass > .tile { width: 100%; height: 100%; box-sizing: border-box; }
 .drag-ghost { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 50; opacity: 0.92; box-shadow: var(--shadow); border-radius: 12px; }
 
 /* Library: a drawer along the bottom (app 0.4.32). Folded it is its head alone; it glides open to the height it was

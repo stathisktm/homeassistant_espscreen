@@ -159,6 +159,7 @@
       "microphone": "Mikrofon",
       "media_player": "Lautstärke",
       "wake_when_moved": "Bei Bewegung aufwecken",
+      "doorbell": "Türklingel",
       "dark_mode": "Dunkler Modus",
       "auto_standby": "Auto-Standby",
       "standby_after": "Standby nach",
@@ -195,6 +196,10 @@
       "microphone_gain": "Mikrofonverstärkung",
       "automatic_gain": "Automatische Verstärkung",
       "echo_cancellation": "Echounterdrückung"
+    },
+    "doorbell": {
+      "sound_on": "Ton an",
+      "sound_off": "Ton aus"
     },
     "tile": {
       "tap_to_open": "Zum Öffnen",
@@ -923,7 +928,8 @@
         "like_not_listed": "Nur Plugins aus dem Katalog von Tessera können ein Gefällt mir bekommen.",
         "rate_not_installed": "Setz das Plugin zuerst auf einen deiner Bildschirme, dann kannst du es bewerten.",
         "rate_failed": "Die Sterne wurden nicht gesendet. Versuch es gleich noch einmal.",
-        "count_failed": "Das Mitzählen ließ sich nicht ausschalten: Tessera war nicht erreichbar. Versuch es gleich noch einmal."
+        "count_failed": "Das Mitzählen ließ sich nicht ausschalten: Tessera war nicht erreichbar. Versuch es gleich noch einmal.",
+        "forget_running": "Ein Bildschirm nutzt dieses Plugin noch. Nimm es zuerst vom Bildschirm."
       },
       "extras": {
         "request": "Diese Änderung eines Extras ist auf diesem Bildschirm nicht möglich."
@@ -942,6 +948,25 @@
         "not_paired": "Kopple zuerst einen Build-Server.",
         "unknown": "Der Build-Server kennt Tessera nicht mehr. Kopple ihn erneut.",
         "pending": "Der Build-Server hat Tessera noch nicht angenommen."
+      },
+      "video": {
+        "not_written": "Tessera video konnte nicht nach {folder} geschrieben werden: {reason}.",
+        "not_installed": "Installiere zuerst Tessera video."
+      },
+      "report": {
+        "depth": "Wähle den einfachen oder den vollständigen Bericht.",
+        "busy": "Ein Bericht dieses Bildschirms wird noch gesammelt.",
+        "no_profile": "Die YAML dieses Bildschirms liegt nicht im ESPHome-Ordner dieses Add-ons, daher gibt es von hier nichts zu berichten.",
+        "not_found": "Dieser Bericht ist weg. Erstelle einen neuen.",
+        "not_ready": "Der Bericht ist noch nicht fertig.",
+        "failed": "Das Sammeln des Berichts ist abgebrochen ({reason}). Versuche es erneut.",
+        "consent": "Setze das Häkchen, um den Bericht zu senden.",
+        "note": "Halte die Anmerkung unter 2000 Zeichen.",
+        "email": "Das sieht nicht wie eine E-Mail-Adresse aus.",
+        "too_large": "Der Bericht ist zu groß zum Senden. Lade ihn herunter und hänge ihn stattdessen an ein GitHub-Issue an.",
+        "retry": "Tessera hat den Bericht gerade nicht angenommen. Versuche es in einer Minute erneut, oder lade ihn herunter.",
+        "offline": "Tessera ist von hier aus nicht erreichbar. Lade den Bericht stattdessen herunter.",
+        "invalid": "Tessera hat den Bericht abgelehnt. Lade ihn herunter und hänge ihn stattdessen an ein GitHub-Issue an."
       }
     },
     "status": {
@@ -1019,7 +1044,11 @@
           "speed": "Drehzahlregler"
         },
         "vacuum": {
-          "buttons": "Start, Stopp, Station"
+          "buttons": "Start, Stopp, Station",
+          "map": "Karte",
+          "rooms": "Räume wählen",
+          "routines": "Routinen",
+          "map_rooms": "Karte und Räume"
         },
         "cover": {
           "buttons": "Öffnen, Stopp, Schließen",
@@ -1135,6 +1164,10 @@
         "wake_when_moved": {
           "label": "Bei Bewegung aufwecken",
           "hint": "Der Bildschirm wacht aus dem Standby auf, wenn jemand ihn hochnimmt, bewegt oder anstößt. Er spürt sich selbst, nicht jemanden, der vorbeigeht."
+        },
+        "doorbell": {
+          "label": "Türklingel",
+          "hint": "Klingelt eine Türklingel in Home Assistant, wacht dieser Bildschirm auf, spielt einen Gong und öffnet ihre Kamera live mit Ton. Aus lässt diesen Bildschirm in Ruhe, etwa ein Schlafzimmer in der Nacht."
         },
         "microphone_gain": {
           "label": "Mikrofonverstärkung",
@@ -1499,7 +1532,8 @@
       "firmware": "Firmware & USB",
       "alerts": "Meldungen",
       "settings": "Einstellungen",
-      "new_screen_detail": "Verbinden und installieren"
+      "new_screen_detail": "Verbinden und installieren",
+      "manual": "Handbuch"
     },
     "api": {
       "failed": "Das hat nicht geklappt. Lade die Seite neu und versuche es noch einmal."
@@ -2231,6 +2265,10 @@
         "text": "Hilf anderen, gute Plugins zu finden. Gefällt mir und Sterne gehen nur, wenn du sie gibst, das Mitzählen nur, solange es an ist.",
         "asking": "Ein paar Tage nach einem neuen Plugin nach Sternen fragen",
         "asking_hint": "Eine Karte über dem Bildschirm, ein Plugin nach dem anderen."
+      },
+      "forget": {
+        "go": "Aus der Liste entfernen",
+        "note": "Kein Bildschirm nutzt dieses Plugin. Entferne es aus der Liste, um den Link zu vergessen."
       }
     },
     "plugin_tile": {
@@ -3083,6 +3121,23 @@
         "reinstall_all_confirm": "1 Bildschirm vom neuesten Dev-Stand neu installieren? Er startet neu, sobald die Firmware drauf ist. | {n} Bildschirme vom neuesten Dev-Stand neu installieren? Sie werden nacheinander gebaut, und jeder startet neu, sobald seine Firmware drauf ist.",
         "reinstall_all_go": "Neu installieren"
       },
+      "video": {
+        "title": "Video in Home Assistant",
+        "text": "Ein Bildschirm mit dem Teil Video von Bildschirmkamera zeigt seine Kamera live in Home Assistant, mit Ton: eine Kamera Video am Gerät des Bildschirms, im Browser und in der App. Home Assistant braucht dafür die Integration Tessera video.",
+        "install": "In Home Assistant installieren",
+        "install_again": "Erneut installieren",
+        "update": "Integration aktualisieren",
+        "newer": "Installiert · eine neuere Version ist bereit",
+        "waits_restart": "Installiert · Home Assistant neu starten, um sie zu laden",
+        "running": "● Läuft in Home Assistant",
+        "restart": "Home Assistant neu starten",
+        "restart_confirm": "Home Assistant jetzt neu starten? Es ist ein bis zwei Minuten weg, ebenso seine Dashboards und Automationen.",
+        "restarting": "Home Assistant startet neu. Das Video der Bildschirme folgt innerhalb einer Minute danach.",
+        "installed": "Tessera video installiert. Starte Home Assistant einmal neu, um sie zu laden.",
+        "screens": "Bildschirme mit Video: {names}",
+        "no_screens": "Noch kein Bildschirm hat Video: Füge Bildschirmkamera mit dem Teil Video zu einem P4-Bildschirm mit Kamera hinzu.",
+        "writes": "Schreibt den Ordner {path}; erneutes Installieren ersetzt ihn. Tessera fügt jeden Bildschirm mit Video selbst hinzu."
+      },
       "claude": {
         "installed": "Skill installiert. Claude Code nutzt ihn sofort.",
         "installed_restart": "Skill installiert. Starte Claude Code einmal neu, damit es den neuen Skills-Ordner findet.",
@@ -3729,8 +3784,7 @@
       "comment_label": "Anmerkung (optional)",
       "comment_hint": "Bitte keine persönlichen Daten, Logs, Passwörter oder API-Schlüssel.",
       "report_title": "Soll es behoben werden?",
-      "report_text": "Eröffne ein Issue auf GitHub. Dein Board, die Versionen und was du uns gesagt hast, sind schon eingetragen. Füge ein Log hinzu, dann können wir es untersuchen und dich dazu fragen.",
-      "report_open": "GitHub-Issue eröffnen",
+      "report_text": "Schick einen Bericht: Tessera sammelt Board, Versionen, Logs und den letzten Absturz, zeigt sie dir zuerst und schickt sie erst, wenn du zustimmst. Oder lies nach, was du tun kannst, wenn etwas nicht funktioniert.",
       "add_details": "Details hinzufügen",
       "done": "Fertig",
       "settings_title": "Feedback",
@@ -3763,7 +3817,9 @@
         "addon": "Die Version von Tessera: {version}",
         "nothing_else": "Sonst nichts: kein Name, kein Konto, keine Entitäten, Logs oder Home-Assistant-Einstellungen. Jeder Bildschirm teilt unter einem eigenen zufälligen Schlüssel."
       },
-      "privacy": "Datenschutz"
+      "privacy": "Datenschutz",
+      "report_send": "Bericht senden",
+      "report_manual": "Fehlerbehebung lesen"
     },
     "webflash": {
       "target": "Aus diesem Browser installieren (Chrome oder Edge)",
@@ -4027,6 +4083,96 @@
       "move_to": "Auf Seite verschieben",
       "add_here": "Hier eine Kachel hinzufügen",
       "paste_here": "Hier einfügen"
+    },
+    "report": {
+      "button": "Mein Bildschirm funktioniert nicht richtig",
+      "card_title": "Stimmt etwas nicht?",
+      "card_hint": "Stelle einen Bericht aus dem zusammen, was die App über diesen Bildschirm weiß, lies ihn und sende ihn an Tessera, damit wir die Ursache finden können.",
+      "eyebrow": "Fehlersuche",
+      "title": "Mein Bildschirm funktioniert nicht richtig",
+      "title_named": "{name} funktioniert nicht richtig",
+      "intro": "Die App sammelt, was sie über diesen Bildschirm weiß, in ein paar Dateien. Du liest sie hier, und erst Senden bringt sie zu Tessera.",
+      "loading": "Lese, was die App weiß…",
+      "collects_title": "Was hineinkommt",
+      "collects": "Board und Versionen des Bildschirms, sein eigenes Log (bis zu 45 Sekunden, live), die Zeilen des Home-Assistant-Logs über ihn, das Log der App und das letzte Build-Log. Passwörter, Schlüssel, Netzwerkadressen und der Name des Bildschirms werden geschwärzt.",
+      "nothing_leaves": "Nichts verlässt dein Home Assistant, bis du auf Senden drückst. Du kannst jede Datei vorher lesen.",
+      "crash_title": "Letzter Absturz",
+      "crash_line": "{reason}, {when}, {seen}",
+      "crash_seen": "diese Woche einmal gesehen | diese Woche {n} Mal gesehen",
+      "crash_lines": "Dekodierte Zeilen",
+      "full": "Auch mein Seitenlayout, die Namen der Entitäten und die übrigen Zeilen des Home-Assistant-Logs mitschicken. Das hilft sehr beim Finden der Ursache.",
+      "note_label": "Was ist passiert? (optional)",
+      "note_hint": "Was du gesehen hast, was du kurz davor getan hast und wie oft es vorkommt.",
+      "email_label": "Deine E-Mail (optional)",
+      "email_hint": "Falls wir dich dazu etwas fragen dürfen.",
+      "remember_email": "Meine E-Mail in dieser App merken",
+      "collect": "Sammeln",
+      "check_again": "Erneut prüfen",
+      "blockers": {
+        "no_profile": "Die YAML dieses Bildschirms liegt nicht im Ordner dieser App, daher lässt sich kein Bericht dafür erstellen.",
+        "collecting": "Ein Bericht dieses Bildschirms wird bereits gesammelt. Warte einen Moment und prüfe erneut."
+      },
+      "collecting": "Wird gesammelt…",
+      "collecting_hint": "Das dauert bis zu einer Minute: Die App hört eine Weile dem Log des Bildschirms zu.",
+      "steps": {
+        "identity": "Lese die Identität des Bildschirms",
+        "profile": "Kopiere sein Profil",
+        "screen_log": "Höre dem Log des Bildschirms zu",
+        "ha_log": "Lese das Home-Assistant-Log",
+        "addon_log": "Lese das Log der App",
+        "build_log": "Lese das letzte Build-Log",
+        "crash": "Lese den letzten Absturz",
+        "zip": "Packe die Dateien"
+      },
+      "ready_title": "Bereit zum Lesen",
+      "facts": {
+        "board": "Board",
+        "firmware": "Firmware",
+        "addon": "Tessera",
+        "ha": "Home Assistant",
+        "esphome": "ESPHome",
+        "plugins": "Plugins",
+        "crash": "Letzter Absturz",
+        "none": "Keiner",
+        "unknown": "Unbekannt"
+      },
+      "warnings": {
+        "screen_offline": "Der Bildschirm ist offline: Der Bericht hat kein Live-Log, nur was die App aufbewahrt hat.",
+        "no_api_key": "Die App hat keinen API-Schlüssel für diesen Bildschirm, daher konnte sein Live-Log nicht gelesen werden.",
+        "no_elf": "Die Debug-Datei der Firmware fehlt, daher lässt sich ein Absturz nicht nach seinen Codezeilen benennen.",
+        "ha_log_unavailable": "Das Home-Assistant-Log konnte nicht gelesen werden.",
+        "addon_log_unavailable": "Das eigene Log der App konnte nicht gelesen werden.",
+        "no_crash_record": "Für diesen Bildschirm wurde kein Absturz aufgezeichnet."
+      },
+      "files_title": "Dateien im Bericht",
+      "file_lines": "1 Zeile | {n} Zeilen",
+      "size": {
+        "b": "{n} B",
+        "kb": "{n} KB",
+        "mb": "{n} MB"
+      },
+      "download": "Zip herunterladen",
+      "send_title": "An Tessera senden",
+      "send_text": "Das geht an Tessera und wird {days} Tage aufbewahrt. Es enthält die Dateien oben, deine Anmerkung und deine E-Mail, falls du eine angegeben hast.",
+      "privacy": "Datenschutz",
+      "with_note": "Mit deiner Anmerkung.",
+      "with_email": "Wir dürfen an {email} schreiben.",
+      "change_note": "Anmerkung oder E-Mail ändern",
+      "consent": "Ich habe gelesen, was im Bericht steht, und bin einverstanden, ihn an Tessera zu senden.",
+      "send": "Senden",
+      "sending": "Wird gesendet…",
+      "sent": {
+        "title": "Gesendet, danke",
+        "quote": "Nenne diese Referenz auf GitHub oder Discord, damit wir deinen Bericht finden.",
+        "copy": "Kopieren",
+        "copied": "Referenz kopiert.",
+        "selected": "Die Referenz ist markiert: Kopiere sie mit Ctrl+C oder ⌘C.",
+        "github": "GitHub-Issue eröffnen",
+        "discord": "Auf Discord fragen",
+        "new": "Neuen Bericht erstellen"
+      },
+      "failed_title": "Der Bericht konnte nicht erstellt werden",
+      "try_again": "Erneut versuchen"
     }
   }
 }
