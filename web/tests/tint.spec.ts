@@ -124,6 +124,21 @@ describe("a card's colour by state", () => {
     expect(current(target)!.options?.tint).toBeUndefined();
   });
 
+  it("keeps the switch for the icon while off when it is pressed", async () => {
+    // App 0.4.107: the switch writes tint_icon, and the tile keeps it through the page document (pages.ts).
+    const target: Tile = { entity: "light.desk", name: "", slot: 0 };
+    loadTiles([target]);
+    const panel = mount(TintSection, { props: { tile: current(target)! } });
+    await panel.find(".tint-add").trigger("click");
+    await panel.setProps({ tile: current(target)! });
+    await panel.find('[role="switch"]').trigger("click");
+    expect(current(target)!.options?.tint_icon).toBe(true);
+    await panel.setProps({ tile: current(target)! });
+    expect(panel.find('[role="switch"]').attributes("aria-checked")).toBe("true");
+    await panel.find('[role="switch"]').trigger("click");
+    expect(current(target)!.options?.tint_icon).toBeUndefined();
+  });
+
   it("takes a colour of one's own, typed as #RRGGBB", async () => {
     // App 0.4.105: under the palette a colour is typed (with or without the #, either case) or picked, and kept as
     // tint.validate takes it; a typo changes nothing.

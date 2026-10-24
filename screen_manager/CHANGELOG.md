@@ -1,5 +1,8 @@
 ## Unreleased
 
+- **0.4.108: "Only the icon while off" switches on.** The switch was dropped as soon as it was pressed, because the
+  page the editor keeps did not know the choice. It is kept now. No firmware update is needed.
+
 - **0.4.107: a colour by state on the icon alone while off.** Under Colour by state, "Only the icon while off": while
   the entity is off, the colour of the rule that fits goes to the tile's icon and its circle, and the card keeps its own
   colour; on, the whole card takes it as before. Screens need firmware 0.64.0; an older one colours the whole card.
