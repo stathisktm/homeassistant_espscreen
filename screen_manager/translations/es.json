@@ -2802,6 +2802,13 @@
         "add": "Añadir una regla",
         "remove": "Quitar esta regla",
         "first": "Las reglas se prueban de arriba abajo; gana la primera que encaja. No hace falta actualizar la pantalla."
+      },
+      "modes": {
+        "title": "Modos",
+        "hint": "Qué modos ofrecen el mosaico y su tarjeta: desactiva los que nunca usas. Queda al menos uno.",
+        "hvac_modes": "Modo",
+        "fan_modes": "Ventilador",
+        "swing_modes": "Oscilación"
       }
     },
     "precision": {

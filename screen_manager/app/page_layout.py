@@ -56,7 +56,9 @@ APPEARANCE = {
 # A favourite (app 0.4.42) keeps what it plays (`play`, Home Assistant's own ids) and on which speaker (`speaker`), and
 # since app 0.4.84 its own shuffle and repeat.
 INTERACTION = {"tap": "tap", "inline": "inline", "controls": "controls", "action": "action", "guard": "guard", "play": "play", "speaker": "speaker",
-               "shuffle": "shuffle", "repeat": "repeat", "tilt_open": "tilt_open"}
+               "shuffle": "shuffle", "repeat": "repeat", "tilt_open": "tilt_open",
+               # The modes a thermostat's tile shows (app 0.4.113), as Home Assistant's climate features choose them.
+               "hvac_modes": "hvac_modes", "fan_modes": "fan_modes", "swing_modes": "swing_modes"}
 
 
 class LayoutError(ValueError):

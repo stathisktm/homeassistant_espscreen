@@ -2802,6 +2802,13 @@
         "add": "Regel hinzufügen",
         "remove": "Diese Regel entfernen",
         "first": "Regeln werden von oben geprüft; die erste passende gewinnt. Kein Bildschirm-Update nötig."
+      },
+      "modes": {
+        "title": "Modi",
+        "hint": "Welche Modi die Kachel und ihre Karte anbieten: Schalte die aus, die du nie nutzt. Mindestens einer bleibt.",
+        "hvac_modes": "Modus",
+        "fan_modes": "Lüfter",
+        "swing_modes": "Schwenken"
       }
     },
     "precision": {

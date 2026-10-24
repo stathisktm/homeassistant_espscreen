@@ -9,6 +9,7 @@ import rules from './page-rules.json';
 import { TINT_RULES, TINT_WHEN, tintHex } from './tint';
 import { validBackground } from './page-background';
 import { ICON_RULES, validIconRule } from './icon-rules';
+import { CLIMATE_MODE_LISTS, validModes } from './climate-modes';
 import type { PageLayout, PageTile } from '../types';
 
 const bytes = (s: string) => new TextEncoder().encode(s).length;
@@ -106,7 +107,9 @@ export function validatePageShape(layout: PageLayout, plugins = false) {
       fields(tile.appearance, ['label', 'presentation', 'display', 'icon', 'background', 'historyHours', 'refresh', 'subtitle', 'subtitle2', 'fit', 'overlay',
         'mapEntities', 'mapFraming', 'mapDistance', 'mapFollow', 'mapMarkers', 'mapNames', 'mapZones', 'mapStreets', 'mapLook', 'energyFlow',
         ...CALENDAR_FIELDS, ...CALENDAR_MORE, ...METER_FIELDS, ...TINT_FIELDS], ['label']);
-      fields(tile.interaction, ['tap', 'inline', 'controls', 'action', 'guard', 'play', 'speaker', 'shuffle', 'repeat', 'tilt_open'], []);
+      fields(tile.interaction, ['tap', 'inline', 'controls', 'action', 'guard', 'play', 'speaker', 'shuffle', 'repeat', 'tilt_open', 'hvac_modes', 'fan_modes', 'swing_modes'], []);
+      // The modes a thermostat's tile shows (app 0.4.113), as core.validate_layout keeps them.
+      for (const key of CLIMATE_MODE_LISTS) if (tile.interaction[key] !== undefined && !validModes(tile.interaction[key])) fail();
       const content = tile.content;
       fields(content, ['kind', 'entityId', 'name', 'target', 'plugin', 'tile', 'options'], ['kind']);
       if (content.kind === 'entity') {

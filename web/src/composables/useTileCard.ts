@@ -15,6 +15,7 @@ import { bigKeyLine, bigValue, bodyText, ownWords, favoriteLine, fillPercent, he
 import { glyph, clockText } from "../model/topbar";
 import { hasTint, lineEntity, tintColour, tintMatch } from "../model/tint";
 import { iconRuleMatch } from "../model/icon-rules";
+import { withModes } from "../model/climate-modes";
 import { resolveControls } from "../model/catalogue";
 import { cardContent, cardHeight, lineOf, restContent, uiScale, watchCard, watchPadding, wideChip, widestSetpoint } from "../model/ui-scale";
 import { cardHead, cardLook, cardPanel, cardRoom, iconFace, panelMetrics, pillFace, sliderCorner, type PanelKind } from "../model/card-layout";
@@ -66,7 +67,8 @@ export function useTileCard(props: TileCardProps) {
   // The same value for as long as Home Assistant reports the same: a new inventory hands over what it knew of an entity as
   // a new object, which would draw the card again for nothing.
   const current = computed<Live | null>((before) => {
-    const next = domain.value === "screen" ? null : entities.liveOf(props.tile.entity);
+    // A thermostat's modes as the tile keeps them (app 0.4.113): the screen is sent the lists cut the same way.
+    const next = domain.value === "screen" ? null : withModes(props.tile, entities.liveOf(props.tile.entity));
     return before && next && sameLive(before, next) ? before : next;
   });
   // An automation set to run on a tap looks like a script's button (firmware 0.7.0+, Tile::runs): coloured while it runs.

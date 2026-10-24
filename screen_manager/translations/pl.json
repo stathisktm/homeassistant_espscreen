@@ -2802,6 +2802,13 @@
         "add": "Dodaj regułę",
         "remove": "Usuń tę regułę",
         "first": "Reguły są sprawdzane od góry; wygrywa pierwsza pasująca. Aktualizacja ekranu nie jest potrzebna."
+      },
+      "modes": {
+        "title": "Tryby",
+        "hint": "Które tryby oferuje kafelek i jego karta: wyłącz te, których nigdy nie używasz. Zostaje co najmniej jeden.",
+        "hvac_modes": "Tryb",
+        "fan_modes": "Wentylator",
+        "swing_modes": "Nawiew"
       }
     },
     "precision": {

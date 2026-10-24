@@ -62,6 +62,10 @@ export type TileOptions = {
   opacity?: number;
   // An icon by state (app 0.4.112, model/icon-rules.ts): the first rule that fits gives the tile's icon.
   icons?: { when?: string; above?: number; below?: number; icon: string }[];
+  // The modes a thermostat's tile shows (app 0.4.113, model/climate-modes.ts); left out, all of them.
+  hvac_modes?: string[];
+  fan_modes?: string[];
+  swing_modes?: string[];
   [key: string]: unknown;
 };
 // What a favourite plays (app 0.4.42), as Home Assistant's library names it: its content id and type, the title and the
@@ -116,7 +120,8 @@ export type PageTile = {
     // colour by state (app 0.4.91): TileOptions' tint.
     meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[];
     tint?: TileOptions["tint"]; tintIcon?: boolean; opacity?: number; iconRules?: TileOptions["icons"] };
-  interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string };
+  interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string;
+    hvac_modes?: string[]; fan_modes?: string[]; swing_modes?: string[] };
   children?: ChildTile[];
 };
 export type Page = {

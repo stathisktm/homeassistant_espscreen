@@ -2802,6 +2802,13 @@
         "add": "Ajouter une règle",
         "remove": "Supprimer cette règle",
         "first": "Les règles sont essayées de haut en bas ; la première qui correspond l'emporte. Aucune mise à jour de l'écran n'est nécessaire."
+      },
+      "modes": {
+        "title": "Modes",
+        "hint": "Les modes que proposent la tuile et sa carte : désactivez ceux que vous n'utilisez jamais. Au moins un reste.",
+        "hvac_modes": "Mode",
+        "fan_modes": "Ventilation",
+        "swing_modes": "Oscillation"
       }
     },
     "precision": {

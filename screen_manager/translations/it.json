@@ -2802,6 +2802,13 @@
         "add": "Aggiungi una regola",
         "remove": "Rimuovi questa regola",
         "first": "Le regole si provano dall'alto; vince la prima che corrisponde. Non serve aggiornare lo schermo."
+      },
+      "modes": {
+        "title": "Modalità",
+        "hint": "Quali modalità offrono il riquadro e la sua scheda: spegni quelle che non usi mai. Almeno una resta.",
+        "hvac_modes": "Modalità",
+        "fan_modes": "Ventola",
+        "swing_modes": "Oscillazione"
       }
     },
     "precision": {

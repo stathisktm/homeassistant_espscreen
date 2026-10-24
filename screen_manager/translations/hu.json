@@ -2802,6 +2802,13 @@
         "add": "Szabály hozzáadása",
         "remove": "Szabály eltávolítása",
         "first": "A szabályok fentről lefelé futnak; az első illeszkedő nyer. Nem kell kijelzőfrissítés."
+      },
+      "modes": {
+        "title": "Módok",
+        "hint": "Mely módokat kínál a csempe és a kártyája: kapcsold ki, amiket sosem használsz. Legalább egy megmarad.",
+        "hvac_modes": "Mód",
+        "fan_modes": "Ventilátor",
+        "swing_modes": "Lengetés"
       }
     },
     "precision": {

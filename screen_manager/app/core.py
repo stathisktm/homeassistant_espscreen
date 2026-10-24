@@ -1119,6 +1119,10 @@ PLUGIN_TILE = re.compile(r'^plugin:([a-z][a-z0-9_]{0,31})\.([a-z][a-z0-9_]{0,31}
 PLUGIN_TILE_OPTIONS = {'size', 'background', 'icon', 'tap', 'plugin', 'plugin_entity'}
 # How much of a card covers what lies under it, in percent (app 0.4.111): 100, the whole card, is no key.
 TILE_OPACITIES = (80, 60, 40, 20)
+# The modes of a thermostat a tile shows (app 0.4.113), as Home Assistant's own climate features choose them: its HVAC
+# modes, fan modes and swing modes, each a list of the ones kept; left out, all of them. The screen gets the lists cut
+# to those (state_message), so every firmware shows only them.
+CLIMATE_MODE_LISTS = ('hvac_modes', 'fan_modes', 'swing_modes')
 PLUGIN_OPTION_MAX = 12
 PLUGIN_TEXT_MAX = 64
 # A list option's values (plugin API 0.12), and what a tile's options take together as JSON (plugin_manifest's
@@ -1965,7 +1969,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -1985,6 +1989,17 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 options = tint.validate(options)
             except ValueError as error:
                 raise ValueError(t('addon.errors.layout.invalid_setting', setting='tint')) from None
+            # The modes a thermostat's tile shows (app 0.4.113): a list of names per kind, for a climate tile alone.
+            for key in CLIMATE_MODE_LISTS:
+                if key not in options:
+                    continue
+                kept = options[key]
+                if not tile['entity'].startswith('climate.'):
+                    options = {k: v for k, v in options.items() if k != key}
+                    continue
+                if (not isinstance(kept, list) or not 1 <= len(kept) <= 16 or len(set(map(str, kept))) != len(kept) or
+                        any(not isinstance(mode, str) or not mode or len(mode.encode()) > 48 for mode in kept)):
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
             # An icon by state (app 0.4.112): the same rules with an icon of the set; the screen gets the icon itself.
             try:
                 options = tint.validate_icons(options, tile_icons.ICONS)
@@ -2592,7 +2607,7 @@ def screen_options(tile, attrs, state=None, entry=None):
     # So do a favourite's own (app 0.4.42): the screen asks to play its tile, never an id.
     # A calendar's filters stay too (calendar_feed.OWN): the screen gets the events they let through, and a tile's
     # colour rules (app 0.4.91): the screen gets the colour each state asks for, in `x.bg` (tint.py).
-    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'icons', 'controls', 'action', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
+    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'icons', 'controls', 'action', 'tint', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
     # A meter's colours travel as numbers (firmware 0.56.0): the screen keeps no table of names.
     options = meter.screen_options(options)
     icon = tile_icon(tile, attrs, state, entry)
@@ -2670,6 +2685,12 @@ def state_message(index, tile, states, extra=None, precision=None, entry=None, u
         return message
     state = states.get(tile['entity'], {})
     attrs = state.get('attributes', {})
+    # The modes a thermostat's tile shows (app 0.4.113): its lists cut to the ones kept, before they are bounded, so a
+    # mode past the eighth can be one of them.
+    chosen = {key: tile.get('options', {}).get(key) for key in CLIMATE_MODE_LISTS}
+    if tile['entity'].startswith('climate.') and any(isinstance(kept, list) for kept in chosen.values()):
+        attrs = {**attrs, **{key: [mode for mode in attrs[key] if mode in kept] for key, kept in chosen.items()
+                             if isinstance(kept, list) and isinstance(attrs.get(key), list)}}
     bounded = {}
     keys = ATTRS | HUMIDIFIER_ATTRS if tile['entity'].startswith('humidifier.') else ATTRS
     if week and tile['entity'].startswith('weather.'):

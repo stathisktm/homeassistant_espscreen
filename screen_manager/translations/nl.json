@@ -2373,6 +2373,13 @@
         "add": "Regel toevoegen",
         "remove": "Deze regel verwijderen",
         "first": "Regels worden van boven af geprobeerd; de eerste die past wint. Geen schermupdate nodig."
+      },
+      "modes": {
+        "title": "Modi",
+        "hint": "Welke modi de tegel en zijn kaart bieden: zet de modi uit die je nooit gebruikt. Er blijft er minstens één.",
+        "hvac_modes": "Modus",
+        "fan_modes": "Ventilator",
+        "swing_modes": "Zwenken"
       }
     },
     "precision": {

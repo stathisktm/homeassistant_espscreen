@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.113: choose a thermostat's modes.** A climate tile's Modes: a chip for each mode it lists (its modes, fan modes
+  and swing modes), so the tile and its card offer only the ones you use, as Home Assistant's own climate features let
+  you choose them. At least one stays. No firmware update is needed: the screen is sent only the modes kept.
+
 - **0.4.112: an icon by state.** A tile's Icon by state: rules like Colour by state, each with an icon of the set, so a
   lamp shows one icon on and another off, a thermostat one while it heats, a sensor one above a temperature. The first
   rule that fits wins; with none, the tile keeps its own icon. No firmware update is needed: the screen is sent the icon.

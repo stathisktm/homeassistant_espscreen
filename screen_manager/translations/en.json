@@ -2373,6 +2373,13 @@
         "add": "Add a rule",
         "remove": "Remove this rule",
         "first": "Rules are tried from the top; the first that fits wins. No screen update is needed."
+      },
+      "modes": {
+        "title": "Modes",
+        "hint": "Which modes the tile and its card offer: switch off the ones you never use. At least one stays.",
+        "hvac_modes": "Mode",
+        "fan_modes": "Fan",
+        "swing_modes": "Swing"
       }
     },
     "precision": {
