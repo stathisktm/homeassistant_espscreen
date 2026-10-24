@@ -60,6 +60,8 @@ export type TileOptions = {
   tint_icon?: boolean;
   // How much of the card covers what lies under it, in percent (app 0.4.111, firmware 0.67.0); left out, all of it.
   opacity?: number;
+  // An icon by state (app 0.4.112, model/icon-rules.ts): the first rule that fits gives the tile's icon.
+  icons?: { when?: string; above?: number; below?: number; icon: string }[];
   [key: string]: unknown;
 };
 // What a favourite plays (app 0.4.42), as Home Assistant's library names it: its content id and type, the title and the
@@ -113,7 +115,7 @@ export type PageTile = {
     // A sensor's meter (firmware 0.56.0): TileOptions' meter, min, max, segments, colors and thresholds; and a card's
     // colour by state (app 0.4.91): TileOptions' tint.
     meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[];
-    tint?: TileOptions["tint"]; tintIcon?: boolean; opacity?: number };
+    tint?: TileOptions["tint"]; tintIcon?: boolean; opacity?: number; iconRules?: TileOptions["icons"] };
   interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string };
   children?: ChildTile[];
 };

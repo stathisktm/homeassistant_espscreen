@@ -2793,6 +2793,15 @@
         "label": "Opacidad de la tarjeta",
         "hint": "Cuánto cubre la tarjeta el fondo de la página: menos deja ver la imagen. El texto y el icono no cambian.",
         "whole": "Tarjeta entera"
+      },
+      "icon_rules": {
+        "title": "Icono por estado",
+        "hint": "El mosaico toma otro icono según lo que hace la entidad o su temperatura. Si no encaja ninguna regla, mantiene su propio icono.",
+        "when_aria": "Qué da al mosaico este icono",
+        "icon_aria": "El icono cuando {when}",
+        "add": "Añadir una regla",
+        "remove": "Quitar esta regla",
+        "first": "Las reglas se prueban de arriba abajo; gana la primera que encaja. No hace falta actualizar la pantalla."
       }
     },
     "precision": {

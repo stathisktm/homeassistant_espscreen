@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.112: an icon by state.** A tile's Icon by state: rules like Colour by state, each with an icon of the set, so a
+  lamp shows one icon on and another off, a thermostat one while it heats, a sensor one above a temperature. The first
+  rule that fits wins; with none, the tile keeps its own icon. No firmware update is needed: the screen is sent the icon.
+
 - **0.4.111: see-through cards.** A tile's Card opacity, under its colour: the whole card, or 80, 60, 40 or 20 percent of
   it, so a page's background shows through while the words and the icon stay as they are. Screens need firmware 0.67.0;
   an older one draws the whole card.

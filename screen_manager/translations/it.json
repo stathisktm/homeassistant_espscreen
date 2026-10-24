@@ -2793,6 +2793,15 @@
         "label": "Opacità della scheda",
         "hint": "Quanto la scheda copre lo sfondo della pagina: meno lascia vedere l'immagine. Testo e icona restano come sono.",
         "whole": "Scheda intera"
+      },
+      "icon_rules": {
+        "title": "Icona per stato",
+        "hint": "Il riquadro prende un'altra icona secondo ciò che fa l'entità o la sua temperatura. Se nessuna regola corrisponde, tiene la propria icona.",
+        "when_aria": "Cosa dà al riquadro questa icona",
+        "icon_aria": "L'icona quando {when}",
+        "add": "Aggiungi una regola",
+        "remove": "Rimuovi questa regola",
+        "first": "Le regole si provano dall'alto; vince la prima che corrisponde. Non serve aggiornare lo schermo."
       }
     },
     "precision": {

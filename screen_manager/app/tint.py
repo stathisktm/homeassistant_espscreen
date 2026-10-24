@@ -143,9 +143,9 @@ def words(entity, state, attributes):
     return found
 
 
-def matching(tile, state, attributes, second=None):
-    """The colour the first matching rule gives as "#rrggbb", or None when no rule matches."""
-    rules = (tile.get('options') or {}).get('tint')
+def first_rule(rules, tile, state, attributes, second=None):
+    """The first of `rules` that fits what the entity is doing or its temperature, or None: the colour's rules and the
+    icon's (app 0.4.112) fit the same way."""
     if not isinstance(rules, list) or not rules:
         return None
     doing = words(tile['entity'], state, attributes)
@@ -155,7 +155,7 @@ def matching(tile, state, attributes, second=None):
             continue
         if 'when' in rule:
             if rule['when'] in doing:
-                return colour_value(rule.get('c'))
+                return rule
             continue
         of = 'line' if rule.get('of') == 'line' else None
         if of not in values:
@@ -170,8 +170,61 @@ def matching(tile, state, attributes, second=None):
             continue
         if above is None and below is None:
             continue
-        return colour_value(rule.get('c'))
+        return rule
     return None
+
+
+def matching(tile, state, attributes, second=None):
+    """The colour the first matching rule gives as "#rrggbb", or None when no rule matches."""
+    rule = first_rule((tile.get('options') or {}).get('tint'), tile, state, attributes, second)
+    return colour_value(rule.get('c')) if rule else None
+
+
+# ---- An icon by state (app 0.4.112) ----
+# A tile may keep `icons`, rules of the same shape as the colour's with an icon in the colour's place:
+#     {"when": "on", "icon": "lightbulb-on"}   {"above": 25, "icon": "thermometer-high"}
+# The first that fits gives the icon the tile shows (core.tile_icon); with none, the tile's own icon stands. The screen
+# gets the icon itself with every state, as it gets an icon Home Assistant changes: no firmware knows the rules.
+
+
+def validate_icons(options, icons):
+    """The `icons` rules of a tile's options, checked and as stored, `icons` being the names a tile may pick
+    (tile_icons.ICONS); ValueError for a shape the editor does not make. Everything else comes back untouched."""
+    if 'icons' not in options:
+        return options
+    rules = options.get('icons')
+    if not isinstance(rules, list) or len(rules) > RULES:
+        raise ValueError('icons')
+    checked = []
+    for rule in rules:
+        if not isinstance(rule, dict) or set(rule) - {'when', 'above', 'below', 'icon'} or rule.get('icon') not in icons:
+            raise ValueError('icons')
+        if 'when' in rule:
+            if not isinstance(rule['when'], str) or not WHEN.fullmatch(rule['when']) or 'above' in rule or 'below' in rule:
+                raise ValueError('icons')
+            checked.append({'when': rule['when'], 'icon': rule['icon']})
+            continue
+        if 'above' not in rule and 'below' not in rule:
+            raise ValueError('icons')
+        line = {'icon': rule['icon']}
+        for edge in ('above', 'below'):
+            if edge in rule:
+                if number(rule[edge]) is None:
+                    raise ValueError('icons')
+                line[edge] = rule[edge]
+        checked.append(line)
+    out = dict(options)
+    if checked:
+        out['icons'] = checked
+    else:
+        out.pop('icons', None)
+    return out
+
+
+def icon_of(tile, state, attributes):
+    """The name of the icon the first fitting rule of `icons` gives, or None."""
+    rule = first_rule((tile.get('options') or {}).get('icons'), tile, state, attributes)
+    return rule.get('icon') if rule else None
 
 
 def card_background(tile, state, attributes, second=None):

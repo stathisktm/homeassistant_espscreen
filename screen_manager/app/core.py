@@ -1965,7 +1965,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -1985,6 +1985,11 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 options = tint.validate(options)
             except ValueError as error:
                 raise ValueError(t('addon.errors.layout.invalid_setting', setting='tint')) from None
+            # An icon by state (app 0.4.112): the same rules with an icon of the set; the screen gets the icon itself.
+            try:
+                options = tint.validate_icons(options, tile_icons.ICONS)
+            except ValueError:
+                raise ValueError(t('addon.errors.layout.invalid_setting', setting='icons')) from None
             # A navigation tile (screen.page_<n>, firmware 0.2.62+) has a name, an icon, a colour and a width; never the page.
             if page_target(tile['entity']):
                 if options.get('size') == 'full':
@@ -2571,6 +2576,10 @@ def extras(tile, states, forecast=None, tz=None, hourly=None, now=None, device=N
 def tile_icon(tile, attrs, state=None, entry=None):
     """Codepoint the screen shows: the chosen icon, else HA's own mdi icon, else the icon Home Assistant's frontend shows
     for this state (app 0.2.67); None keeps the firmware default."""
+    # An icon by state (app 0.4.112, tint.icon_of): the first rule that fits wins over every other.
+    ruled = tint.icon_of(tile, state, attrs or {})
+    if ruled in tile_icons.ICONS:
+        return tile_icons.ICONS[ruled][0]
     choice = tile.get('options', {}).get('icon', 'auto')
     if choice in tile_icons.ICONS:
         return tile_icons.ICONS[choice][0]
@@ -2583,7 +2592,7 @@ def screen_options(tile, attrs, state=None, entry=None):
     # So do a favourite's own (app 0.4.42): the screen asks to play its tile, never an id.
     # A calendar's filters stay too (calendar_feed.OWN): the screen gets the events they let through, and a tile's
     # colour rules (app 0.4.91): the screen gets the colour each state asks for, in `x.bg` (tint.py).
-    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'controls', 'action', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
+    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'icons', 'controls', 'action', 'tint', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
     # A meter's colours travel as numbers (firmware 0.56.0): the screen keeps no table of names.
     options = meter.screen_options(options)
     icon = tile_icon(tile, attrs, state, entry)

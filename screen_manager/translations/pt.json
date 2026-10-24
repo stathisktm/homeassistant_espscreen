@@ -2793,6 +2793,15 @@
         "label": "Opacidade do cartão",
         "hint": "Quanto o cartão cobre o fundo da página: menos deixa ver a imagem. O texto e o ícone ficam como estão.",
         "whole": "Cartão inteiro"
+      },
+      "icon_rules": {
+        "title": "Ícone por estado",
+        "hint": "O mosaico recebe outro ícone conforme o que a entidade está a fazer ou a sua temperatura. Se nenhuma regra servir, mantém o seu ícone.",
+        "when_aria": "O que dá ao mosaico este ícone",
+        "icon_aria": "O ícone quando {when}",
+        "add": "Adicionar uma regra",
+        "remove": "Remover esta regra",
+        "first": "As regras são testadas de cima para baixo; ganha a primeira que servir. Não é preciso atualizar o ecrã."
       }
     },
     "precision": {

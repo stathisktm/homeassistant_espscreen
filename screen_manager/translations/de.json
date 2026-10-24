@@ -2793,6 +2793,15 @@
         "label": "Deckkraft der Karte",
         "hint": "Wie stark die Karte den Seitenhintergrund verdeckt: weniger lässt das Bild durchscheinen. Text und Symbol bleiben, wie sie sind.",
         "whole": "Ganze Karte"
+      },
+      "icon_rules": {
+        "title": "Symbol nach Zustand",
+        "hint": "Die Kachel nimmt ein anderes Symbol für das, was die Entität tut, oder für ihre Temperatur. Passt keine Regel, behält sie ihr eigenes Symbol.",
+        "when_aria": "Was der Kachel dieses Symbol gibt",
+        "icon_aria": "Das Symbol bei {when}",
+        "add": "Regel hinzufügen",
+        "remove": "Diese Regel entfernen",
+        "first": "Regeln werden von oben geprüft; die erste passende gewinnt. Kein Bildschirm-Update nötig."
       }
     },
     "precision": {

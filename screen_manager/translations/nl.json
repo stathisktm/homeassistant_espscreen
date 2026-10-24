@@ -2364,6 +2364,15 @@
         "label": "Dekking van de kaart",
         "hint": "Hoeveel de kaart de pagina-achtergrond bedekt: minder laat de afbeelding doorschijnen. Tekst en pictogram blijven zoals ze zijn.",
         "whole": "Hele kaart"
+      },
+      "icon_rules": {
+        "title": "Pictogram per toestand",
+        "hint": "De tegel krijgt een ander pictogram voor wat de entiteit doet, of voor haar temperatuur. Past geen regel, dan houdt hij zijn eigen pictogram.",
+        "when_aria": "Wat de tegel dit pictogram geeft",
+        "icon_aria": "Het pictogram bij {when}",
+        "add": "Regel toevoegen",
+        "remove": "Deze regel verwijderen",
+        "first": "Regels worden van boven af geprobeerd; de eerste die past wint. Geen schermupdate nodig."
       }
     },
     "precision": {

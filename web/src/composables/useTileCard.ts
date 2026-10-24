@@ -14,6 +14,7 @@ import { bigKeyLine, bigValue, bodyText, ownWords, favoriteLine, fillPercent, he
   roundValue, runText, sameLive, sameWords, screenText, setpointText, stateText, subLine, tallValue, type Live, type ScreenWords } from "../model/tile-text";
 import { glyph, clockText } from "../model/topbar";
 import { hasTint, lineEntity, tintColour, tintMatch } from "../model/tint";
+import { iconRuleMatch } from "../model/icon-rules";
 import { resolveControls } from "../model/catalogue";
 import { cardContent, cardHeight, lineOf, restContent, uiScale, watchCard, watchPadding, wideChip, widestSetpoint } from "../model/ui-scale";
 import { cardHead, cardLook, cardPanel, cardRoom, iconFace, panelMetrics, pillFace, sliderCorner, type PanelKind } from "../model/card-layout";
@@ -167,7 +168,11 @@ export function useTileCard(props: TileCardProps) {
   });
   const palette = computed(() => tilePalette(props.tile.entity, current.value, runs.value,
     iconTint.value ? parseInt(iconTint.value.slice(1), 16) : undefined));
-  const icon = computed(() => entities.tileIconCp(props.tile));
+  // An icon by state (app 0.4.112): the first rule that fits gives the icon, as the add-on sends it to the screen.
+  const icon = computed(() => {
+    const ruled = iconRuleMatch(props.tile, current.value);
+    return (ruled && entities.iconNamed(ruled)?.cp) || entities.tileIconCp(props.tile);
+  });
   const controlGlyphs = computed(() => inv.inventory.icons?.controls || {});
   /** A control's glyph by its name, from the add-on's control glyphs. */
   const key = (glyphName: string) => (controlGlyphs.value[glyphName] ? glyph(controlGlyphs.value[glyphName]) : "");

@@ -413,6 +413,8 @@ a:hover { text-decoration: underline; }
 .tile.wide { grid-column: span var(--screen-wide-span, 2); flex-direction: row; align-items: center; gap: 8px; }
 .tile.bare { background: transparent; border-style: dashed; border-color: #c3c9d0; }
 /* A card a page's background shows through (app 0.4.111): its own colour, or the card's, at the tile's opacity. */
+/* The icons of an icon-by-state rule (IconRulesSection), in a popover of their own. */
+.icon-rule-choices { width: min(340px, 92vw); max-height: min(420px, 70vh); overflow: auto; }
 .tile.see-through { background: color-mix(in srgb, var(--tile-face, #fff) var(--tile-opacity, 100%), transparent); }
 .tile.placeholder { opacity: 0.55; border: 2px dashed var(--accent); background: var(--accent-soft); cursor: default; }
 .tile .ic { font-size: 18px; line-height: 1; color: #1b1b1b; flex: none; }

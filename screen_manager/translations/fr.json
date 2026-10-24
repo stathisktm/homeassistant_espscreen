@@ -2793,6 +2793,15 @@
         "label": "Opacité de la carte",
         "hint": "Combien la carte couvre l'arrière-plan de la page : moins laisse voir l'image. Le texte et l'icône restent tels quels.",
         "whole": "Carte entière"
+      },
+      "icon_rules": {
+        "title": "Icône selon l'état",
+        "hint": "La tuile prend une autre icône selon ce que fait l'entité ou sa température. Si aucune règle ne correspond, elle garde la sienne.",
+        "when_aria": "Ce qui donne cette icône à la tuile",
+        "icon_aria": "L'icône quand {when}",
+        "add": "Ajouter une règle",
+        "remove": "Supprimer cette règle",
+        "first": "Les règles sont essayées de haut en bas ; la première qui correspond l'emporte. Aucune mise à jour de l'écran n'est nécessaire."
       }
     },
     "precision": {

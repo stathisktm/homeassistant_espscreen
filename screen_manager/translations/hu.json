@@ -2793,6 +2793,15 @@
         "label": "Kártya fedettsége",
         "hint": "Mennyire takarja a kártya az oldal hátterét: kevesebb átengedi a képet. A szöveg és az ikon nem változik.",
         "whole": "Teljes kártya"
+      },
+      "icon_rules": {
+        "title": "Ikon állapot szerint",
+        "hint": "A csempe más ikont kap aszerint, mit csinál az entitás, vagy a hőmérséklete szerint. Ha egy szabály sem illik, megtartja a saját ikonját.",
+        "when_aria": "Mi adja a csempének ezt az ikont",
+        "icon_aria": "Az ikon, ha {when}",
+        "add": "Szabály hozzáadása",
+        "remove": "Szabály eltávolítása",
+        "first": "A szabályok fentről lefelé futnak; az első illeszkedő nyer. Nem kell kijelzőfrissítés."
       }
     },
     "precision": {

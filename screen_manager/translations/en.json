@@ -2364,6 +2364,15 @@
         "label": "Card opacity",
         "hint": "How much of the card covers a page's background: lower lets the picture show through. The words and the icon stay as they are.",
         "whole": "Whole card"
+      },
+      "icon_rules": {
+        "title": "Icon by state",
+        "hint": "The tile takes another icon for what the entity is doing, or for its temperature. With no rule that fits, it keeps its own icon.",
+        "when_aria": "What gives the tile this icon",
+        "icon_aria": "The icon when {when}",
+        "add": "Add a rule",
+        "remove": "Remove this rule",
+        "first": "Rules are tried from the top; the first that fits wins. No screen update is needed."
       }
     },
     "precision": {
