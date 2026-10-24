@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.103: a player's picture from Home Assistant's www folder.** A TV integration that names a logo per channel
+  there (`entity_picture: /local/tvlogos/mega.png`) and no proxy beside it showed no picture: the app took a player's
+  picture only from Home Assistant's media player proxy or the internet. A `/local/` file comes now, without the app's
+  token (Home Assistant serves it to anyone), and under the Supervisor from Home Assistant's internal address. A
+  person's picture there comes the same way. No firmware update is needed.
+
 - **0.4.102: the Preview in Greek.** The editor's Preview, the screen's own firmware in the browser, is built again:
   it speaks Greek with the Greek letters, and shows this fork's colours by state and second lines as the screen does.
 

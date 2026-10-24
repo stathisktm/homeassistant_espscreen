@@ -316,6 +316,29 @@ class MediaFetchSecurity(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await ha.media_image('media_player.office'), b'picture')
         self.assertEqual(session.calls[-1], ('https://8.8.8.8/art.jpg', None, False))
 
+    async def test_a_picture_of_the_www_folder_comes_without_the_token(self):
+        # A TV integration names a logo per channel in Home Assistant's www folder (/local/...) and no proxy beside it
+        # (app 0.4.103). Home Assistant serves such a file to anyone, so it goes without the app's token: from Home
+        # Assistant itself, and under the Supervisor (whose proxy passes /api/ alone) from its internal address.
+        session = RecordingSession()
+        ha = HomeAssistant(session, 'http://ha/api', 'token')
+        ha.states = {'media_player.tv': {'attributes': {'entity_picture': '/local/tvlogos/mega.png'}}}
+        self.assertEqual(await ha.media_image('media_player.tv'), b'picture')
+        self.assertEqual(session.calls[-1], ('http://ha/local/tvlogos/mega.png', None, False))
+        supervised = HomeAssistant(session, 'http://supervisor/core/api', 'token')
+        supervised.states = ha.states
+        supervised._internal_url = 'http://192.168.1.10:8123'
+        self.assertEqual(await supervised.media_image('media_player.tv'), b'picture')
+        self.assertEqual(session.calls[-1], ('http://192.168.1.10:8123/local/tvlogos/mega.png', None, False))
+        supervised._internal_url = ''
+        await supervised.media_image('media_player.tv')
+        self.assertEqual(session.calls[-1], ('http://homeassistant:8123/local/tvlogos/mega.png', None, False))
+        # Out of the www folder is no www picture: refused as before.
+        for address in ('/local/../api/states', '/localx/a.png', '//elsewhere/local/a.png'):
+            ha.states = {'media_player.tv': {'attributes': {'entity_picture': address}}}
+            with self.subTest(address=address), self.assertRaisesRegex(ValueError, 'unsafe picture address'):
+                await ha.media_image('media_player.tv')
+
     async def test_a_name_is_looked_up_without_holding_the_app(self):
         answers = {'art.example.com': '93.184.216.34', 'nas.example.com': '192.168.1.20'}
 

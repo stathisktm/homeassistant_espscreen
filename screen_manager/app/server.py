@@ -767,10 +767,29 @@ class HomeAssistant:
                     raise ValueError('tile too large')
             return bytes(raw)
 
+    async def www_address(self, address):
+        """(url, headers, options) of a file of Home Assistant's www folder (`/local/...`, app 0.4.103): such a file is
+        served to anyone who asks, so it goes without the app's token. Under the Supervisor, whose proxy passes /api/
+        alone, it comes from Home Assistant's internal address (its Network settings), else from its name on the
+        Supervisor's network; None for an address that is not one."""
+        parsed = urlsplit(address)
+        if not address.startswith('/local/') or address.startswith('//') or parsed.netloc or '..' in parsed.path:
+            return None
+        if self.base != 'http://supervisor/core/api':
+            root = self.base[:-4] if self.base.endswith('/api') else self.base
+            return f'{root}{address}', {}, {}
+        direct = await self.internal_url() or 'http://homeassistant:8123'
+        # A home on https with its own certificate: the request carries no secret, as with a photo of the screensaver.
+        return f'{direct}{address}', {}, ({'ssl': False} if direct.startswith('https://') else {})
+
     async def entity_picture(self, picture):
         """An entity's own picture (`entity_picture`: a person's for a marker on a map, app 0.4.36, and a plugin's place
         of an entity), from where Home Assistant's own frontend takes it: one of Home Assistant's own pictures
         (picture_question.HA_PICTURES), or a public address on the internet."""
+        www = await self.www_address(picture)
+        if www:
+            url, headers, options = www
+            return await self.picture_bytes(url, headers, 'entity', **options)
         url, headers = await self.picture_address(picture, lambda path: path.startswith(picture_question.HA_PICTURES))
         return await self.picture_bytes(url, headers, 'entity')
 
@@ -780,6 +799,12 @@ class HomeAssistant:
         picture = self.media_picture(entity)
         if not picture:
             raise ValueError('no picture')
+        # A file of Home Assistant's www folder (app 0.4.103): a TV integration that names a logo per channel there
+        # (`/local/tvlogos/mega.png`) hands out no proxy beside it.
+        www = await self.www_address(picture)
+        if www:
+            url, headers, options = www
+            return await self.picture_bytes(url, headers, 'snapshot', **options)
         url, headers = await self.picture_address(picture, lambda path: path == f'/api/media_player_proxy/{entity}')
         return await self.picture_bytes(url, headers, 'snapshot')
 
