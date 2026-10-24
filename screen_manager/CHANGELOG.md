@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.106: a long line of your own goes round, and a swipe turns the sources' pages.** A tile's second line that you
+  set (a TV's channel and what is on, `MEGA HD · Mega Non Stop`) scrolls slowly when it is wider than the tile, with a
+  pause to read it, where it was cut after the channel; every other line stays as it was. The menu of a player's inputs
+  and speakers turns its pages with a swipe, up or left for the next, as well as with its arrows. Screens need firmware
+  0.63.0.
+
 - **0.4.105: every input of a TV, and a colour of your own.** A player's inputs stopped at sixteen, so a TV that lists
   its channels and apps there (nineteen on a TCL with Live TV) lost the last ones: up to 32 go now, and the menu pages
   through them. Screens need firmware 0.62.0 for more than sixteen. Under Colour by state, a rule's colour can be your

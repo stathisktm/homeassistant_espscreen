@@ -525,8 +525,17 @@ static void menu_scrim_event(lv_event_t *e) {
 }
 static void menu_pager_step(int step) {
   if (!steady()) return;
-  menu_page = static_cast<unsigned>(std::max(0, static_cast<int>(menu_page) + step));
+  const int next = static_cast<int>(menu_page) + step;
+  if (next < 0 || next >= static_cast<int>(menu_starts.size())) return;
+  menu_page = static_cast<unsigned>(next);
   draw_menu();
+}
+// A swipe turns the menu's pages as its pager does (firmware 0.63.0), as the library's pages turn: a TV's inputs run to
+// three pages, and a finger reaches for the list before the keys under it. Up or left is the next page.
+static void menu_gesture_event(lv_event_t *) {
+  const auto direction = lv_indev_get_gesture_dir(lv_indev_active());
+  if (direction == LV_DIR_LEFT || direction == LV_DIR_TOP) menu_pager_step(1);
+  else if (direction == LV_DIR_RIGHT || direction == LV_DIR_BOTTOM) menu_pager_step(-1);
 }
 // The flags of a speaker on every tile of the player, at once: Home Assistant's next state confirms them.
 static void set_flags(const std::string &id, size_t index, uint8_t flags) {
@@ -654,6 +663,7 @@ static void draw_menu() {
   lv_obj_set_style_bg_opa(menu_root, 120, 0);
   lv_obj_set_style_bg_color(menu_root, theme::color(theme::CAMERA_PAGE), 0);
   lv_obj_add_event_cb(menu_root, menu_scrim_event, LV_EVENT_SHORT_CLICKED, nullptr);
+  lv_obj_add_event_cb(menu_root, menu_gesture_event, LV_EVENT_GESTURE, nullptr);
   lv_obj_move_foreground(menu_root);
   const int y = m.bar_y + m.bar + m.gap / 2, room = height - y - m.pad;
   // The volume line is three quarters of a finger; its slider reaches a finger's height with its click area, and a

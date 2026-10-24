@@ -4970,6 +4970,15 @@ inline void marquee(lv_obj_t *label,bool reading_pause=false,bool ready=true){
   // LVGL cancels the old animation when long mode is assigned, even unchanged.
   lv_label_set_long_mode(label,LV_LABEL_LONG_SCROLL_CIRCULAR);
 }
+// A tile's line (firmware 0.63.0): one set by hand that is wider than its room goes round slowly, with a pause to read
+// it, so a TV's tile says its channel and what is on (MEGA HD · Mega Non Stop) where dots cut it after the channel.
+// Every other line, and one that fits, stands still and is shortened as before (fit_value).
+inline void fit_or_scroll(lv_obj_t *obj,const std::string &value,const std::string &shorter,const std::string &tail,int room,bool by_hand){
+  const lv_font_t *font=lv_obj_get_style_text_font(obj,LV_PART_MAIN);
+  if(by_hand&&font&&room>0&&text_width(value,font)>room){label(obj,value);marquee(obj,true);return;}
+  if(lv_label_get_long_mode(obj)!=LV_LABEL_LONG_DOT)lv_label_set_long_mode(obj,LV_LABEL_LONG_DOT);
+  fit_value(obj,value,shorter,tail,room);
+}
 // The bar's fill and the elapsed time follow the track: once a second from tick(), without a redraw.
 inline void media_progress(const Tile &t,lv_obj_t *fill,lv_obj_t *elapsed,int bar_w){
   const auto &x=t.extra();
@@ -8931,7 +8940,7 @@ inline void render_slot(size_t slot) {
     set_text_align(w.title,LV_TEXT_ALIGN_CENTER);set_text_align(w.value,LV_TEXT_ALIGN_CENTER);
     lv_obj_set_pos(w.title,0,top+circle+gap);lv_obj_set_width(w.title,content_w);
     lv_obj_set_pos(w.value,0,top+circle+gap+title_height+line_gap);lv_obj_set_width(w.value,content_w);
-    fit_value(w.value,value,value_short,value_tail,content_w);
+    fit_or_scroll(w.value,value,value_short,value_tail,content_w,set_by_hand);
     lap(swipe_profile::CUSTOM);
   }else if(custom){
     lv_obj_add_flag(w.slider,LV_OBJ_FLAG_HIDDEN);hide_panel(w);
@@ -9015,14 +9024,14 @@ inline void render_slot(size_t slot) {
   lv_obj_set_width(w.title,std::max(1,text_room-text_x));
   int value_room=std::max(1,text_room-text_x);
   lv_obj_set_width(w.value,value_room);
-  fit_value(w.value,value,value_short,value_tail,value_room);
+  fit_or_scroll(w.value,value,value_short,value_tail,value_room,set_by_hand);
   if(one_line){
     lv_point_t need;lv_text_get_size(&need,lv_label_get_text(w.value),value_face,0,0,LV_COORD_MAX,LV_TEXT_FLAG_EXPAND);
     const int line_w=std::max(1,text_room-text_x),value_w=std::max(1,std::min((int)need.x+2,line_w*55/100));
     set_text_align(w.value,LV_TEXT_ALIGN_RIGHT);
     lv_obj_set_pos(w.value,text_room-value_w,text_y+title_height-value_height);lv_obj_set_width(w.value,value_w);
     lv_obj_set_width(w.title,std::max(1,line_w-value_w-(ui::px(large_tile?6:3))));
-    fit_value(w.value,value,value_short,value_tail,value_w);
+    fit_or_scroll(w.value,value,value_short,value_tail,value_w,set_by_hand);
   }
   if(watch){
     int gap=ui::px(large_tile?6:2),header=std::max(circle_size,title_height);
