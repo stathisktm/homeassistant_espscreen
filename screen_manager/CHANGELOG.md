@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.110: a page's background shows.** Firmware 0.65.0 asked for a page's background and turned the app's answer away
+  as an unknown kind, so no background ever came. Firmware 0.66.0 takes it, and each page's answer goes to its own page
+  when several are fetched ahead. Update the screen.
+
 - **0.4.109: a background picture for each page.** In the page panel, Background: a picture behind the whole page,
   from an address on the internet, a file of Home Assistant's www folder, Home Assistant's media, or an entity (a camera,
   an image entity, a person, a player). It is darkened so the cards stay readable (how much is yours to choose), and a

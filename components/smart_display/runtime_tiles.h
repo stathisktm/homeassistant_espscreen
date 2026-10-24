@@ -12974,6 +12974,21 @@ inline void loader_bind() {
 // pictures are fetched ahead. A board without pictures has none.
 inline int backdrop_page = -1;  // the page whose picture the object shows
 inline uint32_t backdrop_view_id = 0;
+// The number of each page's last question: pages fetched ahead ask at the same time, and each answer goes to its own.
+inline std::vector<uint32_t> backdrop_asked;
+// An answer's `e`, a page's index (page_receiver), and whether `number` is that page's last question.
+inline int backdrop_index(const std::string &text) {
+  if (text.empty() || text.size() > 2 || !std::all_of(text.begin(), text.end(), [](char c) { return c >= '0' && c <= '9'; })) return -1;
+  return std::atoi(text.c_str());
+}
+inline bool backdrop_answerable(const std::string &text) {
+  const int page = backdrop_index(text);
+  return page >= 0 && static_cast<size_t>(page) < model.page_data.records.size();
+}
+inline bool backdrop_question(const std::string &text, uint32_t number) {
+  const int page = backdrop_index(text);
+  return page >= 0 && static_cast<size_t>(page) < backdrop_asked.size() && backdrop_asked[page] == number;
+}
 inline std::string backdrop_key(size_t page) {
   char mark[9];
   snprintf(mark, sizeof(mark), "%08x", (unsigned) model.page_data.records[page].backdrop);
@@ -13044,7 +13059,9 @@ inline void backdrop_request(size_t page) {
   q.pace = model.page_data.records[page].backdrop_every * 1000u;
   // The glass's own colours (bmp16): a photo behind the cards shows no dithering; a P4 names its JPEG first.
   q.formats = {"bmp16", "bmp24"};
-  picture_ask(q, "backdrop", std::to_string(page), ++backdrop_view_id);
+  if (backdrop_asked.size() <= page) backdrop_asked.resize(page + 1, 0);
+  backdrop_asked[page] = ++backdrop_view_id;
+  picture_ask(q, "backdrop", std::to_string(page), backdrop_asked[page]);
 }
 inline void backdrop_wants() {
   // Only an app that reads questions knows the source page:<index>; an older app has no backgrounds to give.
