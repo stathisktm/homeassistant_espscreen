@@ -949,8 +949,9 @@ std::string receive(const std::string &payload) {
         }
         next.speaker_volumes.resize(next.media_sources.size(), -1);
       }
+      // Up to 32 inputs (firmware 0.62.0): a TV lists its channels and apps as inputs, nineteen and more; the menu pages.
       if (extra["in"].is<JsonArray>()) for (JsonVariant input : extra["in"].as<JsonArray>()) {
-        if (next.media_inputs.size() == 16) break;
+        if (next.media_inputs.size() == 32) break;
         std::string name = string(input, 48);
         if (!name.empty()) next.media_inputs.push_back(std::move(name));
       }

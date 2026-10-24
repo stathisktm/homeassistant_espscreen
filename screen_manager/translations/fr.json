@@ -2772,7 +2772,9 @@
         "first": "Les règles s'appliquent de haut en bas ; la première qui correspond gagne. La couleur est calculée par l'app, l'écran ne coûte donc rien.",
         "degrees": "°",
         "from": "Température de",
-        "from_card": "Cette carte"
+        "from_card": "Cette carte",
+        "own": "Votre couleur",
+        "own_aria": "Votre couleur au format #RRGGBB"
       },
       "anchor_hint": "Cliquez sur l'icône pour en choisir une autre, ou sur le nom pour renommer la tuile",
       "grow": {

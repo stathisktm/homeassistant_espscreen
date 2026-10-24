@@ -2772,7 +2772,9 @@
         "first": "Die Regeln gelten von oben; die erste passende gewinnt. Die Farbe rechnet die App aus, die Kachel kostet also nichts.",
         "degrees": "°",
         "from": "Temperatur von",
-        "from_card": "Diese Karte"
+        "from_card": "Diese Karte",
+        "own": "Eigene Farbe",
+        "own_aria": "Eigene Farbe als #RRGGBB"
       },
       "anchor_hint": "Klicke auf das Symbol, um ein anderes zu wählen, oder auf den Namen, um die Kachel umzubenennen",
       "grow": {

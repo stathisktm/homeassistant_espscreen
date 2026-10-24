@@ -2343,7 +2343,9 @@
         "first": "Rules are tried from the top; the first that fits wins. The app works the colour out, so the screen costs nothing.",
         "degrees": "°",
         "from": "Temperature from",
-        "from_card": "This card"
+        "from_card": "This card",
+        "own": "Your own colour",
+        "own_aria": "Your own colour as #RRGGBB"
       },
       "anchor_hint": "Click its icon to choose another, or its name to rename the tile",
       "grow": {

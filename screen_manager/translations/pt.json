@@ -2772,7 +2772,9 @@
         "first": "As regras são testadas de cima para baixo; ganha a primeira que corresponder. A cor é calculada pela app, por isso o ecrã não custa nada.",
         "degrees": "°",
         "from": "Temperatura de",
-        "from_card": "Este cartão"
+        "from_card": "Este cartão",
+        "own": "A sua cor",
+        "own_aria": "A sua cor como #RRGGBB"
       },
       "anchor_hint": "Clique no ícone para escolher outro, ou no nome para mudar o nome do mosaico",
       "grow": {

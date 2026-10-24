@@ -71,6 +71,17 @@ class Inputs(unittest.TestCase):
         self.assertEqual(found['inputs'], ['HDMI 1', 'HDMI 2'])
         self.assertEqual(found['pill'], '')
 
+    def test_a_tv_lists_every_channel_and_app_up_to_thirty_two(self):
+        # A TV lists its channels and apps as inputs, nineteen of them on a TCL with Live TV (app 0.4.105): all of them
+        # go, up to INPUTS, where the speakers' rows stay at ROWS.
+        states = house()
+        channels = [f'Channel {n}' for n in range(1, 41)]
+        states['media_player.tv']['attributes']['source_list'] = channels
+        states['media_player.tv']['attributes']['source'] = 'Channel 19'
+        found = menu('media_player.tv', states)
+        self.assertEqual(found['inputs'], channels[:32])
+        self.assertEqual(found['input'], 'Channel 19')
+
     def test_spotify_sources_are_speakers(self):
         found = menu('media_player.spotify_account', house())
         self.assertEqual([r['name'] for r in found['rows']], ['MacBook', 'iMac'])

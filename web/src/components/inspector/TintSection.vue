@@ -7,7 +7,7 @@
 import { computed, ref } from "vue";
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from "reka-ui";
 import { editorLanguage, languageMarks, t } from "../../i18n";
-import { hasTint, lineEntity, stateLabel, temperatureOf, TINT_RULES, tintColors, tintHex, tintRules, tintStates, type TintRule } from "../../model/tint";
+import { hasTint, lineEntity, stateLabel, temperatureOf, TINT_HEX, TINT_RULES, tintColors, tintHex, tintRules, tintStates, type TintRule } from "../../model/tint";
 import { soften } from "../../model/tint";
 import type { Tile } from "../../types";
 import Icon from "../ui/Icon.vue";
@@ -88,6 +88,17 @@ function remove(index: number) {
   open.value = -1;
   write(rules.value.filter((_, row) => row !== index));
 }
+// A colour of one's own (app 0.4.105): typed as #RRGGBB (or without the #) or picked, kept as tint.HEX has it.
+function ownColour(text: string) {
+  const hex = text.trim().replace(/^#?/, "#").toLowerCase();
+  return TINT_HEX.test(hex) ? hex : "";
+}
+function typeColour(index: number, text: string) {
+  const hex = ownColour(text);
+  if (hex) pickColour(index, hex);
+}
+/** A rule's colour by name: the palette's own words, or the colour itself as it was typed. */
+const colourName = (colour: string) => (TINT_HEX.test(colour) ? colour.toUpperCase() : t(`editor.tile.meter.colors.${colour}`));
 /** The swatch shows what the glass draws: the colour laid over the card the way the firmware lays it. */
 const swatch = (colour: string) => soften(colour);
 </script>
@@ -107,8 +118,8 @@ const swatch = (colour: string) => soften(colour);
         </span>
         <PopoverRoot :open="open === index" @update:open="(on: boolean) => (open = on ? index : -1)">
           <PopoverTrigger as-child>
-            <button type="button" class="tint-swatch" :style="{ background: swatch(rule.c) }" :title="t(`editor.tile.meter.colors.${rule.c}`)"
-              :aria-label="t('editor.tile.tint.colour_aria', { colour: t(`editor.tile.meter.colors.${rule.c}`) })"></button>
+            <button type="button" class="tint-swatch" :style="{ background: swatch(rule.c) }" :title="colourName(rule.c)"
+              :aria-label="t('editor.tile.tint.colour_aria', { colour: colourName(rule.c) })"></button>
           </PopoverTrigger>
           <PopoverPortal>
             <PopoverContent class="ui-popover meter-palette" align="start" :side-offset="6" :collision-padding="10">
@@ -117,6 +128,15 @@ const swatch = (colour: string) => soften(colour);
                   :title="t(`editor.tile.meter.colors.${choice}`)" :aria-label="t(`editor.tile.meter.colors.${choice}`)"
                   @click="pickColour(index, choice)"><i :style="{ background: tintHex(choice) }"></i></button>
               </div>
+              <label class="tint-own">
+                <span>{{ t("editor.tile.tint.own") }}</span>
+                <input type="color" class="tint-own-pick" :value="tintHex(rule.c) || tintHex('amber')" :aria-label="t('editor.tile.tint.own')"
+                  @change="pickColour(index, ($event.target as HTMLInputElement).value.toLowerCase())" />
+                <input type="text" class="tint-own-text" maxlength="7" placeholder="#RRGGBB" spellcheck="false"
+                  :value="TINT_HEX.test(rule.c) ? rule.c.toUpperCase() : ''" :aria-label="t('editor.tile.tint.own_aria')"
+                  @keydown.enter="typeColour(index, ($event.target as HTMLInputElement).value)"
+                  @blur="typeColour(index, ($event.target as HTMLInputElement).value)" />
+              </label>
             </PopoverContent>
           </PopoverPortal>
         </PopoverRoot>
@@ -147,4 +167,8 @@ const swatch = (colour: string) => soften(colour);
 .tint-source { display: flex; align-items: center; gap: 8px; padding: 0 0 8px; font-size: 13px; color: var(--muted); }
 .tint-source-pick { flex: 1 1 auto; min-width: 0; }
 .tint-palette .sw { max-width: 236px; }
+.tint-own { display: flex; align-items: center; gap: 8px; padding-top: 10px; font-size: 12px; color: var(--muted); }
+.tint-own span { flex: 1 1 auto; }
+.tint-own-pick { width: 30px; height: 30px; flex: none; padding: 0; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 7px; background: none; }
+.tint-own-text { width: 84px; height: 30px; padding: 4px 8px; font: 13px ui-monospace, monospace; border-radius: 7px; text-transform: uppercase; }
 </style>

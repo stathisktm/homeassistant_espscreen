@@ -107,4 +107,28 @@ describe("a card's colour by state", () => {
     await panel.findAll(".tint-remove")[0].trigger("click");
     expect(current(target)!.options?.tint).toBeUndefined();
   });
+
+  it("takes a colour of one's own, typed as #RRGGBB", async () => {
+    // App 0.4.105: under the palette a colour is typed (with or without the #, either case) or picked, and kept as
+    // tint.validate takes it; a typo changes nothing.
+    const target: Tile = { entity: "light.desk", name: "", slot: 0 };
+    loadTiles([target]);
+    const panel = mount(TintSection, { props: { tile: current(target)! }, attachTo: document.body });
+    await panel.find(".tint-add").trigger("click");
+    await panel.setProps({ tile: current(target)! });
+    const word = current(target)!.options!.tint![0].when;
+    await panel.find(".tint-swatch").trigger("click");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const field = document.body.querySelector<HTMLInputElement>(".tint-own-text");
+    expect(field).not.toBeNull();
+    field!.value = "FFC10";
+    field!.dispatchEvent(new Event("blur"));
+    expect(current(target)!.options?.tint![0].c).toBe("amber");
+    field!.value = "ffc107";
+    field!.dispatchEvent(new Event("blur"));
+    expect(current(target)!.options?.tint![0].c).toBe("#ffc107");
+    expect(canonicalOptions("light.desk", current(target)!.options)).toEqual({ tint: [{ when: word, c: "#ffc107" }] });
+    expect(tintColour(current(target)!, live(word!), none)).toBe(soften("#ffc107"));
+    panel.unmount();
+  });
 });

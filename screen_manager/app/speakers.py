@@ -27,6 +27,9 @@ SPEAKER_EVENT = 'esphome.screen_speaker'
 # Integrations whose source_list names the devices they play on (Spotify Connect), as their docs say.
 SOURCE_SPEAKERS = ('spotify', 'spotifyplus')
 ROWS = 16              # rows a menu lists at most
+# Inputs a menu lists at most (app 0.4.105, firmware 0.62.0): a TV lists its channels and apps there, nineteen and more;
+# an older screen keeps the first sixteen.
+INPUTS = 32
 NAME_LIMIT = 48        # bytes of a name
 GROUPING = catalogue.bits('media_player', 'GROUPING')
 VOLUME_SET = catalogue.bits('media_player', 'VOLUME_SET')
@@ -160,7 +163,7 @@ def menu(entity, states, platform_of, holders=(), output=None):
         pill = name_of(entity, states) + (f' + {together - 1}' if together > 1 else '')
     else:
         pill = source if platform in SOURCE_SPEAKERS and source else ''
-    return {'rows': rows, 'inputs': inputs[:ROWS], 'input': source if inputs else None, 'target': target, 'pill': short(pill)}
+    return {'rows': rows, 'inputs': inputs[:INPUTS], 'input': source if inputs else None, 'target': target, 'pill': short(pill)}
 
 
 def extras(found):

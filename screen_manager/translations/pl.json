@@ -2772,7 +2772,9 @@
         "first": "Warunki są sprawdzane od góry; wygrywa pierwszy pasujący. Kolor liczy aplikacja, więc ekran nic nie kosztuje.",
         "degrees": "°",
         "from": "Temperatura z",
-        "from_card": "Ta karta"
+        "from_card": "Ta karta",
+        "own": "Własny kolor",
+        "own_aria": "Własny kolor jako #RRGGBB"
       },
       "anchor_hint": "Kliknij ikonę, aby wybrać inną, lub nazwę, aby zmienić nazwę kafelka",
       "grow": {

@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.105: every input of a TV, and a colour of your own.** A player's inputs stopped at sixteen, so a TV that lists
+  its channels and apps there (nineteen on a TCL with Live TV) lost the last ones: up to 32 go now, and the menu pages
+  through them. Screens need firmware 0.62.0 for more than sixteen. Under Colour by state, a rule's colour can be your
+  own: type it as `#RRGGBB` under the palette, or pick it.
+
 - **0.4.104: a wide picture of a player shows whole.** A player's picture filled its place and was cut to it, which
   suits a square album cover and cut a TV channel's wide logo. A picture of another shape than its place now shows whole
   on the card's own colour, its transparency too; an album cover fills as before. No firmware update is needed.
