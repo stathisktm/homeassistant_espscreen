@@ -215,9 +215,11 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
     const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 1e9;
     if (!Array.isArray(a.tint) || !a.tint.length || a.tint.length > TINT_RULES) fail();
     for (const rule of a.tint as Record<string, unknown>[]) {
-      if (!rule || typeof rule !== 'object' || Object.keys(rule).some((key) => !['when', 'above', 'below', 'c'].includes(key)) || tintHex(rule.c) === '') fail();
-      if (typeof rule.when === 'string' ? !TINT_WHEN.test(rule.when) || rule.above !== undefined || rule.below !== undefined
+      if (!rule || typeof rule !== 'object' || Object.keys(rule).some((key) => !['when', 'above', 'below', 'c', 'of'].includes(key)) || tintHex(rule.c) === '') fail();
+      if (typeof rule.when === 'string' ? !TINT_WHEN.test(rule.when) || rule.above !== undefined || rule.below !== undefined || rule.of !== undefined
         : !(number(rule.above) || number(rule.below))) fail();
+      // A temperature of the line's entity (app 0.4.101) is the one other place a rule may read.
+      if (rule.of !== undefined && rule.of !== 'line') fail();
     }
   }
   // A favourite (app 0.4.42): what it plays and its speaker, and its own shuffle and repeat (app 0.4.84), with the

@@ -1,5 +1,16 @@
 ## Unreleased
 
+- **A weather tile takes its colours by state.** Home Assistant's weather states with a dash (`clear-night`,
+  `snowy-rainy`, `lightning-rainy`, `windy-variant`) were refused as rule words and dropped when the page was saved, so a
+  weather card at night kept its own colour. They are kept now.
+
+- **A temperature rule can read the line's other entity.** Under Colour by state, when the tile's line reads another
+  entity, "Temperature from" picks this card or that entity: a weather tile can turn red by the thermometer outside, a
+  thermostat by another room's. The editor's card also reads the other entity of "Its state and another entity".
+
+- **The Preview speaks Greek** once it is built again: its fonts carry the letters of every script a screen may be built
+  in, since it shows a screen in any language.
+
 - **0.4.101: a camera full screen moves about twice as often on boards without a P4.** On the 4-inch Guition and every
   other ESP32-S3 board the next picture loads as soon as the last one is in, instead of every four seconds, and comes as
   a 16-bit picture, the glass's own colours at two thirds of the bytes. A 16:9 camera changes about every two seconds.

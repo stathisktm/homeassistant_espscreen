@@ -2770,7 +2770,9 @@
         "above": "Powyżej temperatury",
         "below": "Poniżej temperatury",
         "first": "Warunki są sprawdzane od góry; wygrywa pierwszy pasujący. Kolor liczy aplikacja, więc ekran nic nie kosztuje.",
-        "degrees": "°"
+        "degrees": "°",
+        "from": "Temperatura z",
+        "from_card": "Ta karta"
       },
       "anchor_hint": "Kliknij ikonę, aby wybrać inną, lub nazwę, aby zmienić nazwę kafelka",
       "grow": {

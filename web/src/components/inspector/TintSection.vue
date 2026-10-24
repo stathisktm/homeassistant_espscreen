@@ -7,7 +7,7 @@
 import { computed, ref } from "vue";
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from "reka-ui";
 import { editorLanguage, languageMarks, t } from "../../i18n";
-import { hasTint, stateLabel, TINT_RULES, tintColors, tintHex, tintRules, tintStates, type TintRule } from "../../model/tint";
+import { hasTint, lineEntity, stateLabel, temperatureOf, TINT_RULES, tintColors, tintHex, tintRules, tintStates, type TintRule } from "../../model/tint";
 import { soften } from "../../model/tint";
 import type { Tile } from "../../types";
 import Icon from "../ui/Icon.vue";
@@ -30,10 +30,25 @@ const choices = computed<[string, string][]>(() => [
 ]);
 const keyOf = (rule: TintRule) => (typeof rule.when === "string" ? `when:${rule.when}` : rule.above !== undefined ? "above" : "below");
 
-// The temperature a rule compares: the card's own where it has one, else the one of the entity its second line reads.
+// The other entity the tile's line reads (app 0.4.101): a temperature rule may read it instead of the card's own.
+const line = computed(() => lineEntity(props.tile, (id: string) => entities.liveOf(id)));
+const fromLine = computed(() => rules.value.some((rule) => rule.when === undefined && rule.of === "line"));
+const sources = computed<[string, string][]>(() => [
+  ["card", t("editor.tile.tint.from_card")],
+  ["line", String(entities.liveOf(line.value)?.a?.friendly_name || line.value)],
+]);
+function pickSource(value: string) {
+  write(rules.value.map((rule) => {
+    if (rule.when !== undefined) return rule;
+    const { of: _of, ...rest } = rule;
+    return value === "line" ? { ...rest, of: "line" as const } : rest;
+  }));
+}
+// The temperature a new rule starts at: the one it compares now, else 20.
 const temperature = computed(() => {
-  const own = live.value?.a?.current_temperature ?? live.value?.a?.temperature;
-  return typeof own === "number" && Number.isFinite(own) ? own : 20;
+  const now = fromLine.value && line.value ? temperatureOf(line.value, entities.liveOf(line.value))
+    : (temperatureOf(props.tile.entity, live.value) ?? (line.value ? temperatureOf(line.value, entities.liveOf(line.value)) : null));
+  return typeof now === "number" && Number.isFinite(now) ? now : 20;
 });
 const shown = (value: number) => String(Math.round(value * 10) / 10).replace(".", languageMarks(editorLanguage()).decimal);
 
@@ -43,16 +58,18 @@ function write(list: TintRule[]) {
 function pickWhen(index: number, value: string) {
   const list = [...rules.value], rule = list[index];
   if (!rule) return;
+  const of = fromLine.value ? { of: "line" as const } : {};
   if (value.startsWith("when:")) list[index] = { when: value.slice(5), c: rule.c };
-  else if (value === "above") list[index] = { above: temperature.value, c: rule.c };
-  else list[index] = { below: temperature.value, c: rule.c };
+  else if (value === "above") list[index] = { above: temperature.value, c: rule.c, ...of };
+  else list[index] = { below: temperature.value, c: rule.c, ...of };
   write(list);
 }
 function writeTemperature(index: number, text: string) {
   const value = Number(text.replace(/\s/g, "").replace(",", ".")), rule = rules.value[index];
   if (!rule || text.trim() === "" || !Number.isFinite(value)) return;
   const list = [...rules.value];
-  list[index] = rule.when !== undefined ? { when: rule.when, c: rule.c } : { ...(rule.above !== undefined ? { above: value } : { below: value }), c: rule.c };
+  list[index] = rule.when !== undefined ? { when: rule.when, c: rule.c }
+    : { ...(rule.above !== undefined ? { above: value } : { below: value }), c: rule.c, ...(rule.of === "line" ? { of: "line" as const } : {}) };
   write(list);
 }
 const open = ref(-1);
@@ -106,6 +123,11 @@ const swatch = (colour: string) => soften(colour);
         <button type="button" class="icon-btn tint-remove" :aria-label="t('editor.tile.tint.remove')" @click="remove(index)"><Icon name="close" /></button>
       </div>
     </div>
+    <label v-if="line && rules.some((rule) => rule.when === undefined)" class="tint-source">
+      <span>{{ t("editor.tile.tint.from") }}</span>
+      <UiSelect class="tint-source-pick" :model-value="fromLine ? 'line' : 'card'" :options="sources"
+        :aria-label="t('editor.tile.tint.from')" @update:model-value="pickSource" />
+    </label>
     <button v-if="rules.length < TINT_RULES" type="button" class="ghost-btn tint-add" @click="add"><Icon name="plus" />{{ t("editor.tile.tint.add") }}</button>
     <small class="help">{{ t("editor.tile.tint.first") }}</small>
   </Section>
@@ -122,5 +144,7 @@ const swatch = (colour: string) => soften(colour);
 .tint-swatch:focus-visible { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
 .tint-remove { flex: none; }
 .tint-add { justify-self: start; }
+.tint-source { display: flex; align-items: center; gap: 8px; padding: 0 0 8px; font-size: 13px; color: var(--muted); }
+.tint-source-pick { flex: 1 1 auto; min-width: 0; }
 .tint-palette .sw { max-width: 236px; }
 </style>

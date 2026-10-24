@@ -4,7 +4,7 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TintSection from "../src/components/inspector/TintSection.vue";
 import { canonicalOptions } from "../src/model/tile-options";
-import { soften, tintColour, tintRules } from "../src/model/tint";
+import { lineEntity, soften, tintColour, tintRules } from "../src/model/tint";
 import type { Live } from "../src/model/tile-text";
 import type { Inventory, Tile } from "../src/types";
 import { useDocumentStore } from "../src/stores/document";
@@ -60,6 +60,25 @@ describe("a card's colour by state", () => {
     const warm = (id: string) => (id === "sensor.outside" ? live("30") : null);
     expect(tintColour(thermostat, live("cool", { current_temperature: 21 }), warm, "sensor.outside")).toBeNull();
     expect(tintColour(thermostat, live("cool", { current_temperature: 26 }), warm, "sensor.outside")).toBe(soften("red"));
+  });
+
+  it("colours a weather card by its states with a dash, and by the line's entity where a rule says so", () => {
+    // Home Assistant's weather states: clear-night, snowy-rainy, windy-variant (app 0.4.101 keeps them).
+    const weather = tile({ tint: [{ when: "clear-night", c: "indigo" }, { above: 25, c: "red", of: "line" }],
+      sub: "state", sub2: "entity:sensor.outside" }, "weather.home");
+    expect(canonicalOptions("weather.home", weather.options)).toEqual(weather.options);
+    expect(tintColour(weather, live("clear-night", { temperature: 12 }), none)).toBe(soften("indigo"));
+    // The line's entity in the line's second part ("Its state and another entity") is the one a rule reads.
+    const of = (id: string) => (id === "sensor.outside" ? live("31", { unit_of_measurement: "°C" }) : null);
+    expect(lineEntity(weather, of)).toBe("sensor.outside");
+    expect(tintColour(weather, live("sunny", { temperature: 18 }), of, lineEntity(weather, of))).toBe(soften("red"));
+    // Without "of" the weather's own 18 degrees stand, and without the line's entity the rule compares nothing.
+    const own = tile({ tint: [{ above: 25, c: "red" }], sub: "entity:sensor.outside" }, "weather.home");
+    expect(tintColour(own, live("sunny", { temperature: 18 }), of, "sensor.outside")).toBeNull();
+    expect(tintColour(weather, live("sunny", { temperature: 30 }), none, "")).toBeNull();
+    // "of" is only "line", and only on a temperature rule.
+    expect(canonicalOptions("weather.home", { tint: [{ when: "sunny", c: "red", of: "line" }, { above: 5, c: "red", of: "x" } as never] }))
+      .toEqual({ tint: [{ when: "sunny", c: "red" }, { above: 5, c: "red" }] });
   });
 
   it("keeps the rules the add-on takes and drops what it would refuse", () => {

@@ -13,8 +13,7 @@ import { displayOf, sameFace, tileFace, type Face } from "../model/tile-face";
 import { bigKeyLine, bigValue, bodyText, ownWords, favoriteLine, fillPercent, headLine, isGone, isOn, mediaSubtitle, pageLink, rangeChip, readingText,
   roundValue, runText, sameLive, sameWords, screenText, setpointText, stateText, subLine, tallValue, type Live, type ScreenWords } from "../model/tile-text";
 import { glyph, clockText } from "../model/topbar";
-import { hasTint, tintColour } from "../model/tint";
-import { subEntity } from "../model/tile-text";
+import { hasTint, lineEntity, tintColour } from "../model/tint";
 import { resolveControls } from "../model/catalogue";
 import { cardContent, cardHeight, lineOf, restContent, uiScale, watchCard, watchPadding, wideChip, widestSetpoint } from "../model/ui-scale";
 import { cardHead, cardLook, cardPanel, cardRoom, iconFace, panelMetrics, pillFace, sliderCorner, type PanelKind } from "../model/card-layout";
@@ -156,8 +155,8 @@ export function useTileCard(props: TileCardProps) {
   const background = computed(() => {
     const own = inv.inventory.backgrounds?.[props.tile.options?.background || ""]?.color;
     if (!hasTint(props.tile)) return own;
-    const second = subEntity(props.tile.options?.sub);
-    return tintColour(props.tile, current.value, (id: string) => entities.liveOf(id), second) ?? own;
+    const liveOf = (id: string) => entities.liveOf(id);
+    return tintColour(props.tile, current.value, liveOf, lineEntity(props.tile, liveOf)) ?? own;
   });
   const palette = computed(() => tilePalette(props.tile.entity, current.value, runs.value));
   const on = computed(() => tileActive(props.tile.entity, current.value, runs.value));

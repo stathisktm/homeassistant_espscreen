@@ -2341,7 +2341,9 @@
         "above": "Boven een temperatuur",
         "below": "Onder een temperatuur",
         "first": "De regels gelden van bovenaf; de eerste die past wint. De app rekent de kleur uit, dus het scherm kost niets.",
-        "degrees": "°"
+        "degrees": "°",
+        "from": "Temperatuur van",
+        "from_card": "Deze kaart"
       },
       "anchor_hint": "Klik op het icoon om een ander te kiezen, of op de naam om de tegel een andere naam te geven",
       "grow": {

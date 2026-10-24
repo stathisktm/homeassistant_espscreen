@@ -33,6 +33,31 @@ class Rules(unittest.TestCase):
         self.assertIsNone(tint.colour_value('mint'))
 
 
+class Weather(unittest.TestCase):
+    """A weather tile (app 0.4.101): its states as Home Assistant reports them, dashes too, and a temperature rule that
+    reads the entity of the tile's line instead of the weather's own when it says `"of": "line"`."""
+    TILE = {'entity': 'weather.home', 'options': {'background': 'mint', 'tint': [
+        {'when': 'clear-night', 'c': 'indigo'}, {'above': 25, 'c': 'red', 'of': 'line'}, {'below': 5, 'c': 'blue'}]}}
+
+    def test_a_state_with_a_dash_is_a_state(self):
+        for word in ('clear-night', 'snowy-rainy', 'lightning-rainy', 'windy-variant'):
+            self.assertEqual(tint.validate({'tint': [{'when': word, 'c': 'indigo'}]})['tint'], [{'when': word, 'c': 'indigo'}])
+        self.assertEqual(tint.card_background(self.TILE, 'clear-night', {'temperature': 12}), tint.colour_value('indigo'))
+
+    def test_of_the_line_reads_the_lines_entity_alone(self):
+        kept = tint.validate(self.TILE['options'])['tint']
+        self.assertEqual(kept[1], {'c': 'red', 'of': 'line', 'above': 25})
+        outside = ('sensor.outside', {'state': '31', 'attributes': {'unit_of_measurement': '°C'}})
+        # The weather says 18 and the thermometer outside 31: the rule of the line's entity fits.
+        self.assertEqual(tint.card_background(self.TILE, 'sunny', {'temperature': 18}, outside), tint.colour_value('red'))
+        # Without the line's entity that rule compares nothing; the weather's own 3 degrees fit the next rule.
+        self.assertEqual(tint.card_background(self.TILE, 'sunny', {'temperature': 3}), tint.colour_value('blue'))
+        self.assertEqual(tint.card_background(self.TILE, 'sunny', {'temperature': 18}), 'mint')
+        for bad in ([{'above': 25, 'c': 'red', 'of': 'sensor.outside'}], [{'when': 'sunny', 'c': 'red', 'of': 'line'}]):
+            with self.assertRaises(ValueError, msg=bad):
+                tint.validate({'tint': bad})
+
+
 class Colours(unittest.TestCase):
     CLIMATE = {'entity': 'climate.hall', 'options': {'background': 'mint', 'tint': [
         {'when': 'heating', 'c': 'deep-orange'}, {'when': 'cooling', 'c': 'blue'},

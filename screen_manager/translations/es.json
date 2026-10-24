@@ -2770,7 +2770,9 @@
         "above": "Por encima de una temperatura",
         "below": "Por debajo de una temperatura",
         "first": "Las reglas se prueban desde arriba y gana la primera que encaje. El color lo calcula la app, así que la pantalla no cuesta nada.",
-        "degrees": "°"
+        "degrees": "°",
+        "from": "Temperatura de",
+        "from_card": "Esta tarjeta"
       },
       "anchor_hint": "Haz clic en el icono para elegir otro, o en el nombre para cambiar el nombre del mosaico",
       "grow": {

@@ -5,6 +5,7 @@ A tile keeps an ordered list of rules in its `tint` option, at most RULES of the
     {"when": "heating", "c": "deep-orange"}     a state, or what the entity does ("heating", "idle")
     {"above": 25, "c": "red"}                   warmer than this
     {"below": 5, "c": "blue"}                   colder than this
+    {"above": 25, "c": "red", "of": "line"}     the temperature of the entity the tile's line reads (app 0.4.101)
 
 The first rule that matches gives the colour; with none, the tile keeps the card colour it was given
 (`background`). A colour is a name of meter.COLORS (the same nineteen the meter offers) or one of the screen's own
@@ -14,7 +15,8 @@ know this choice simply draws the card it always did.
 The temperature a rule compares is the one the card is about: a thermostat's current temperature, a weather card's
 temperature, a sensor's own value, else the value of the entity the tile's second line reads (app 0.4.90), else the
 last number the tile's entity reports (a humidifier's current humidity is not one of them, but a cover's temperature
-is).
+is). A rule with `"of": "line"` compares the line's entity alone: a weather tile beside the thermometer outside, a
+thermostat by another room's.
 
 The rules never reach a screen (core.screen_options strips them): the colour does, in `x.bg`, with every message of
 the tile, so a card that changes colour with its state repaints, and one that goes back to its own colour does too.
@@ -29,7 +31,8 @@ import meter
 # The most rules one tile keeps: a page carries up to 64 tiles and a screen's memory is not free, though a rule costs
 # the screen nothing (it stays in the app).
 RULES = 8
-WHEN = re.compile(r'[a-z0-9_]{1,24}')
+# A state as Home Assistant reports it: a weather entity's have a dash (clear-night, snowy-rainy, windy-variant).
+WHEN = re.compile(r'[a-z0-9_-]{1,24}')
 HEX = re.compile(r'#[0-9a-f]{6}')
 # The colours a rule may name: Home Assistant's own theme colours, the same nineteen a meter's segments offer
 # (meter.COLORS), so one name means one colour in the whole editor. A "#rrggbb" is taken as it is.
@@ -66,18 +69,20 @@ def validate(options):
         raise ValueError('tint')
     checked = []
     for rule in rules:
-        if not isinstance(rule, dict) or set(rule) - {'when', 'above', 'below', 'c'}:
+        if not isinstance(rule, dict) or set(rule) - {'when', 'above', 'below', 'c', 'of'}:
             raise ValueError('tint')
         if colour_value(rule.get('c')) is None:
             raise ValueError('tint')
         if 'when' in rule:
-            if not isinstance(rule['when'], str) or not WHEN.fullmatch(rule['when']) or 'above' in rule or 'below' in rule:
+            if not isinstance(rule['when'], str) or not WHEN.fullmatch(rule['when']) or 'above' in rule or 'below' in rule or 'of' in rule:
                 raise ValueError('tint')
             checked.append({'when': rule['when'], 'c': rule['c']})
             continue
         if 'above' not in rule and 'below' not in rule:
             raise ValueError('tint')
-        line = {'c': rule['c']}
+        if 'of' in rule and rule['of'] != 'line':
+            raise ValueError('tint')
+        line = {'c': rule['c'], **({'of': 'line'} if 'of' in rule else {})}
         for edge in ('above', 'below'):
             if edge in rule:
                 if number(rule[edge]) is None:
@@ -108,11 +113,11 @@ def temperature_of(entity, state, attributes):
     return None
 
 
-def temperature(tile, state, attributes, second=None):
+def temperature(tile, state, attributes, second=None, of=None):
     """The temperature a rule compares: the tile's own where it has one, else the entity its second line reads
     (`second`: (entity_id, state) of that entity), else the tile's again - so a card that measures nothing compares
-    against nothing and its temperature rules never match."""
-    own = temperature_of(tile['entity'], state, attributes)
+    against nothing and its temperature rules never match. `of="line"`: the line's entity alone."""
+    own = temperature_of(tile['entity'], state, attributes) if of != 'line' else None
     if own is not None:
         return own
     if second:
@@ -137,7 +142,7 @@ def matching(tile, state, attributes, second=None):
     if not isinstance(rules, list) or not rules:
         return None
     doing = words(tile['entity'], state, attributes)
-    value = None
+    values = {}
     for rule in rules:
         if not isinstance(rule, dict):
             continue
@@ -145,8 +150,10 @@ def matching(tile, state, attributes, second=None):
             if rule['when'] in doing:
                 return colour_value(rule.get('c'))
             continue
-        if value is None:
-            value = temperature(tile, state, attributes, second)
+        of = 'line' if rule.get('of') == 'line' else None
+        if of not in values:
+            values[of] = temperature(tile, state, attributes, second, of)
+        value = values[of]
         if value is None:
             continue
         above, below = number(rule.get('above')), number(rule.get('below'))

@@ -2770,7 +2770,9 @@
         "above": "Hőmérséklet felett",
         "below": "Hőmérséklet alatt",
         "first": "A szabályok felülről érvényesek; az első illeszkedő nyer. A színt az app számolja, így a kijelzőnek nem kerül semmibe.",
-        "degrees": "°"
+        "degrees": "°",
+        "from": "Hőmérséklet innen",
+        "from_card": "Ez a kártya"
       },
       "anchor_hint": "Kattints az ikonra egy másik választásához, vagy a névre a csempe átnevezéséhez",
       "grow": {

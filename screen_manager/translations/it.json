@@ -2770,7 +2770,9 @@
         "above": "Sopra una temperatura",
         "below": "Sotto una temperatura",
         "first": "Le regole si provano dall'alto; vince la prima che corrisponde. Il colore lo calcola l'app, quindi lo schermo non costa nulla.",
-        "degrees": "°"
+        "degrees": "°",
+        "from": "Temperatura da",
+        "from_card": "Questa scheda"
       },
       "anchor_hint": "Fai clic sull'icona per sceglierne un'altra, o sul nome per rinominare il riquadro",
       "grow": {

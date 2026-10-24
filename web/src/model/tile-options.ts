@@ -114,6 +114,11 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
         (typeof (rule as Record<string, unknown>).when === "string"
           ? TINT_WHEN.test(String((rule as Record<string, unknown>).when)) && (rule as Record<string, unknown>).above === undefined && (rule as Record<string, unknown>).below === undefined
           : typeof (rule as Record<string, unknown>).above === "number" || typeof (rule as Record<string, unknown>).below === "number"))
+      // A rule reads the line's entity (app 0.4.101) only for a temperature, and says so only as "line".
+      .map((rule) => {
+        const { of, ...rest } = rule as Record<string, unknown>;
+        return of === "line" && rest.when === undefined ? { ...rest, of } : rest;
+      })
       .slice(0, TINT_RULES);
     if (kept.length) out.tint = kept as TileOptions["tint"]; else delete out.tint;
   } else delete out.tint;

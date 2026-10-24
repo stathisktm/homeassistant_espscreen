@@ -4,14 +4,16 @@
 // glass will be. A rule is `{ when }` with a state or an action word ("heating", "sunny", "on"), or `{ above }`/`{ below }`
 // with a temperature, and always a colour of the palette (model/meter's names, the same nineteen everywhere).
 import { meterColorNames, meterHex } from "./meter";
-import type { Live } from "./tile-text";
+import { subEntity, type Live } from "./tile-text";
 import type { Tile } from "../types";
 
-export type TintRule = { when?: string; above?: number; below?: number; c: string };
+// `of: "line"` (app 0.4.101): a temperature rule that reads the entity of the tile's line, not the card's own.
+export type TintRule = { when?: string; above?: number; below?: number; c: string; of?: "line" };
 /** The most rules one tile keeps, as tint.RULES has it. */
 export const TINT_RULES = 8;
 export const TINT_HEX = /^#[0-9a-f]{6}$/;
-export const TINT_WHEN = /^[a-z0-9_]{1,24}$/;
+// A state as Home Assistant reports it: a weather entity's have a dash (clear-night, snowy-rainy), as tint.WHEN takes.
+export const TINT_WHEN = /^[a-z0-9_-]{1,24}$/;
 /** The colour names a rule offers: Home Assistant's own theme colours, as a meter's segments do. */
 export const tintColors = meterColorNames;
 
@@ -42,10 +44,18 @@ export function temperatureOf(entity: string, live: Live | null | undefined) {
   }
   return null;
 }
-export function tintTemperature(tile: Tile, live: Live | null | undefined, liveOf: (entity: string) => Live | null | undefined, second: string) {
-  const own = temperatureOf(tile.entity, live);
+export function tintTemperature(tile: Tile, live: Live | null | undefined, liveOf: (entity: string) => Live | null | undefined, second: string,
+  of?: "line") {
+  const own = of === "line" ? null : temperatureOf(tile.entity, live);
   if (own !== null) return own;
   return second ? temperatureOf(second, liveOf(second)) : null;
+}
+
+/** The other entity the tile's line reads, in either of its parts (`sub`, `sub2`), as ha_catalogue.line_entities has
+ * it: the first that Home Assistant reports, else the first named. "" when the line reads none. */
+export function lineEntity(tile: Tile, liveOf: (entity: string) => Live | null | undefined) {
+  const named = [tile.options?.sub, tile.options?.sub2].map(subEntity).filter((id) => id && id !== tile.entity);
+  return named.find((id) => liveOf(id)) ?? named[0] ?? "";
 }
 
 /** The rules a tile keeps, or none. */
@@ -78,13 +88,12 @@ export function tintColour(tile: Tile, live: Live | null | undefined, liveOf: (e
   const rules = tintRules(tile);
   if (!rules.length) return null;
   const words = doing(live);
-  let value: number | null | undefined;
   for (const rule of rules) {
     if (typeof rule.when === "string") {
       if (words.includes(rule.when)) return soften(rule.c) || null;
       continue;
     }
-    if (value === undefined) value = tintTemperature(tile, live, liveOf, second);
+    const value = tintTemperature(tile, live, liveOf, second, rule.of === "line" ? "line" : undefined);
     if (value === null) continue;
     if (typeof rule.above === "number" && !(value > rule.above)) continue;
     if (typeof rule.below === "number" && !(value < rule.below)) continue;

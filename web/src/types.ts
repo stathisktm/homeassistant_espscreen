@@ -55,7 +55,7 @@ export type TileOptions = {
   colors?: string[];
   thresholds?: number[];
   // A card's colour by state (app 0.4.91, tint.py): the rules that give the whole card a colour, the first that fits.
-  tint?: { when?: string; above?: number; below?: number; c: string }[];
+  tint?: { when?: string; above?: number; below?: number; c: string; of?: "line" }[];
   [key: string]: unknown;
 };
 // What a favourite plays (app 0.4.42), as Home Assistant's library names it: its content id and type, the title and the

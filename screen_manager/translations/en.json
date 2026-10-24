@@ -2341,7 +2341,9 @@
         "above": "Above a temperature",
         "below": "Below a temperature",
         "first": "Rules are tried from the top; the first that fits wins. The app works the colour out, so the screen costs nothing.",
-        "degrees": "°"
+        "degrees": "°",
+        "from": "Temperature from",
+        "from_card": "This card"
       },
       "anchor_hint": "Click its icon to choose another, or its name to rename the tile",
       "grow": {
