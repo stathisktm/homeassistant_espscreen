@@ -388,6 +388,36 @@ class Rgb565(unittest.TestCase):
         self.assertEqual(picture_service.SUFFIX['bmp16'], 'bmp')
 
 
+class CoverShape(unittest.TestCase):
+    """A player's picture (app 0.4.103): an album cover about its place's shape fills it, a wide TV channel logo is shown
+    whole on the place's own ground instead of being cut, and a place with a fit of its own keeps it."""
+
+    @unittest.skipUnless(HAS_PIL, 'Pillow')
+    def test_a_wide_logo_is_shown_whole(self):
+        from PIL import Image
+        import picture_sources
+
+        def png(size, mode='RGB'):
+            out = io.BytesIO()
+            Image.new(mode, size).save(out, 'PNG')
+            return out.getvalue()
+        square = Place(0, 0, 200, 200, radius=12, ground=0x223344)
+        self.assertIsNone(picture_sources.cover_fit(png((600, 600)), square))
+        self.assertIsNone(picture_sources.cover_fit(png((640, 560)), square), 'about square still fills')
+        self.assertEqual(picture_sources.cover_fit(png((400, 160), 'RGBA'), square), 'within')
+        self.assertEqual(picture_sources.cover_fit(png((160, 400)), square), 'within')
+        # A wide place takes a wide picture as filling it, and a place with a fit of its own keeps it.
+        self.assertIsNone(picture_sources.cover_fit(png((400, 160)), Place(0, 0, 400, 170)))
+        self.assertIsNone(picture_sources.cover_fit(png((400, 160)), Place(0, 0, 200, 200, fit='saver')))
+        self.assertIsNone(picture_sources.cover_fit(b'not a picture', square))
+        # Painted whole: the logo's own pixels in the middle, the place's ground above and below it.
+        question = Question(Owner('card'), (Source('cover', 'media_player.tv'),), (200, 200),
+                            (Place(0, 0, 200, 200, radius=12, ground=0x223344, fit='within'),))
+        with Image.open(io.BytesIO(picture_paint.paint(question, [png((400, 160))], 'bmp24'))) as im:
+            self.assertEqual(im.getpixel((100, 100)), (0, 0, 0))
+            self.assertEqual(im.getpixel((100, 30)), (0x22, 0x33, 0x44))
+
+
 # ----- the rules of each source (picture_sources.Sources.may) -----
 
 class Manager:

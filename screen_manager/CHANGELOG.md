@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.104: a wide picture of a player shows whole.** A player's picture filled its place and was cut to it, which
+  suits a square album cover and cut a TV channel's wide logo. A picture of another shape than its place now shows whole
+  on the card's own colour, its transparency too; an album cover fills as before. No firmware update is needed.
+
 - **0.4.103: a player's picture from Home Assistant's www folder.** A TV integration that names a logo per channel
   there (`entity_picture: /local/tvlogos/mega.png`) and no proxy beside it showed no picture: the app took a player's
   picture only from Home Assistant's media player proxy or the internet. A `/local/` file comes now, without the app's

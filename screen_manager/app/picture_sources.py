@@ -38,6 +38,20 @@ CAMERA_ART_FIRMWARE = (0, 3, 3)
 CAMERA_CARD_FIRMWARE = (0, 3, 7)
 
 
+def cover_fit(raw, place):
+    """How a player's picture fills a place that fills (app 0.4.103): an album cover about the place's shape fills it, as
+    before (None: the place's own fit); a picture of another shape, a TV channel's wide logo, is shown whole on the
+    place's own ground (`within`, its transparency too), never cut. A picture that cannot be measured keeps the place's."""
+    if place.fit != 'cover':
+        return None
+    import picture_paint
+    try:
+        size = picture_paint.size_of(raw)
+    except Exception:  # noqa: BLE001 - painting says what is wrong with it
+        return None
+    return None if picture_paint.fills(size, (place.w, place.h)) else 'within'
+
+
 @dataclass
 class Resolved:
     """What a source gives: `raw` bytes, or a picture it drew (a Pillow image), or None; `mark` what it shows now (another
@@ -455,7 +469,7 @@ class Sources:
             if place.fit == 'saver':
                 colours = m.player_ground(source.ref, (m.ha.states.get(source.ref) or {}).get('attributes') or {})
                 ground = int(colours.split(',')[0], 16) if colours and colours != '-' else 0
-            return Resolved(found[0], f'cover:{found[1][:16]}', ground=ground)
+            return Resolved(found[0], f'cover:{found[1][:16]}', ground=ground, fit=cover_fit(found[0], place))
         if kind == 'tile':
             return await self._tile_picture(inbox, screen, question, source, place)
         if kind == 'map':
@@ -506,7 +520,7 @@ class Sources:
                 mark, draw = m.rest_render(entity, rest_mosaic.rows_for(options))
                 return Resolved(_Drawn(draw), f'mosaic:{mark()}')
             found = await self.snapshots.cover(entity)
-            return Resolved(found[0], f'cover:{found[1][:16]}') if found else NONE
+            return Resolved(found[0], f'cover:{found[1][:16]}', fit=cover_fit(found[0], place)) if found else NONE
         # A camera at its tile's pace (Live streams on a P4; its still keeps the default pace).
         refresh = options.get('refresh') or TILE_PACE
         found = await self.snapshots.still(entity, pace=refresh)
