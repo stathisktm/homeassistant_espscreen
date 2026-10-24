@@ -61,7 +61,13 @@ def colour_value(colour):
 
 def validate(options):
     """The `tint` rules of a tile's options, checked and as stored; ValueError for a shape the editor does not make.
-    Everything else in `options` comes back untouched."""
+    `tint_icon` (app 0.4.107): the rules' colour on the icon alone while the tile is off, kept only as true and only
+    beside rules. Everything else in `options` comes back untouched."""
+    if 'tint_icon' in options:
+        if options['tint_icon'] is not True:
+            raise ValueError('tint')
+        if 'tint' not in options:
+            options = {k: v for k, v in options.items() if k != 'tint_icon'}
     if 'tint' not in options:
         return options
     rules = options.get('tint')
@@ -94,6 +100,7 @@ def validate(options):
         out['tint'] = checked
     else:
         out.pop('tint', None)
+        out.pop('tint_icon', None)
     return out
 
 
@@ -177,13 +184,15 @@ def card_background(tile, state, attributes, second=None):
     return matching(tile, state, attributes, second) or str((tile.get('options') or {}).get('background') or '')
 
 
-def wire(message, colour):
+def wire(message, colour, icon=False):
     """Where a tile's message carries the colour: the screen reads `x.bg` on every message it receives, and the
     tile's own options too, so a card face that takes its colour when it is first drawn (a forecast, a graph, a
     meter) is painted right then and not only when a value message follows (app 0.4.95)."""
     if colour is None:
         return message
     message.setdefault('x', {})['bg'] = colour
-    if colour.startswith('#') and isinstance(message.get('o'), dict):
+    # A tile whose colour goes to its icon while it is off (`icon`, app 0.4.107) keeps its own colour in its options:
+    # the screen goes back to it then (firmware 0.64.0).
+    if colour.startswith('#') and not icon and isinstance(message.get('o'), dict):
         message['o']['background'] = colour
     return message

@@ -45,6 +45,8 @@ APPEARANCE = {
     "meterThresholds": "thresholds",
     # A card's colour by state (app 0.4.91, tint.py): the rules stay in the app and travel as the colour they give.
     "tint": "tint",
+    # The rules' colour on the icon alone while the tile is off (app 0.4.107).
+    "tintIcon": "tint_icon",
 }
 # A favourite (app 0.4.42) keeps what it plays (`play`, Home Assistant's own ids) and on which speaker (`speaker`), and
 # since app 0.4.84 its own shuffle and repeat.

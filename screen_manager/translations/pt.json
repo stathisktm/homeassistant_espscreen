@@ -2774,7 +2774,9 @@
         "from": "Temperatura de",
         "from_card": "Este cartão",
         "own": "A sua cor",
-        "own_aria": "A sua cor como #RRGGBB"
+        "own_aria": "A sua cor como #RRGGBB",
+        "icon_off": "Só o ícone quando desligado",
+        "icon_off_hint": "Com a entidade desligada, a cor da regra que se aplica vai só para o seu ícone e o cartão mantém a sua própria cor. Ligada, todo o cartão a recebe."
       },
       "anchor_hint": "Clique no ícone para escolher outro, ou no nome para mudar o nome do mosaico",
       "grow": {

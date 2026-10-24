@@ -2774,7 +2774,9 @@
         "from": "Temperatura z",
         "from_card": "Ta karta",
         "own": "Własny kolor",
-        "own_aria": "Własny kolor jako #RRGGBB"
+        "own_aria": "Własny kolor jako #RRGGBB",
+        "icon_off": "Tylko ikona, gdy wyłączone",
+        "icon_off_hint": "Gdy encja jest wyłączona, kolor pasującej reguły trafia tylko na jej ikonę, a karta zachowuje własny kolor. Włączona, przyjmuje go cała karta."
       },
       "anchor_hint": "Kliknij ikonę, aby wybrać inną, lub nazwę, aby zmienić nazwę kafelka",
       "grow": {

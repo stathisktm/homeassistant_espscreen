@@ -4,7 +4,8 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TintSection from "../src/components/inspector/TintSection.vue";
 import { canonicalOptions } from "../src/model/tile-options";
-import { lineEntity, soften, tintColour, tintRules } from "../src/model/tint";
+import { lineEntity, soften, tintColour, tintMatch, tintRules } from "../src/model/tint";
+import { tilePalette } from "../src/model/tile-palette";
 import type { Live } from "../src/model/tile-text";
 import type { Inventory, Tile } from "../src/types";
 import { useDocumentStore } from "../src/stores/document";
@@ -79,6 +80,21 @@ describe("a card's colour by state", () => {
     // "of" is only "line", and only on a temperature rule.
     expect(canonicalOptions("weather.home", { tint: [{ when: "sunny", c: "red", of: "line" }, { above: 5, c: "red", of: "x" } as never] }))
       .toEqual({ tint: [{ when: "sunny", c: "red" }, { above: 5, c: "red" }] });
+  });
+
+  it("puts the colour on the icon alone while off, where the tile says so", () => {
+    // App 0.4.107: tint_icon is kept as true beside rules, never alone.
+    expect(canonicalOptions("light.a", { tint: [{ when: "off", c: "red" }], tint_icon: true })).toEqual({ tint: [{ when: "off", c: "red" }], tint_icon: true });
+    expect(canonicalOptions("light.a", { tint_icon: true })).toEqual({});
+    expect(canonicalOptions("light.a", { tint: [{ when: "off", c: "red" }], tint_icon: false })).toEqual({ tint: [{ when: "off", c: "red" }] });
+    // The rule's own colour, not softened, is what the icon takes; off, the palette's icon and circle follow it.
+    const lamp = tile({ tint: [{ when: "off", c: "#ff0000" }], tint_icon: true }, "light.a");
+    expect(tintMatch(lamp, live("off"), none)).toBe("#ff0000");
+    const plain = tilePalette("light.a", live("off")), red = tilePalette("light.a", live("off"), false, 0xff0000);
+    expect(red.icon).not.toBe(plain.icon);
+    expect(red.circle).not.toBe(plain.circle);
+    // On, the override is not used: the tile is coloured whole as before.
+    expect(tilePalette("light.a", live("on"), false, 0xff0000)).toEqual(tilePalette("light.a", live("on")));
   });
 
   it("keeps the rules the add-on takes and drops what it would refuse", () => {

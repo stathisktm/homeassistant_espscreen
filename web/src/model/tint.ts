@@ -83,14 +83,14 @@ export function soften(colour: string, dark = false) {
   return `#${((channel(16) << 16) | (channel(8) << 8) | channel(0)).toString(16).padStart(6, "0")}`;
 }
 
-/** The colour the card is drawn in for this state, or null when no rule fits (the tile's own colour stands). */
-export function tintColour(tile: Tile, live: Live | null | undefined, liveOf: (entity: string) => Live | null | undefined, second = "") {
+/** The colour of the first rule that fits this state, as `#rrggbb` and not softened, or null when none does. */
+export function tintMatch(tile: Tile, live: Live | null | undefined, liveOf: (entity: string) => Live | null | undefined, second = "") {
   const rules = tintRules(tile);
   if (!rules.length) return null;
   const words = doing(live);
   for (const rule of rules) {
     if (typeof rule.when === "string") {
-      if (words.includes(rule.when)) return soften(rule.c) || null;
+      if (words.includes(rule.when)) return tintHex(rule.c).toLowerCase() || null;
       continue;
     }
     const value = tintTemperature(tile, live, liveOf, second, rule.of === "line" ? "line" : undefined);
@@ -98,9 +98,14 @@ export function tintColour(tile: Tile, live: Live | null | undefined, liveOf: (e
     if (typeof rule.above === "number" && !(value > rule.above)) continue;
     if (typeof rule.below === "number" && !(value < rule.below)) continue;
     if (typeof rule.above !== "number" && typeof rule.below !== "number") continue;
-    return soften(rule.c) || null;
+    return tintHex(rule.c).toLowerCase() || null;
   }
   return null;
+}
+/** The colour the card is drawn in for this state, or null when no rule fits (the tile's own colour stands). */
+export function tintColour(tile: Tile, live: Live | null | undefined, liveOf: (entity: string) => Live | null | undefined, second = "") {
+  const found = tintMatch(tile, live, liveOf, second);
+  return found ? soften(found) || null : null;
 }
 
 // The states a row offers: what the domain can be doing, the words Home Assistant itself reports.

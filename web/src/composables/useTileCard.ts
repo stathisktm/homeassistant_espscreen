@@ -13,7 +13,7 @@ import { displayOf, sameFace, tileFace, type Face } from "../model/tile-face";
 import { bigKeyLine, bigValue, bodyText, ownWords, favoriteLine, fillPercent, headLine, isGone, isOn, mediaSubtitle, pageLink, rangeChip, readingText,
   roundValue, runText, sameLive, sameWords, screenText, setpointText, stateText, subLine, tallValue, type Live, type ScreenWords } from "../model/tile-text";
 import { glyph, clockText } from "../model/topbar";
-import { hasTint, lineEntity, tintColour } from "../model/tint";
+import { hasTint, lineEntity, tintColour, tintMatch } from "../model/tint";
 import { resolveControls } from "../model/catalogue";
 import { cardContent, cardHeight, lineOf, restContent, uiScale, watchCard, watchPadding, wideChip, widestSetpoint } from "../model/ui-scale";
 import { cardHead, cardLook, cardPanel, cardRoom, iconFace, panelMetrics, pillFace, sliderCorner, type PanelKind } from "../model/card-layout";
@@ -152,14 +152,21 @@ export function useTileCard(props: TileCardProps) {
   // ---- How it looks ----
   // Its colour of the add-on's choices (none is a card without one), or the colour a rule of its own gives for the state
   // it is in now (app 0.4.91, tint.py: the same first match, softened as the screen softens it).
+  const on = computed(() => tileActive(props.tile.entity, current.value, runs.value));
+  // The rules' colour on the icon alone while the tile is off (app 0.4.107, firmware 0.64.0): the card keeps its own.
+  const iconTint = computed(() => {
+    if (props.tile.options?.tint_icon !== true || on.value || !hasTint(props.tile)) return null;
+    const liveOf = (id: string) => entities.liveOf(id);
+    return tintMatch(props.tile, current.value, liveOf, lineEntity(props.tile, liveOf));
+  });
   const background = computed(() => {
     const own = inv.inventory.backgrounds?.[props.tile.options?.background || ""]?.color;
-    if (!hasTint(props.tile)) return own;
+    if (!hasTint(props.tile) || iconTint.value) return own;
     const liveOf = (id: string) => entities.liveOf(id);
     return tintColour(props.tile, current.value, liveOf, lineEntity(props.tile, liveOf)) ?? own;
   });
-  const palette = computed(() => tilePalette(props.tile.entity, current.value, runs.value));
-  const on = computed(() => tileActive(props.tile.entity, current.value, runs.value));
+  const palette = computed(() => tilePalette(props.tile.entity, current.value, runs.value,
+    iconTint.value ? parseInt(iconTint.value.slice(1), 16) : undefined));
   const icon = computed(() => entities.tileIconCp(props.tile));
   const controlGlyphs = computed(() => inv.inventory.icons?.controls || {});
   /** A control's glyph by its name, from the add-on's control glyphs. */

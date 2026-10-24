@@ -598,6 +598,10 @@ struct Tile {
   float battery = NAN, volume = NAN;
   uint32_t supported = 0, background = 0;
   bool transparent = false;  // "Background: none": card fill and border hidden, contents unchanged.
+  // The colour the tile was given (firmware 0.64.0), where `background` may be a colour by state the app sent (x.bg), and
+  // whether that colour goes to the icon alone while the tile is off (its option tint_icon).
+  uint32_t own_background = 0;
+  bool tint_icon = false;
   std::string icon;  // UTF-8 glyph of a chosen icon the icon fonts contain; empty keeps the domain icon.
   uint32_t revision = 0, pending_revision = 0;  // state_revision() fingerprints
   uint32_t pending_since = 0;

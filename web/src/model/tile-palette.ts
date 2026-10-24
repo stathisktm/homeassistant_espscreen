@@ -87,10 +87,12 @@ export function accent(entity: string, value: Value) {
   }
   return c.BLUE;
 }
-export function tilePalette(entity: string, value: Value, runs = false) {
+/** `own`: a colour by state on the icon alone while the tile is off (app 0.4.107, firmware 0.64.0), as 0xRRGGBB. */
+export function tilePalette(entity: string, value: Value, runs = false, own?: number) {
   const available = entity.startsWith("screen.") || Boolean(value?.state && !["unknown", "unavailable"].includes(value.state));
   // A locked lock is inactive in Home Assistant and still green (--state-lock-locked-color), as on the screen.
-  const color = accent(entity, value), active = tileActive(entity, value, runs) || (entity.startsWith("lock.") && available), state = active ? color : c.GREY;
+  const color = accent(entity, value), active = tileActive(entity, value, runs) || (entity.startsWith("lock.") && available);
+  const state = own !== undefined && !active && available ? own : active ? color : c.GREY;
   const fill = available && (entity.startsWith("cover.") || active) ? color : c.GREY;
   return {
     icon: hex(available ? mix(state, theme.iconBase, theme.iconWeight) : theme.roles.OFF.light),

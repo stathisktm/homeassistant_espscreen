@@ -2774,7 +2774,9 @@
         "from": "Temperatura da",
         "from_card": "Questa scheda",
         "own": "Il tuo colore",
-        "own_aria": "Il tuo colore come #RRGGBB"
+        "own_aria": "Il tuo colore come #RRGGBB",
+        "icon_off": "Solo l'icona quando è spento",
+        "icon_off_hint": "Con l'entità spenta, il colore della regola che corrisponde va solo alla sua icona e la scheda mantiene il proprio colore. Accesa, lo prende tutta la scheda."
       },
       "anchor_hint": "Fai clic sull'icona per sceglierne un'altra, o sul nome per rinominare il riquadro",
       "grow": {

@@ -2345,7 +2345,9 @@
         "from": "Temperatuur van",
         "from_card": "Deze kaart",
         "own": "Eigen kleur",
-        "own_aria": "Eigen kleur als #RRGGBB"
+        "own_aria": "Eigen kleur als #RRGGBB",
+        "icon_off": "Alleen het pictogram als het uit is",
+        "icon_off_hint": "Staat de entiteit uit, dan krijgt alleen haar pictogram de kleur van de regel die past en houdt de kaart haar eigen kleur. Aan neemt de hele kaart hem."
       },
       "anchor_hint": "Klik op het icoon om een ander te kiezen, of op de naam om de tegel een andere naam te geven",
       "grow": {

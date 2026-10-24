@@ -2345,7 +2345,9 @@
         "from": "Temperature from",
         "from_card": "This card",
         "own": "Your own colour",
-        "own_aria": "Your own colour as #RRGGBB"
+        "own_aria": "Your own colour as #RRGGBB",
+        "icon_off": "Only the icon while off",
+        "icon_off_hint": "While the entity is off, the colour of the rule that fits goes to its icon alone and the card keeps its own colour. On, the whole card takes it."
       },
       "anchor_hint": "Click its icon to choose another, or its name to rename the tile",
       "grow": {

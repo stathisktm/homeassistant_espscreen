@@ -28,7 +28,7 @@ const APPEARANCE = { display: "display", icon: "icon", background: "background",
   calendarStartView: "start_view", calendarWeekStart: "week_start", calendarHours: "hours", calendarWeekNumbers: "week_numbers",
   calendarBookOn: "book_on", calendarBookPlace: "book_place", calendarBookTitle: "book_title",
   meterStyle: "meter", meterMin: "min", meterMax: "max", meterSegments: "segments", meterColors: "colors", meterThresholds: "thresholds",
-  tint: "tint" } as const;
+  tint: "tint", tintIcon: "tint_icon" } as const;
 const INTERACTION = ["tap", "inline", "controls", "action", "play", "speaker", "shuffle", "repeat"] as const;
 const PICTURE_OWN = ["refresh", ...Object.keys(rules.picture)];
 // A map card's own choices (app 0.4.33); its name on the picture is the live picture's `overlay`.
@@ -122,6 +122,8 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
       .slice(0, TINT_RULES);
     if (kept.length) out.tint = kept as TileOptions["tint"]; else delete out.tint;
   } else delete out.tint;
+  // The colour on the icon alone while off (app 0.4.107, tint.validate): true beside rules, never stored otherwise.
+  if (out.tint_icon !== true || !out.tint) delete out.tint_icon;
   for (const [key, value] of Object.entries(DEFAULTS)) if (out[key] === value) delete out[key];
   // A Go to page tile has a name, an icon, a colour and a width, nothing else.
   if (pageTile(entity)) for (const key of ["display", "inline", "controls", "history_hours"]) delete out[key];

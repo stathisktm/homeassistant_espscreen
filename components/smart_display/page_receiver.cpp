@@ -251,6 +251,7 @@ std::string receive(const std::string &payload) {
         tile.name = name;
         const std::string background = string(item["background"], 16);
         tile.background = tile_palette::color(background);
+        tile.own_background = tile.background;
         tile.transparent = tile_palette::transparent(background);
         refresh_tile(index);
         if (active_index == static_cast<int>(index)) detail_update(tile);
@@ -747,7 +748,10 @@ std::string receive(const std::string &payload) {
     auto options = root["o"];
     std::string background=string(options["background"],16);
     tile.background = tile_palette::color(background);
+    tile.own_background = tile.background;
     tile.transparent = tile_palette::transparent(background);
+    // A colour by state on the icon alone while the tile is off (firmware 0.64.0): the card keeps its own colour then.
+    tile.tint_icon = options["tint_icon"] | false;
     // An icon these fonts lack (a newer set than this firmware) keeps the domain icon.
     uint32_t icon = tile_icon::codepoint(string(options["icon"], 8));
     tile.icon = icon && has_icon_glyph(icon) ? tile_icon::utf8(icon) : "";

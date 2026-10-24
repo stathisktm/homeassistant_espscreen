@@ -58,6 +58,26 @@ class Weather(unittest.TestCase):
                 tint.validate({'tint': bad})
 
 
+class IconWhileOff(unittest.TestCase):
+    """`tint_icon` (app 0.4.107): the rules' colour on the icon alone while the tile is off. The screen decides what off
+    is (firmware 0.64.0); the app keeps the option beside rules and keeps the tile's own colour in its options."""
+
+    def test_kept_as_true_and_only_beside_rules(self):
+        rules = [{'when': 'on', 'c': 'red'}]
+        self.assertEqual(tint.validate({'tint': rules, 'tint_icon': True}), {'tint': rules, 'tint_icon': True})
+        self.assertEqual(tint.validate({'tint_icon': True, 'background': 'mint'}), {'background': 'mint'})
+        self.assertEqual(tint.validate({'tint': [], 'tint_icon': True}), {})
+        for bad in (False, 1, 'yes'):
+            with self.assertRaises(ValueError, msg=bad):
+                tint.validate({'tint': rules, 'tint_icon': bad})
+
+    def test_the_tile_keeps_its_own_colour_in_its_options(self):
+        whole = tint.wire({'o': {'background': 'mint'}}, '#ff0000')
+        self.assertEqual((whole['x']['bg'], whole['o']['background']), ('#ff0000', '#ff0000'))
+        icon = tint.wire({'o': {'background': 'mint'}}, '#ff0000', icon=True)
+        self.assertEqual((icon['x']['bg'], icon['o']['background']), ('#ff0000', 'mint'))
+
+
 class Colours(unittest.TestCase):
     CLIMATE = {'entity': 'climate.hall', 'options': {'background': 'mint', 'tint': [
         {'when': 'heating', 'c': 'deep-orange'}, {'when': 'cooling', 'c': 'blue'},

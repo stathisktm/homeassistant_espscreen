@@ -12,6 +12,7 @@ import { soften } from "../../model/tint";
 import type { Tile } from "../../types";
 import Icon from "../ui/Icon.vue";
 import Section from "../ui/Section.vue";
+import SwitchRow from "../ui/SwitchRow.vue";
 import UiSelect from "../ui/UiSelect.vue";
 import { setTileOption } from "../../editor/tiles";
 import { useEntitiesStore } from "../../stores/entities";
@@ -86,7 +87,9 @@ function add() {
 }
 function remove(index: number) {
   open.value = -1;
-  write(rules.value.filter((_, row) => row !== index));
+  const left = rules.value.filter((_, row) => row !== index);
+  if (!left.length) setTileOption(props.tile, "tint_icon", undefined);
+  write(left);
 }
 // A colour of one's own (app 0.4.105): typed as #RRGGBB (or without the #) or picked, kept as tint.HEX has it.
 function ownColour(text: string) {
@@ -148,6 +151,8 @@ const swatch = (colour: string) => soften(colour);
       <UiSelect class="tint-source-pick" :model-value="fromLine ? 'line' : 'card'" :options="sources"
         :aria-label="t('editor.tile.tint.from')" @update:model-value="pickSource" />
     </label>
+    <SwitchRow v-if="rules.length" :label="t('editor.tile.tint.icon_off')" :description="t('editor.tile.tint.icon_off_hint')"
+      :model-value="tile.options?.tint_icon === true" @update:model-value="(on: boolean) => setTileOption(tile, 'tint_icon', on || undefined)" />
     <button v-if="rules.length < TINT_RULES" type="button" class="ghost-btn tint-add" @click="add"><Icon name="plus" />{{ t("editor.tile.tint.add") }}</button>
     <small class="help">{{ t("editor.tile.tint.first") }}</small>
   </Section>

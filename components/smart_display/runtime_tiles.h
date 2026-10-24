@@ -9125,7 +9125,11 @@ inline void render_slot(size_t slot) {
                     (lock_tile&&lock_asking(t,false)?16:0)|(lock_tile?(int)(lock_panel::color(t.state)&0xFF)<<8:0);
   // An alarm panel's circle beats while it counts down or goes off, and springs once when it arms or disarms.
   if (d == "alarm_control_panel" || d == "lock" || w.alarm_look || w.alarm_mark) alarm_tile_look(slot, &t);
-  const uint32_t paint=t.background|(t.transparent?1u<<24:0);
+  // A colour by state on the icon alone while the tile is off (firmware 0.64.0, option tint_icon): the card keeps the
+  // colour it was given and the icon and its circle take the rule's colour; on, the whole card takes it as before.
+  const bool icon_tint=t.tint_icon&&!on&&available&&t.background&&t.background!=t.own_background;
+  const uint32_t ground=icon_tint?t.own_background:t.background;
+  const uint32_t paint=t.background|(t.transparent?1u<<24:0)|(icon_tint?1u<<25:0);
   if (w.cached_active == palette_state && w.cached_paint == paint && !w.panel_dirty) { style_tall(w,t);ring_favorite(w,t);lap(swipe_profile::GEOMETRY); return; }
   w.cached_active = palette_state;w.cached_paint=paint;w.panel_dirty=false;
   // Home Assistant's colour for the state (tile_controls::accent), and a lamp's own colour while it is on.
@@ -9134,7 +9138,7 @@ inline void render_slot(size_t slot) {
   // (tile_controls::lamp_color, shared with the lamp page of a group): a white bulb keeps the amber of a lamp that is on.
   if(d=="light" && on && t.has_hs_color)
     accent=tile_controls::lamp_color(t.hue,t.saturation);
-  uint32_t state_color=on?accent:theme::STATE_OFF;
+  uint32_t state_color=icon_tint?t.background:on?accent:theme::STATE_OFF;
   auto color=lv_color_hex(theme::state(state_color));
   auto circle_color=lv_color_hex(available?theme::tint(state_color,38):theme::hex(theme::TRACK));
   // Very pale bulbs still need a visible icon: a touch darker on a light card, a touch lighter on a dark one.
@@ -9148,14 +9152,14 @@ inline void render_slot(size_t slot) {
   // Every card, the one over the whole page too, is white or its own pastel (firmware 0.2.77+): the state shows in the
   // icon and the controls, as on the other sizes. Firmware 0.2.62 to 0.2.76 tinted a full-page card in its state colour
   // while it was on.
-  press_ground(w.tile,letterboxed(w)?theme::color(theme::CAMERA_PAGE):lv_color_hex(theme::surface(t.background)));
+  press_ground(w.tile,letterboxed(w)?theme::color(theme::CAMERA_PAGE):lv_color_hex(theme::surface(ground)));
   set_number(w.tile,LV_STYLE_BORDER_WIDTH,1);
   // "Background: none" hides only the card; geometry and padding stay identical, and the press still shows because
   // it lives on the PRESSED state: a shade of what the finger sees, the page there, the card everywhere else.
-  set_color(w.tile,LV_STYLE_BG_COLOR,lv_color_hex(theme::pressed(t.transparent ? theme::hex(theme::PAGE) : theme::surface(t.background))),LV_STATE_PRESSED);
+  set_color(w.tile,LV_STYLE_BG_COLOR,lv_color_hex(theme::pressed(t.transparent ? theme::hex(theme::PAGE) : theme::surface(ground))),LV_STATE_PRESSED);
   set_number(w.tile,LV_STYLE_BG_OPA,t.transparent&&!letterboxed(w) ? LV_OPA_TRANSP : LV_OPA_COVER);
   set_number(w.tile,LV_STYLE_BORDER_OPA,t.transparent ? LV_OPA_TRANSP : LV_OPA_COVER);
-  set_color(w.tile,LV_STYLE_BORDER_COLOR,lv_color_hex(theme::outline(t.background)));
+  set_color(w.tile,LV_STYLE_BORDER_COLOR,lv_color_hex(theme::outline(ground)));
   set_color(w.circle,LV_STYLE_BG_COLOR,circle_color);
   set_color(w.icon,LV_STYLE_TEXT_COLOR,icon_color);
   // A key is its circle: the card takes the circle's colour and its press, with no border (firmware 0.8.0+).

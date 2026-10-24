@@ -56,6 +56,8 @@ export type TileOptions = {
   thresholds?: number[];
   // A card's colour by state (app 0.4.91, tint.py): the rules that give the whole card a colour, the first that fits.
   tint?: { when?: string; above?: number; below?: number; c: string; of?: "line" }[];
+  // The rules' colour on the icon alone while the tile is off (app 0.4.107, firmware 0.64.0).
+  tint_icon?: boolean;
   [key: string]: unknown;
 };
 // What a favourite plays (app 0.4.42), as Home Assistant's library names it: its content id and type, the title and the
@@ -109,7 +111,7 @@ export type PageTile = {
     // A sensor's meter (firmware 0.56.0): TileOptions' meter, min, max, segments, colors and thresholds; and a card's
     // colour by state (app 0.4.91): TileOptions' tint.
     meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[];
-    tint?: TileOptions["tint"] };
+    tint?: TileOptions["tint"]; tintIcon?: boolean };
   interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string };
   children?: ChildTile[];
 };

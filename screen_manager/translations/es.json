@@ -2774,7 +2774,9 @@
         "from": "Temperatura de",
         "from_card": "Esta tarjeta",
         "own": "Tu propio color",
-        "own_aria": "Tu propio color como #RRGGBB"
+        "own_aria": "Tu propio color como #RRGGBB",
+        "icon_off": "Solo el icono cuando está apagado",
+        "icon_off_hint": "Con la entidad apagada, el color de la regla que encaja va solo a su icono y la tarjeta conserva su propio color. Encendida, lo toma toda la tarjeta."
       },
       "anchor_hint": "Haz clic en el icono para elegir otro, o en el nombre para cambiar el nombre del mosaico",
       "grow": {

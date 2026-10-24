@@ -2774,7 +2774,9 @@
         "from": "Hőmérséklet innen",
         "from_card": "Ez a kártya",
         "own": "Saját szín",
-        "own_aria": "Saját szín #RRGGBB formában"
+        "own_aria": "Saját szín #RRGGBB formában",
+        "icon_off": "Kikapcsolva csak az ikon",
+        "icon_off_hint": "Ha az entitás ki van kapcsolva, az illeszkedő szabály színe csak az ikonjára kerül, a kártya megtartja a saját színét. Bekapcsolva az egész kártya felveszi."
       },
       "anchor_hint": "Kattints az ikonra egy másik választásához, vagy a névre a csempe átnevezéséhez",
       "grow": {

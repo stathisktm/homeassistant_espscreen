@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.107: a colour by state on the icon alone while off.** Under Colour by state, "Only the icon while off": while
+  the entity is off, the colour of the rule that fits goes to the tile's icon and its circle, and the card keeps its own
+  colour; on, the whole card takes it as before. Screens need firmware 0.64.0; an older one colours the whole card.
+
 - **0.4.106: a long line of your own goes round, and a swipe turns the sources' pages.** A tile's second line that you
   set (a TV's channel and what is on, `MEGA HD · Mega Non Stop`) scrolls slowly when it is wider than the tile, with a
   pause to read it, where it was cut after the channel; every other line stays as it was. The menu of a player's inputs
