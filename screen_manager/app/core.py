@@ -179,7 +179,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.66.0'
+FIRMWARE_VERSION = '0.67.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -1117,6 +1117,8 @@ PLUGIN_TILE = re.compile(r'^plugin:([a-z][a-z0-9_]{0,31})\.([a-z][a-z0-9_]{0,31}
 # What a plugin tile may carry: its size, colour, icon, whether a tap reaches it, and its own options (`plugin`, the
 # manifest's options; checked against the manifest where the screen is known, plugins.check_tile).
 PLUGIN_TILE_OPTIONS = {'size', 'background', 'icon', 'tap', 'plugin', 'plugin_entity'}
+# How much of a card covers what lies under it, in percent (app 0.4.111): 100, the whole card, is no key.
+TILE_OPACITIES = (80, 60, 40, 20)
 PLUGIN_OPTION_MAX = 12
 PLUGIN_TEXT_MAX = 64
 # A list option's values (plugin API 0.12), and what a tile's options take together as JSON (plugin_manifest's
@@ -1963,7 +1965,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -1990,6 +1992,13 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 options = {k: v for k, v in options.items() if k not in ('display', 'inline', 'controls', 'history_hours')}
             if 'background' in options and (not isinstance(options['background'],str) or options['background'] not in TILE_BACKGROUNDS):
                 raise ValueError(t('addon.errors.layout.background'))
+            # How much of the card covers what lies under it (app 0.4.111, firmware 0.67.0): a page's background shows
+            # through a card of 80, 60, 40 or 20 percent. A whole card (100) is no key, and a card without one has none.
+            if 'opacity' in options:
+                if type(options['opacity']) is not int or options['opacity'] not in (*TILE_OPACITIES, 100):
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting='opacity'))
+                if options['opacity'] == 100 or options.get('background') == 'none':
+                    options = {k: v for k, v in options.items() if k != 'opacity'}
             if 'icon' in options and not (options['icon'] == 'auto' or isinstance(options['icon'], str) and options['icon'] in tile_icons.ICONS):
                 raise ValueError(t('addon.errors.choose_icon'))
             domain = tile['entity'].split('.')[0]

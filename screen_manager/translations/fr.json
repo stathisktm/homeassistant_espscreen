@@ -2788,6 +2788,11 @@
         "none": "Aucune commande",
         "never": "Ne plus afficher",
         "done": "Terminé"
+      },
+      "opacity": {
+        "label": "Opacité de la carte",
+        "hint": "Combien la carte couvre l'arrière-plan de la page : moins laisse voir l'image. Le texte et l'icône restent tels quels.",
+        "whole": "Carte entière"
       }
     },
     "precision": {

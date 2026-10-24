@@ -23,10 +23,14 @@ const receive = packet => {
   const result = raw({ ...packet, v: 2, session: granted.slice(8), seq: ++seq, rev: '2222222222222222' });
   assert.ok(['Synced', 'Loading tiles'].includes(result), `${packet.op}: ${result}`);
 };
-// Two pages: the first with a background, the second without.
-receive({ op: 'begin', title: 'Backdrop', pages: 2, tiles: 0, home: 0, keepalive: 60 });
+// Two pages: the first with a background, the second without. On the first, a whole card and one of 40 percent
+// (firmware 0.67.0, option opacity), through which the background shows.
+const card = (i, slot, o) => ({ op: 'tile', i, slot, entity: `switch.card_${i}`, name: '', state: 'off', a: {}, o });
+receive({ op: 'begin', title: 'Backdrop', pages: 2, tiles: 2, home: 0, keepalive: 60 });
 receive({ op: 'page', p: 0, id: '0000000000000001', title: '', home_control: false, excluded: false, items: [], bg: 'a1b2c3d4e5f6' });
 receive({ op: 'page', p: 1, id: '0000000000000002', title: '', home_control: false, excluded: false, items: [] });
+receive(card(0, 0, {}));
+receive(card(1, 1, { opacity: 40 }));
 receive({ op: 'commit' });
 
 function bmp(w, h) {
@@ -81,5 +85,14 @@ const pixel = (x, y) => { const start = frame + (y * width + x) * 4; return [...
 const left = 2;
 assert.deepEqual(pixel(left, Math.floor(height * 0.3)), [255, 0, 0], 'the picture shows through the empty page');
 assert.deepEqual(pixel(left, Math.floor(height * 0.7)), [0, 255, 0]);
+
+// The whole card covers the picture with its own colour; the card of 40 percent lets the red through, mixed.
+const tiles = diagnostics().tiles;
+assert.equal(tiles.length, 2, JSON.stringify(tiles));
+const inside = (t) => pixel(t.x + t.width - 16, t.y + 16);
+const [whole, through] = [...tiles].sort((a, b) => a.x - b.x || a.y - b.y).map(inside);
+assert.ok(!(whole[0] > 200 && whole[1] < 60), `a whole card hides the picture: ${whole}`);
+assert.ok(through[0] > 200 && through[1] > 60 && through[1] < 230 && through[2] > 60 && through[2] < 230,
+  `a card of 40 percent shows the red through it: ${through}`);
 
 console.log(`PASS ${width}x${height}: a page's background is asked as page:0, answered by its own number, decoded and shown behind the glass`);

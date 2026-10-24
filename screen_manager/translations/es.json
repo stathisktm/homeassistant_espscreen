@@ -2788,6 +2788,11 @@
         "none": "Sin controles",
         "never": "No volver a mostrar",
         "done": "Listo"
+      },
+      "opacity": {
+        "label": "Opacidad de la tarjeta",
+        "hint": "Cuánto cubre la tarjeta el fondo de la página: menos deja ver la imagen. El texto y el icono no cambian.",
+        "whole": "Tarjeta entera"
       }
     },
     "precision": {

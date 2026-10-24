@@ -240,7 +240,7 @@ const appearanceKeys = { display: "display", icon: "icon", background: "backgrou
   calendarBookOn: "book_on", calendarBookPlace: "book_place", calendarBookTitle: "book_title",
   meterStyle: "meter", meterMin: "min", meterMax: "max", meterSegments: "segments", meterColors: "colors", meterThresholds: "thresholds",
   // A card's colour by state (app 0.4.91): its rules, which the add-on resolves for the screens.
-  tint: "tint", tintIcon: "tint_icon" } as const;
+  tint: "tint", tintIcon: "tint_icon", opacity: "opacity" } as const;
 
 /** A render view, never a second saved or editable layout. */
 export function projectLayout(layout: PageLayout, grid: PageGrid): Layout {

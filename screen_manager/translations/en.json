@@ -2359,6 +2359,11 @@
         "none": "No controls",
         "never": "Don't show again",
         "done": "Done"
+      },
+      "opacity": {
+        "label": "Card opacity",
+        "hint": "How much of the card covers a page's background: lower lets the picture show through. The words and the icon stay as they are.",
+        "whole": "Whole card"
       }
     },
     "precision": {

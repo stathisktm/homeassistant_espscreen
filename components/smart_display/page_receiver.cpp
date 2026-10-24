@@ -763,6 +763,8 @@ std::string receive(const std::string &payload) {
     tile.transparent = tile_palette::transparent(background);
     // A colour by state on the icon alone while the tile is off (firmware 0.64.0): the card keeps its own colour then.
     tile.tint_icon = options["tint_icon"] | false;
+    // How much of the card covers a page's background (firmware 0.67.0): 20 to 100 percent, the whole card without it.
+    tile.card_opa = static_cast<uint8_t>(std::clamp(options["opacity"] | 100, 20, 100) * 255 / 100);
     // An icon these fonts lack (a newer set than this firmware) keeps the domain icon.
     uint32_t icon = tile_icon::codepoint(string(options["icon"], 8));
     tile.icon = icon && has_icon_glyph(icon) ? tile_icon::utf8(icon) : "";

@@ -2788,6 +2788,11 @@
         "none": "Nessun controllo",
         "never": "Non mostrare più",
         "done": "Fatto"
+      },
+      "opacity": {
+        "label": "Opacità della scheda",
+        "hint": "Quanto la scheda copre lo sfondo della pagina: meno lascia vedere l'immagine. Testo e icona restano come sono.",
+        "whole": "Scheda intera"
       }
     },
     "precision": {

@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.111: see-through cards.** A tile's Card opacity, under its colour: the whole card, or 80, 60, 40 or 20 percent of
+  it, so a page's background shows through while the words and the icon stay as they are. Screens need firmware 0.67.0;
+  an older one draws the whole card.
+
 - **0.4.110: a page's background shows.** Firmware 0.65.0 asked for a page's background and turned the app's answer away
   as an unknown kind, so no background ever came. Firmware 0.66.0 takes it, and each page's answer goes to its own page
   when several are fetched ahead. Update the screen.

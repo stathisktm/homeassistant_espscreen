@@ -25,7 +25,7 @@ const CALENDAR_MORE = ['calendarWeekStart', 'calendarHours', 'calendarWeekNumber
 // A sensor's meter (firmware 0.56.0, meter.validate) and a card's colour by state (app 0.4.91, tint.validate), as the
 // page document names them.
 const METER_FIELDS = ['meterStyle', 'meterMin', 'meterMax', 'meterSegments', 'meterColors', 'meterThresholds'] as const;
-const TINT_FIELDS = ['tint', 'tintIcon'] as const;
+const TINT_FIELDS = ['tint', 'tintIcon', 'opacity'] as const;
 const entity = (value: any, domains: string[]) => typeof value === 'string' && value.length <= 120 &&
   matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, value) && domains.includes(value.split('.')[0]);
 const icon = (value: any, none = false) => value === 'auto' || (none && value === 'none') || rules.icons.includes(value);
@@ -215,6 +215,8 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
   // A card's colour by state (app 0.4.91), as tint.validate checks it: at most eight rules, each a state word or a
   // temperature and a colour the screen knows.
   if (a.tintIcon !== undefined && (a.tintIcon !== true || a.tint === undefined)) fail();
+  // How much of the card covers a page's background (app 0.4.111), as core.validate_layout keeps it.
+  if (a.opacity !== undefined && (![80, 60, 40, 20].includes(a.opacity) || a.background === 'none')) fail('normalization');
   if (a.tint !== undefined) {
     const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 1e9;
     if (!Array.isArray(a.tint) || !a.tint.length || a.tint.length > TINT_RULES) fail();

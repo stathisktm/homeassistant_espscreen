@@ -2788,6 +2788,11 @@
         "none": "Keine Steuerung",
         "never": "Nicht mehr anzeigen",
         "done": "Fertig"
+      },
+      "opacity": {
+        "label": "Deckkraft der Karte",
+        "hint": "Wie stark die Karte den Seitenhintergrund verdeckt: weniger lässt das Bild durchscheinen. Text und Symbol bleiben, wie sie sind.",
+        "whole": "Ganze Karte"
       }
     },
     "precision": {

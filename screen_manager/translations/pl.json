@@ -2788,6 +2788,11 @@
         "none": "Bez sterowania",
         "never": "Nie pokazuj ponownie",
         "done": "Gotowe"
+      },
+      "opacity": {
+        "label": "Krycie karty",
+        "hint": "Jak bardzo karta zakrywa tło strony: mniej pozwala prześwitywać obrazowi. Tekst i ikona pozostają bez zmian.",
+        "whole": "Cała karta"
       }
     },
     "precision": {

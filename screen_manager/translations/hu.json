@@ -2788,6 +2788,11 @@
         "none": "Nincs vezérlő",
         "never": "Ne mutasd újra",
         "done": "Kész"
+      },
+      "opacity": {
+        "label": "Kártya fedettsége",
+        "hint": "Mennyire takarja a kártya az oldal hátterét: kevesebb átengedi a képet. A szöveg és az ikon nem változik.",
+        "whole": "Teljes kártya"
       }
     },
     "precision": {

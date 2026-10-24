@@ -39,7 +39,7 @@ import UiMenuItem from "./ui/UiMenuItem.vue";
 import rules from "../model/page-rules.json";
 import { precisionOffered } from "../model/display-precision";
 import { controlChoices, controlHint, displayChoices, displayHint, goesToChoices, goesToHint, offeredChoices, sliderOffered, subChoices,
-  tapChoices, tapHint, tileControls, tileDisplay, tiltOffered, type TilePanel } from "../model/tile-options";
+  tapChoices, tapHint, tileControls, tileDisplay, tiltOffered, TILE_OPACITIES, type TilePanel } from "../model/tile-options";
 import { useUiStore } from "../stores/ui";
 import { useRegionStore } from "../stores/region";
 import { useEntitiesStore } from "../stores/entities";
@@ -246,6 +246,9 @@ const inline = computed(() => current("inline", "none") as string);
 const showSlider = computed(() => sliderOffered(props.tile, panel.value));
 const sliderWarn = computed(() => inline.value === "slider" && caps.value && !caps.value.inline);
 const backgrounds = computed(() => Object.entries(inv.inventory.backgrounds || {}));
+// How much of the card covers a page's background (app 0.4.111): the whole card, or 80 to 20 percent of it.
+const opacities = computed<[string, string][]>(() => [100, ...TILE_OPACITIES].map((value) =>
+  [String(value), value === 100 ? t("editor.tile.opacity.whole") : `${value} %`] as [string, string]));
 const fromHA = computed(() => Boolean(inv.entityOf(props.tile.entity)?.icon));
 const showIcon = computed(() => Boolean(inv.inventory.icons) && (domain.value !== "screen" || goesTo.value > 0) && !["forecast", "sunpath"].includes(display.value));
 // The way up in the head: the page the tile stands on opens that page's settings.
@@ -457,6 +460,11 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
             <i :class="choice.color ? '' : background === 'none' ? 'none' : 'auto'" :style="choice.color ? { background: choice.color } : undefined"></i>
           </button>
         </div>
+      </PropRow>
+      <!-- How much of the card covers a page's background (app 0.4.111, firmware 0.67.0). -->
+      <PropRow v-if="!key && tile.options?.background !== 'none'" :label="t('editor.tile.opacity.label')" icon="crop-landscape" :hint="t('editor.tile.opacity.hint')">
+        <UiSelect :model-value="String(tile.options?.opacity ?? 100)" :options="opacities" :aria-label="t('editor.tile.opacity.label')"
+          @update:model-value="(value: string) => setTileOption(tile, 'opacity', value === '100' ? undefined : Number(value))" />
       </PropRow>
     </Section>
     <template v-if="ui.phone">

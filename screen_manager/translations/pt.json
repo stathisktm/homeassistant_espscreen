@@ -2788,6 +2788,11 @@
         "none": "Sem controlos",
         "never": "Não mostrar novamente",
         "done": "Concluído"
+      },
+      "opacity": {
+        "label": "Opacidade do cartão",
+        "hint": "Quanto o cartão cobre o fundo da página: menos deixa ver a imagem. O texto e o ícone ficam como estão.",
+        "whole": "Cartão inteiro"
       }
     },
     "precision": {

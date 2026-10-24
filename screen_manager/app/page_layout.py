@@ -48,6 +48,8 @@ APPEARANCE = {
     "tint": "tint",
     # The rules' colour on the icon alone while the tile is off (app 0.4.107).
     "tintIcon": "tint_icon",
+    # How much of the card covers a page's background (app 0.4.111).
+    "opacity": "opacity",
 }
 # A favourite (app 0.4.42) keeps what it plays (`play`, Home Assistant's own ids) and on which speaker (`speaker`), and
 # since app 0.4.84 its own shuffle and repeat.

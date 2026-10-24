@@ -18,6 +18,8 @@ import { PLUGIN_TILE, PLUGIN_TILE_OPTIONS } from "./plugins";
 import { canonicalMeter } from "./meter";
 import { subEntity } from "./tile-text";
 import { TINT_RULES, TINT_WHEN, tintHex } from "./tint";
+/** How much of a card covers what lies under it, in percent (core.TILE_OPACITIES); 100 is the whole card. */
+export const TILE_OPACITIES = [80, 60, 40, 20] as const;
 
 const APPEARANCE = { display: "display", icon: "icon", background: "background", historyHours: "history_hours", refresh: "refresh", subtitle: "sub", subtitle2: "sub2", fit: "fit", overlay: "overlay",
   mapEntities: "map", mapFraming: "framing", mapDistance: "distance",
@@ -28,7 +30,7 @@ const APPEARANCE = { display: "display", icon: "icon", background: "background",
   calendarStartView: "start_view", calendarWeekStart: "week_start", calendarHours: "hours", calendarWeekNumbers: "week_numbers",
   calendarBookOn: "book_on", calendarBookPlace: "book_place", calendarBookTitle: "book_title",
   meterStyle: "meter", meterMin: "min", meterMax: "max", meterSegments: "segments", meterColors: "colors", meterThresholds: "thresholds",
-  tint: "tint", tintIcon: "tint_icon" } as const;
+  tint: "tint", tintIcon: "tint_icon", opacity: "opacity" } as const;
 const INTERACTION = ["tap", "inline", "controls", "action", "play", "speaker", "shuffle", "repeat"] as const;
 const PICTURE_OWN = ["refresh", ...Object.keys(rules.picture)];
 // A map card's own choices (app 0.4.33); its name on the picture is the live picture's `overlay`.
@@ -124,6 +126,8 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
   } else delete out.tint;
   // The colour on the icon alone while off (app 0.4.107, tint.validate): true beside rules, never stored otherwise.
   if (out.tint_icon !== true || !out.tint) delete out.tint_icon;
+  // How much of the card covers a page's background (app 0.4.111): 80 to 20 percent, never on a card without one.
+  if (!(TILE_OPACITIES as readonly unknown[]).includes(out.opacity) || out.background === "none") delete out.opacity;
   for (const [key, value] of Object.entries(DEFAULTS)) if (out[key] === value) delete out[key];
   // A Go to page tile has a name, an icon, a colour and a width, nothing else.
   if (pageTile(entity)) for (const key of ["display", "inline", "controls", "history_hours"]) delete out[key];
