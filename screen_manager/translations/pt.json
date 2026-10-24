@@ -876,7 +876,8 @@
         "destination_exists": "O ecrã de destino já tem uma disposição guardada",
         "update_tall": "Atualiza o ecrã para usar estes tamanhos de cartão",
         "memory": "O ecrã não tem memória livre suficiente para esta disposição. Use menos blocos.",
-        "grid_range": "Este ecrã não aceita uma grelha deste tamanho. Escolha outra grelha ao lado da pré-visualização."
+        "grid_range": "Este ecrã não aceita uma grelha deste tamanho. Escolha outra grelha ao lado da pré-visualização.",
+        "background": "Fundo de página inválido"
       },
       "feedback": {
         "invalid": "Esta resposta não pode ser partilhada. Escolha sim ou não totalmente, e apenas os problemas indicados.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} já pode controlar os seus dispositivos.",
       "part_page": "A página: título e navegação",
       "part_page_hint": "Título, página inicial e como chegar aqui",
-      "home_control_hint": "Coloca o botão Início à esquerda da barra superior desta página. Leva à página inicial."
+      "home_control_hint": "Coloca o botão Início à esquerda da barra superior desta página. Leva à página inicial.",
+      "background": {
+        "title": "Fundo",
+        "hint": "Uma imagem atrás de toda a página: da internet, do Home Assistant ou de uma câmara. É escurecida para os cartões continuarem legíveis.",
+        "kind": "Imagem de",
+        "kinds": {
+          "none": "Nenhuma",
+          "url": "Um endereço da internet",
+          "www": "A pasta www do Home Assistant",
+          "media": "Os media do Home Assistant",
+          "entity": "Uma entidade (câmara, imagem, pessoa)"
+        },
+        "address": {
+          "url": "Endereço",
+          "www": "Ficheiro",
+          "media": "Media"
+        },
+        "help": {
+          "url": "Um endereço público de uma imagem que começa por https://. Os da sua própria rede não são carregados.",
+          "www": "Um ficheiro da pasta www da configuração do Home Assistant, escrito /local/ e o caminho.",
+          "media": "Uma imagem dos media do Home Assistant, escrita media-source:// e o caminho."
+        },
+        "wrong": {
+          "url": "Não é um endereço da internet: começa por https:// ou http://.",
+          "www": "Um ficheiro da pasta www começa por /local/.",
+          "media": "Uma imagem dos media começa por media-source://."
+        },
+        "entity_search": "Procurar entidades",
+        "entity_none": "Nenhuma entidade com imagem",
+        "entity_pick": "Escolher uma entidade",
+        "dim": "Escurecida",
+        "refresh": "Recarregada",
+        "refresh_once": "Nunca",
+        "refresh_minutes": "A cada {n} min",
+        "refresh_hour": "A cada hora",
+        "cards": "Os cartões mantêm a sua cor por cima; um cartão com Fundo: nenhum deixa ver a imagem. Os ecrãs precisam do firmware 0.65.0 e de imagens (não o CYD)."
+      }
     },
     "feedback": {
       "question": "O seu ecrã funciona como espera?",

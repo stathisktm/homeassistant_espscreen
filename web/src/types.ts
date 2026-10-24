@@ -127,6 +127,8 @@ export type Page = {
   tiles: PageTile[];
   // The page's own icon by name (a pickable MDI icon), which the Dock shows instead of its picture; left out, the picture.
   icon?: string;
+  // Its own background picture (app 0.4.109, model/page-background.ts): where from, darkened how much, fetched how often.
+  background?: { source: string; dim?: number; refresh?: number };
 };
 export type PageLayout = { title: string; homePageId: string; pages: Page[] };
 export type PageWorkspace = { revision: string; positions: Record<string, { x: number; y: number }> };

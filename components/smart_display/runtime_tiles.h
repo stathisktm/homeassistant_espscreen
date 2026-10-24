@@ -427,6 +427,8 @@ inline bool picture_shown(const lv_image_dsc_t *image);
 struct Widgets;
 // The card's cover on screen, and the part a media tile keeps its cover in; both go with the image buffer.
 inline lv_obj_t *media_detail_picture = nullptr;
+// A page's own background picture (firmware 0.65.0, backdrop_show).
+inline lv_obj_t *backdrop_image = nullptr;
 constexpr unsigned MEDIA_PICTURE = 14;
 inline void media_action(Tile &t, int cmd);
 inline const char *icon_for(const Tile &tile);
@@ -10151,6 +10153,8 @@ inline void place_keys(){
 }
 // Slot assignment plus card places, sizes and visibility for a page; contents are untouched. `kept`: the cards already
 // show this page (kept_pages.h), so a card that keeps its tile keeps what it knows about its own colours too.
+// A page's own background picture (firmware 0.65.0), further down with the pictures: shown as its page is placed.
+inline void backdrop_show(int page);
 inline int place_page(int page, bool kept = false) {
   swipe_profile::Lap lap;
   std::array<Placement,TILES_MAX> placement;
@@ -10222,6 +10226,7 @@ inline int place_page(int page, bool kept = false) {
     place_keys();
     if(tile_grid)lv_obj_update_layout(tile_grid);
   }
+  backdrop_show(page);
   lap(swipe_profile::PLACE);
   return page;
 }
@@ -11103,6 +11108,7 @@ inline bool picture_shown(const lv_image_dsc_t *image) {
   on(media_detail_picture);
   on(camera_picture);
   on(alert_picture);
+  on(backdrop_image);
   if (media_library::draws(image) || plugin_host::card_draws(image)) shown = true;
 #ifdef SD_MOD_VACUUM_CARD
   if (vacuum_card::draws(image)) shown = true;
@@ -11119,7 +11125,7 @@ inline bool picture_away(const lv_image_dsc_t *image) {
 #if LV_USE_IMAGE
   const auto drawn = [&](Widgets &w) { return draws(w.picture, image) || (w.extra_mode == "media" && draws(w.parts[MEDIA_PICTURE], image)) || plugin_host::picture_draws(w, image) || draws(face_picture(w), image); };
   for (auto &w : widgets) if (drawn(w)) return false;
-  if (draws(media_detail_picture, image) || draws(camera_picture, image) || draws(alert_picture, image) || media_library::draws(image) ||
+  if (draws(media_detail_picture, image) || draws(camera_picture, image) || draws(alert_picture, image) || draws(backdrop_image, image) || media_library::draws(image) ||
       plugin_host::card_draws(image))
     return false;
 #ifdef SD_MOD_VACUUM_CARD
@@ -11251,6 +11257,7 @@ using picture_loader::Kind;
 using picture_loader::Owner;
 inline constexpr Owner VIEW{Kind::VIEW, 0}, CARD{Kind::CARD, 0}, ALERT{Kind::ALERT, 0}, LIBRARY{Kind::LIBRARY, 0};
 inline Owner tile(size_t index) { return {Kind::TILE, static_cast<uint32_t>(index)}; }
+inline Owner backdrop(size_t page) { return {Kind::BACKDROP, static_cast<uint32_t>(page)}; }
 }  // namespace owners
 inline ImageHooks &slot_hooks(picture_loader::Slot slot) {
   switch (slot) {
@@ -12589,6 +12596,8 @@ inline void camera_answer(const std::string &view, const std::string &entity, co
 #endif
   } else if (view == "lib") {  // the covers of a page of a player's library (firmware 0.24.0+)
     media_library::art_answer(entity, url);
+  } else if (view == "backdrop") {  // a page's own background (firmware 0.65.0), by its page's index
+    loader.answer("backdrop|" + entity, url, now);
   } else if (view == "live") {  // a tile's own picture (tile_picture.h), found by its question's number
     tile_picture_answer(number, url, now);
   } else if (view == "pcard") {  // the pictures of a plugin's card over the page (plugin API 0.13)
@@ -12928,6 +12937,7 @@ inline const char *owner_name(const picture_loader::Owner &o) {
     case picture_loader::Kind::VIEW: return "view";
     case picture_loader::Kind::CARD: return "card";
     case picture_loader::Kind::LIBRARY: return "library";
+    case picture_loader::Kind::BACKDROP: return "backdrop";
     default: return "tile";
   }
 }
@@ -12955,6 +12965,108 @@ inline void loader_bind() {
   };
   loader.forget = [](const std::string &key) { picture_retire(key); };
 }
+// ---- A page's own background picture (firmware 0.65.0, app 0.4.109, screen_manager/app/page_backdrop.py) ----
+// A page whose message carries `bg` has a picture behind the whole glass: from the internet, a file of Home Assistant,
+// its media or an entity, darkened so its cards stay readable. The screen never learns where it is: it asks for the
+// source page:<index> at the glass's size (within the board's cap) and the app paints it. One picture object at the
+// bottom of the home page shows the picture of the page placed (backdrop_show); the store keeps each page's picture, so
+// a page that comes back shows its own at once, and while the screen is in use and the store has room the other pages'
+// pictures are fetched ahead. A board without pictures has none.
+inline int backdrop_page = -1;  // the page whose picture the object shows
+inline uint32_t backdrop_view_id = 0;
+inline std::string backdrop_key(size_t page) {
+  char mark[9];
+  snprintf(mark, sizeof(mark), "%08x", (unsigned) model.page_data.records[page].backdrop);
+  return "page|" + std::to_string(page) + "|" + mark + (theme::dark ? "|dark" : "");
+}
+inline bool backdrop_of(int page) {
+  return page >= 0 && static_cast<size_t>(page) < model.page_data.records.size() && model.page_data.records[page].backdrop;
+}
+inline lv_obj_t *backdrop_object() {
+#if LV_USE_IMAGE
+  if (!backdrop_image && tile_grid) {
+    auto *home = lv_obj_get_parent(tile_grid);
+    if (!home) return nullptr;
+    backdrop_image = lv_image_create(home);
+    lv_obj_remove_flag(backdrop_image, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(backdrop_image, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(backdrop_image, LV_OBJ_FLAG_FLOATING);  // out of the page's layout and its scrolling
+    lv_obj_set_pos(backdrop_image, 0, 0);
+    lv_obj_set_size(backdrop_image, overlay_card::screen_width(), overlay_card::screen_height());
+    lv_image_set_inner_align(backdrop_image, LV_IMAGE_ALIGN_CENTER);  // a picture under the cap stands in the middle
+    lv_obj_move_to_index(backdrop_image, 0);  // under the top bar, the cards and the page bar
+    lv_obj_add_flag(backdrop_image, LV_OBJ_FLAG_HIDDEN);
+  }
+#endif
+  return backdrop_image;
+}
+inline void backdrop_show(int page) {
+#if LV_USE_IMAGE
+  if (!camera_supported()) return;
+  lv_image_dsc_t *src = backdrop_of(page) ? picture_of(backdrop_key(page)) : nullptr;
+  if (!src) {
+    // The same page waiting for its next picture (a refresh, the other look) keeps the one it shows until it comes.
+    if (backdrop_of(page) && page == backdrop_page && backdrop_image && !lv_obj_has_flag(backdrop_image, LV_OBJ_FLAG_HIDDEN)) return;
+    if (backdrop_image && (!lv_obj_has_flag(backdrop_image, LV_OBJ_FLAG_HIDDEN) || lv_image_get_src(backdrop_image))) {
+      lv_obj_add_flag(backdrop_image, LV_OBJ_FLAG_HIDDEN);
+      lv_image_set_src(backdrop_image, nullptr);
+    }
+    backdrop_page = -1;
+    return;
+  }
+  auto *image = backdrop_object();
+  if (!image) return;
+  if (!draws(image, src)) lv_image_set_src(image, src);
+  lv_obj_remove_flag(image, LV_OBJ_FLAG_HIDDEN);
+  backdrop_page = page;
+#else
+  (void) page;
+#endif
+}
+inline void backdrop_request(size_t page) {
+  if (!backdrop_of(static_cast<int>(page))) return;
+  using picture_question::Fit;
+  picture_question::Question q;
+  picture_question::Place place;
+  q.owner = picture_question::Owner::PAGE;
+  q.index = static_cast<int>(page);
+  q.dark = theme::dark;
+  const auto cap = picture_cap();
+  q.cap = cap.bytes;
+  const int glass_w = overlay_card::screen_width(), glass_h = overlay_card::screen_height();
+  const int scale = picture_store::fit_scale(glass_w, glass_h, cap);
+  q.w = place.w = std::max(1, picture_store::scaled(glass_w, scale));
+  q.h = place.h = std::max(1, picture_store::scaled(glass_h, scale));
+  q.sources = {"page:" + std::to_string(page)};
+  place.fit = Fit::COVER;
+  place.ground = theme::hex(theme::PAGE);
+  q.places = {place};
+  q.pace = model.page_data.records[page].backdrop_every * 1000u;
+  // The glass's own colours (bmp16): a photo behind the cards shows no dithering; a P4 names its JPEG first.
+  q.formats = {"bmp16", "bmp24"};
+  picture_ask(q, "backdrop", std::to_string(page), ++backdrop_view_id);
+}
+inline void backdrop_wants() {
+  // Only an app that reads questions knows the source page:<index>; an older app has no backgrounds to give.
+  if (!model.configured || !app_reads_questions || !tile_grid) return;
+  const bool seen = tiles_seen();
+  const bool ahead = awake() && pictures_kept() && !prepare_busy() && pictures.size() < pictures.budget / 4 * 3;
+  for (size_t page = 0; page < model.page_data.records.size(); ++page) {
+    if (!backdrop_of(static_cast<int>(page))) continue;
+    const bool glass = static_cast<int>(page) == applied_page && seen;
+    if (!glass && !ahead) continue;
+    picture_loader::Want w;
+    w.key = backdrop_key(page);
+    w.tag = "backdrop|" + std::to_string(page);
+    w.slot = picture_loader::Slot::FULL;
+    w.rank = glass ? picture_loader::Rank::PAGE : picture_loader::Rank::AHEAD;
+    w.every = glass ? model.page_data.records[page].backdrop_every * 1000u : 0;
+    w.ask = [page] { backdrop_request(page); };
+    w.done = [page](picture_loader::Outcome o) { if (shows(o) && static_cast<int>(page) == applied_page) backdrop_show(applied_page); };
+    loader.want(owners::backdrop(page), std::move(w));
+  }
+  backdrop_show(applied_page);
+}
 // One round: every picture says what it wants, and the loader does the rest. From camera_tick, and right after an answer
 // of the app, a download's end, a page turn, a camera that opens.
 inline bool pictures_rounding = false;
@@ -12976,6 +13088,7 @@ inline void pictures_round() {
   picture_loader::Want library;
   if (media_library::picture_want(library)) loader.want(owners::LIBRARY, std::move(library));
   card_picture_wants();
+  backdrop_wants();
   plugin_host::card_picture_want();
   plugin_host::saver_picture_want();
   // Never under a finger, and not between two quick page turns (camera_view::settled): a download that starts then is

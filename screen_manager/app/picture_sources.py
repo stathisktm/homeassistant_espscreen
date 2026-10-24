@@ -64,6 +64,7 @@ class Resolved:
     fade: bool = None
     ground: int = None
     move: bool = None
+    dim: int = None    # darkened by this many percent (a page's background, app 0.4.109); None leaves the place's own
     state: str = 'ok'
     stream: str = ''
     meta: dict = field(default_factory=dict)
@@ -415,6 +416,11 @@ class Sources:
             if kind in ('camera', 'cover', 'entity') and source.ref not in self._plugin_entities(inbox, question):
                 return f'{source.ref} is not this plugin place\'s entity'
             return None if kind in ('camera', 'cover', 'entity', 'step', 'url', 'ha') else f'a {kind} picture is not a plugin\'s'
+        if kind == 'page':
+            # A page's own background (app 0.4.109): only that page asks for it, and only where it has one.
+            if owner.kind != 'page' or str(owner.index) != source.ref:
+                return "a page's background is its own"
+            return None if m.page_background(inbox, int(source.ref)) else f'page {source.ref} has no background'
         if kind == 'tile':
             tile = self._tile(inbox, source)
             if tile is None or not self.pictured(tile):
@@ -472,6 +478,17 @@ class Sources:
             return Resolved(found[0], f'cover:{found[1][:16]}', ground=ground, fit=cover_fit(found[0], place))
         if kind == 'tile':
             return await self._tile_picture(inbox, screen, question, source, place)
+        if kind == 'page':
+            import page_backdrop
+            background = m.page_background(inbox, int(source.ref))
+            if not background:
+                return NONE
+            found = await m.backdrops.picture(background['source'], page_backdrop.refresh_of(background))
+            if found is None:
+                return NONE
+            # Darkened as the page says, a little more in the dark look, so the cards over it stay readable.
+            dim = min(90, page_backdrop.dim_of(background) + (15 if question.look == 'd' else 0))
+            return Resolved(found[0], f'page:{found[1][:16]}', dim=dim)
         if kind == 'map':
             return await self._map(inbox, screen, question, source, place)
         if kind == 'vacuum':

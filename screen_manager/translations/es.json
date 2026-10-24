@@ -876,7 +876,8 @@
         "destination_exists": "La pantalla de destino ya tiene una distribución guardada",
         "update_tall": "Actualiza la pantalla para usar estos tamaños de tarjeta",
         "memory": "La pantalla no tiene suficiente memoria libre para este diseño. Usa menos tarjetas.",
-        "grid_range": "Esta pantalla no admite una cuadrícula de ese tamaño. Elige otra cuadrícula junto a la vista previa."
+        "grid_range": "Esta pantalla no admite una cuadrícula de ese tamaño. Elige otra cuadrícula junto a la vista previa.",
+        "background": "Fondo de página no válido"
       },
       "feedback": {
         "invalid": "Esta respuesta no se puede compartir. Elige sí o no del todo, y solo los problemas indicados.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} ya puede controlar tus dispositivos.",
       "part_page": "La página: título y navegación",
       "part_page_hint": "Título, página de inicio y cómo se llega aquí",
-      "home_control_hint": "Pone el botón de inicio a la izquierda de la barra superior de esta página. Lleva a la página de inicio."
+      "home_control_hint": "Pone el botón de inicio a la izquierda de la barra superior de esta página. Lleva a la página de inicio.",
+      "background": {
+        "title": "Fondo",
+        "hint": "Una imagen detrás de toda la página: de internet, de Home Assistant o de una cámara. Se oscurece para que las tarjetas se lean bien.",
+        "kind": "Imagen de",
+        "kinds": {
+          "none": "Ninguna",
+          "url": "Una dirección de internet",
+          "www": "La carpeta www de Home Assistant",
+          "media": "Los medios de Home Assistant",
+          "entity": "Una entidad (cámara, imagen, persona)"
+        },
+        "address": {
+          "url": "Dirección",
+          "www": "Archivo",
+          "media": "Medio"
+        },
+        "help": {
+          "url": "Una dirección pública de una imagen que empieza por https://. Las de tu propia red no se cargan.",
+          "www": "Un archivo de la carpeta www de la configuración de Home Assistant, como /local/ y su ruta.",
+          "media": "Una imagen de los medios de Home Assistant, como media-source:// y su ruta."
+        },
+        "wrong": {
+          "url": "No es una dirección de internet: empieza por https:// o http://.",
+          "www": "Un archivo de la carpeta www empieza por /local/.",
+          "media": "Una imagen de medios empieza por media-source://."
+        },
+        "entity_search": "Buscar entidades",
+        "entity_none": "Ninguna entidad con imagen",
+        "entity_pick": "Elegir una entidad",
+        "dim": "Oscurecido",
+        "refresh": "Se vuelve a cargar",
+        "refresh_once": "Nunca",
+        "refresh_minutes": "Cada {n} min",
+        "refresh_hour": "Cada hora",
+        "cards": "Las tarjetas mantienen su color encima; una tarjeta con Fondo: ninguno deja ver la imagen. Las pantallas necesitan el firmware 0.65.0 e imágenes (no el CYD)."
+      }
     },
     "feedback": {
       "question": "¿Tu pantalla funciona como esperas?",

@@ -178,6 +178,8 @@ class Service:
             changes['fade'] = r.fade
         if r.ground is not None:
             changes['ground'] = r.ground
+        if r.dim is not None:
+            changes['dim'] = r.dim
         if r.move is not None:
             moves = r.move and place.move > 0
             if moves:

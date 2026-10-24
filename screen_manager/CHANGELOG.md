@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **0.4.109: a background picture for each page.** In the page panel, Background: a picture behind the whole page,
+  from an address on the internet, a file of Home Assistant's www folder, Home Assistant's media, or an entity (a camera,
+  an image entity, a person, a player). It is darkened so the cards stay readable (how much is yours to choose), and a
+  camera's comes again every minute, or as often as you set. Each page has its own; the other pages' pictures are
+  fetched ahead, so a swipe shows them at once. Cards keep their colour over it, and a card set to Background: none lets
+  the picture through. The editor's Preview shows it too. Screens need firmware 0.65.0 and pictures (not the CYD).
+
 - **0.4.108: "Only the icon while off" switches on.** The switch was dropped as soon as it was pressed, because the
   page the editor keeps did not know the choice. It is kept now. No firmware update is needed.
 

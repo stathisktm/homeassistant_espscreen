@@ -876,7 +876,8 @@
         "destination_exists": "A célkijelzőnek már van mentett elrendezése",
         "update_tall": "Ezekhez a csempeméretekhez frissítsd a kijelzőt",
         "memory": "A kijelzőn nincs elég szabad memória ehhez az elrendezéshez. Csökkentsd a csempék számát.",
-        "grid_range": "Ez a kijelző nem fogad el ekkora rácsot. Válassz másik rácsot az előnézet mellett."
+        "grid_range": "Ez a kijelző nem fogad el ekkora rácsot. Válassz másik rácsot az előnézet mellett.",
+        "background": "Érvénytelen oldalháttér"
       },
       "feedback": {
         "invalid": "Ez a válasz nem osztható meg. Válaszd az igent vagy a nem egészent, és csak a felsorolt problémákat.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} mostantól vezérelheti az eszközeidet.",
       "part_page": "Az oldal: cím és navigáció",
       "part_page_hint": "Cím, kezdőlap és hogyan jutsz ide",
-      "home_control_hint": "A Kezdőlap gombot az oldal felső sávjának bal szélére teszi. A kezdőlapra visz."
+      "home_control_hint": "A Kezdőlap gombot az oldal felső sávjának bal szélére teszi. A kezdőlapra visz.",
+      "background": {
+        "title": "Háttér",
+        "hint": "Kép az egész oldal mögött: az internetről, a Home Assistantból vagy egy kamerából. Sötétítve, hogy a kártyák olvashatók maradjanak.",
+        "kind": "Kép innen",
+        "kinds": {
+          "none": "Nincs",
+          "url": "Internetes cím",
+          "www": "A Home Assistant www mappája",
+          "media": "A Home Assistant médiái",
+          "entity": "Entitás (kamera, kép, személy)"
+        },
+        "address": {
+          "url": "Cím",
+          "www": "Fájl",
+          "media": "Média"
+        },
+        "help": {
+          "url": "Egy kép nyilvános címe, https:// kezdettel. A saját hálózat címei nem töltődnek be.",
+          "www": "Fájl a Home Assistant konfigurációjának www mappájában, /local/ és az útvonala.",
+          "media": "Kép a Home Assistant médiáiból, media-source:// és az útvonala."
+        },
+        "wrong": {
+          "url": "Ez nem internetes cím: https:// vagy http:// kezdetű.",
+          "www": "A www mappa fájlja /local/ kezdetű.",
+          "media": "A médiakép media-source:// kezdetű."
+        },
+        "entity_search": "Entitások keresése",
+        "entity_none": "Nincs képpel rendelkező entitás",
+        "entity_pick": "Entitás választása",
+        "dim": "Sötétítés",
+        "refresh": "Újratöltés",
+        "refresh_once": "Soha",
+        "refresh_minutes": "{n} percenként",
+        "refresh_hour": "Óránként",
+        "cards": "A kártyák megtartják a színüket felette; a Háttér: nincs beállítású kártya átengedi a képet. A kijelzőknek 0.65.0 firmware és képek kellenek (a CYD nem)."
+      }
     },
     "feedback": {
       "question": "Úgy működik a kijelződ, ahogy várod?",

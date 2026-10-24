@@ -12,6 +12,7 @@ import re
 import secrets
 
 from i18n import t
+import page_backdrop
 import tile_icons
 from core import (entity_id, plugin_entity, plugin_tile, FIRMWARE_MAX_PAGES, FIRMWARE_MAX_TILES, HEADER_MAX_ITEMS, KEY_HOLDERS, STORE_MAX_BAR_ITEMS, STORE_MAX_PAGES,
                   STORE_MAX_TILES, Grid, is_key, span_of,
@@ -450,7 +451,13 @@ def validate_document(data, grid):
     seen = set()
     for page in pages:
         # `icon` (optional): a pickable MDI icon by name, which the Dock shows for the page instead of its picture.
-        _object(page, {"id", "navigation", "topbar", "tiles", "icon"}, {"id", "navigation", "topbar", "tiles"})
+        _object(page, {"id", "navigation", "topbar", "tiles", "icon", "background"}, {"id", "navigation", "topbar", "tiles"})
+        # A page's own background picture (app 0.4.109, page_backdrop.py).
+        if "background" in page:
+            try:
+                page["background"] = page_backdrop.validate(page["background"])
+            except ValueError:
+                raise LayoutError(t('addon.errors.pages.background')) from None
         if "icon" in page and (not isinstance(page["icon"], str) or page["icon"] not in tile_icons.ICONS):
             raise LayoutError(t('addon.errors.pages.fields'))
         _identity(page["id"], seen, page=True)

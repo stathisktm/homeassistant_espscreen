@@ -85,6 +85,11 @@ struct Page {
   bool dock = true;
   // Its own icon, an MDI codepoint (tile_icon::codepoint), which the Dock shows instead of the page's picture; 0 for none.
   uint32_t icon = 0;
+  // Its own background picture (firmware 0.65.0, app 0.4.109): a mark of it that changes when it does (0 for none),
+  // never where it is, and how often it is fetched again while the page is on the glass, in seconds (0: once). The
+  // screen asks for it as the picture source page:<index>.
+  uint32_t backdrop = 0;
+  uint16_t backdrop_every = 0;
 };
 
 struct Pages {

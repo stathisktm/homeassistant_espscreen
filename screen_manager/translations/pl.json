@@ -876,7 +876,8 @@
         "destination_exists": "Ekran docelowy ma już zapisany układ",
         "update_tall": "Zaktualizuj ekran, aby używać tych rozmiarów kafelków",
         "memory": "Ekran nie ma wystarczającej ilości wolnej pamięci dla tego układu. Użyj mniejszej liczby kafelków.",
-        "grid_range": "Ten ekran nie przyjmuje siatki tej wielkości. Wybierz inną siatkę obok podglądu."
+        "grid_range": "Ten ekran nie przyjmuje siatki tej wielkości. Wybierz inną siatkę obok podglądu.",
+        "background": "Nieprawidłowe tło strony"
       },
       "feedback": {
         "invalid": "Tej odpowiedzi nie można udostępnić. Wybierz tak lub nie do końca i tylko wymienione problemy.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} może teraz sterować twoimi urządzeniami.",
       "part_page": "Strona: tytuł i nawigacja",
       "part_page_hint": "Tytuł, strona główna i jak tu trafić",
-      "home_control_hint": "Umieszcza przycisk Home po lewej stronie górnego paska tej strony. Prowadzi do strony głównej."
+      "home_control_hint": "Umieszcza przycisk Home po lewej stronie górnego paska tej strony. Prowadzi do strony głównej.",
+      "background": {
+        "title": "Tło",
+        "hint": "Obraz za całą stroną: z internetu, z Home Assistant lub z kamery. Jest przyciemniony, aby karty były czytelne.",
+        "kind": "Obraz z",
+        "kinds": {
+          "none": "Brak",
+          "url": "Adresu w internecie",
+          "www": "Folderu www Home Assistant",
+          "media": "Multimediów Home Assistant",
+          "entity": "Encji (kamera, obraz, osoba)"
+        },
+        "address": {
+          "url": "Adres",
+          "www": "Plik",
+          "media": "Multimedia"
+        },
+        "help": {
+          "url": "Publiczny adres obrazu zaczynający się od https://. Adresy z własnej sieci nie są pobierane.",
+          "www": "Plik w folderze www konfiguracji Home Assistant, zapisany jako /local/ i ścieżka.",
+          "media": "Obraz z multimediów Home Assistant, zapisany jako media-source:// i ścieżka."
+        },
+        "wrong": {
+          "url": "To nie jest adres internetowy: zaczyna się od https:// lub http://.",
+          "www": "Plik folderu www zaczyna się od /local/.",
+          "media": "Obraz multimediów zaczyna się od media-source://."
+        },
+        "entity_search": "Szukaj encji",
+        "entity_none": "Brak encji z obrazem",
+        "entity_pick": "Wybierz encję",
+        "dim": "Przyciemnienie",
+        "refresh": "Odświeżanie",
+        "refresh_once": "Nigdy",
+        "refresh_minutes": "Co {n} min",
+        "refresh_hour": "Co godzinę",
+        "cards": "Karty zachowują nad nim swój kolor; karta z Tło: brak pokazuje obraz. Ekrany potrzebują firmware 0.65.0 i obrazów (nie CYD)."
+      }
     },
     "feedback": {
       "question": "Czy ekran działa tak, jak oczekujesz?",

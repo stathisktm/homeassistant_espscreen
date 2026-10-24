@@ -876,7 +876,8 @@
         "destination_exists": "Destination screen already has a saved layout",
         "update_tall": "Update the screen to use these tile sizes",
         "memory": "The screen does not have enough free memory for this layout. Reduce the number of tiles.",
-        "grid_range": "This screen does not take a grid of that size. Choose another grid beside the mockup."
+        "grid_range": "This screen does not take a grid of that size. Choose another grid beside the mockup.",
+        "background": "Invalid page background"
       },
       "feedback": {
         "invalid": "This answer can't be shared. Choose yes or not quite, and only the listed problems.",
@@ -3340,7 +3341,43 @@
       "actions_allowed": "{name} may now control your devices.",
       "part_page": "The page: title and navigation",
       "part_page_hint": "Title, home page and how you get here",
-      "home_control_hint": "Puts the Home button at the left of this page's top bar. It leads to the home page."
+      "home_control_hint": "Puts the Home button at the left of this page's top bar. It leads to the home page.",
+      "background": {
+        "title": "Background",
+        "hint": "A picture behind the whole page: from the internet, from Home Assistant or a camera. It is darkened so the cards stay readable.",
+        "kind": "Picture from",
+        "kinds": {
+          "none": "None",
+          "url": "An address on the internet",
+          "www": "Home Assistant's www folder",
+          "media": "Home Assistant's media",
+          "entity": "An entity (camera, image, person)"
+        },
+        "address": {
+          "url": "Address",
+          "www": "File",
+          "media": "Media"
+        },
+        "help": {
+          "url": "A public address of a picture, starting with https://. One in your own network is not fetched.",
+          "www": "A file in the www folder of Home Assistant's configuration, written as /local/ and its path.",
+          "media": "A picture of Home Assistant's media, as media-source:// and its path."
+        },
+        "wrong": {
+          "url": "That is not an address of the internet: it starts with https:// or http://.",
+          "www": "A file of the www folder starts with /local/.",
+          "media": "A media picture starts with media-source://."
+        },
+        "entity_search": "Search entities",
+        "entity_none": "No entity with a picture",
+        "entity_pick": "Choose an entity",
+        "dim": "Darkened",
+        "refresh": "Fetched again",
+        "refresh_once": "Never",
+        "refresh_minutes": "Every {n} min",
+        "refresh_hour": "Every hour",
+        "cards": "Cards keep their colour over it; a card set to Background: none lets the picture show. Screens need firmware 0.65.0 and pictures (not the CYD)."
+      }
     },
     "feedback": {
       "question": "Does your screen work as you expect?",

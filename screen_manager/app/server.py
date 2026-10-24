@@ -23,6 +23,7 @@ import picture_links
 import picture_paint
 import picture_question
 import picture_service
+import page_backdrop
 import picture_sources
 import live_feed
 import claude_skill
@@ -1074,6 +1075,8 @@ class Manager:
                                                    fetch_cover=lambda entity: self.ha.media_image(self.followed(entity)),
                                                    picture=lambda entity: self.ha.media_picture(self.followed(entity)))
         self.alert_cameras = {}
+        # The pages' own background pictures (page_backdrop.py, app 0.4.109), fetched once for every screen.
+        self.backdrops = page_backdrop.Backdrops(self.ha)
         # A camera live on a P4 (live_feed.py): its links and the sources behind them, on the camera port.
         self.live = live_feed.LiveFeed(lambda entity: self.ha.camera_image(entity), lambda: self.ha.websocket(),
                                        lambda entity: self.ha.camera_streams(entity))
@@ -1103,6 +1106,8 @@ class Manager:
         # The editor's firmware previews (preview_images): the tiles of each layout one compiled, by its revision (the
         # `rev` its questions carry), the last few kept, and the last one for a question without a known revision.
         self.preview_tiles, self.preview_layouts = [], OrderedDict()
+        # The pages' backgrounds of each layout a preview compiled, by its revision (page_backdrop.py, app 0.4.109).
+        self.preview_backgrounds, self.preview_backgrounds_last = OrderedDict(), []
         self.map_pictures = OrderedDict()
         self.map_hits = {}
         # The action behind an alert's button (app 0.2.91): node -> (key, action, data) of the alert on that screen.
@@ -3386,6 +3391,20 @@ class Manager:
             return self.preview_layouts.get(preview_images.revision_of(inbox), self.preview_tiles)
         return self.layouts.get(inbox, {}).get('tiles', [])
 
+    def page_background(self, inbox, index):
+        """The background a page of a screen's saved document has (page_backdrop.py, app 0.4.109), or None; for a firmware
+        preview of the editor, the page's of the layout it compiled, by its revision, or of the last one compiled."""
+        if preview_images.is_preview(inbox):
+            backgrounds = self.preview_backgrounds.get(preview_images.revision_of(inbox), self.preview_backgrounds_last)
+            background = backgrounds[index] if 0 <= index < len(backgrounds) else None
+            return background if isinstance(background, dict) and background.get('source') else None
+        record = self.store.get(self.aliases.get(inbox, inbox))
+        pages = ((record or {}).get('layout') or {}).get('pages') if (record or {}).get('format') == PAGE_FORMAT else None
+        if not isinstance(pages, list) or not 0 <= index < len(pages):
+            return None
+        background = pages[index].get('background')
+        return background if isinstance(background, dict) and background.get('source') else None
+
     def camera_allowed(self, inbox, entity):
         """A camera on the screen's own layout, or one a recent alert showed; for the editor's preview any entity Home
         Assistant has."""
@@ -4689,6 +4708,12 @@ def create_app(manager, development=False):
         manager.preview_layouts.move_to_end(revision)
         while len(manager.preview_layouts) > preview_images.LAYOUTS:
             manager.preview_layouts.popitem(last=False)
+        backgrounds = [page.get('background') for page in record['layout']['pages']]
+        manager.preview_backgrounds_last = backgrounds
+        manager.preview_backgrounds[revision] = backgrounds
+        manager.preview_backgrounds.move_to_end(revision)
+        while len(manager.preview_backgrounds) > preview_images.LAYOUTS:
+            manager.preview_backgrounds.popitem(last=False)
         return web.json_response({'revision': revision,
             'configuration': [begin, *initial_bars, *initial_tiles, {'op': 'commit'}],
             'values': [*states, *[page_delivery.page_message(page, index, items, initial=False)

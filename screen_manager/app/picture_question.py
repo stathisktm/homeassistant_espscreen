@@ -38,7 +38,8 @@ SHADES = (0, 170)
 TURNS = ('', 'left', 'right')
 # Who asks. A tile of the layout, the full view, an open card, the screensaver, the library, and a plugin's tile, card
 # or screensaver (`plugin`, the plugin's type key).
-OWNERS = ('tile', 'view', 'card', 'saver', 'library', 'alert', 'plugin_tile', 'plugin_card', 'plugin_saver')
+# `page` (app 0.4.109, firmware 0.65.0): a page's own background picture, `i` the page's index.
+OWNERS = ('tile', 'view', 'card', 'saver', 'library', 'alert', 'plugin_tile', 'plugin_card', 'plugin_saver', 'page')
 ENTITY = re.compile(r'[a-z0-9_]+\.[a-z0-9_]+')
 COLOUR = re.compile(r'[0-9A-Fa-f]{6}')
 CAMERA_DOMAINS = ('camera', 'image')
@@ -103,6 +104,9 @@ def source(text):
             if not eq or name not in ('focus', 'move') or len(value) > 120:
                 return None
             params.append((name, value))
+    if kind == 'page':
+        # A page's background (app 0.4.109): the page's index; where the picture is stays in the app (page_backdrop).
+        return Source(kind, ref) if ref.isdigit() and len(ref) <= 2 and not params else None
     if kind == 'tile' or kind == 'map':
         if not ref.isdigit() or len(ref) > 3 or int(ref) >= 256:
             return None
@@ -378,7 +382,7 @@ def owner_of(fields):
     if kind not in OWNERS:
         return None
     index = -1
-    if kind in ('tile', 'plugin_tile'):
+    if kind in ('tile', 'plugin_tile', 'page'):
         index = fields.get('i')
         if type(index) is not int or not 0 <= index < 256:
             return None

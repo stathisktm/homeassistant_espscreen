@@ -322,6 +322,13 @@ std::string receive(const std::string &payload) {
         next.excluded = root["excluded"].as<bool>();
         if (root["dock"].is<bool>()) next.dock = root["dock"].as<bool>();
         if (root["icon"].is<const char *>()) next.icon = tile_icon::codepoint(root["icon"].as<std::string>());
+        // Its own background picture (firmware 0.65.0): a mark, hashed to a number, and its pace.
+        if (root["bg"].is<const char *>()) {
+          Fingerprint mark;
+          mark.add(string(root["bg"], 32));
+          next.backdrop = static_cast<uint32_t>(mark.value) | 1u;
+          next.backdrop_every = static_cast<uint16_t>(std::min(3600u, root["bgr"] | 0u));
+        }
         if (!transfer.page(index)) return false;
         model.page_data.records[index] = std::move(next);
       } else {

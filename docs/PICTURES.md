@@ -146,6 +146,25 @@ photograph (a camera, a cover, a photo, a poster) goes in the format the screen 
 are JPEG on every P4 (`live_view`); the P4 has a hardware H.264 encoder but no decoder, so the app decodes a camera's
 H.264 and sends JPEG (`live_feed.py`).
 
+## A page's background
+
+A page may have a picture of its own behind the whole glass (app 0.4.109, firmware 0.65.0), set in the editor's page
+panel under Background. It comes from a public address on the internet, a file of Home Assistant's www folder
+(`/local/...`), a picture of Home Assistant's media (`media-source://...`), or an entity's picture (a camera, an image
+entity, a person, a player). It is stored on the page as `background: {source, dim, refresh}`
+(`screen_manager/app/page_backdrop.py`): `dim` darkens it by that many percent so the cards stay readable (15 more in
+the dark look), and `refresh` fetches it again every that many seconds while its page is on the glass (a camera's
+default is a minute, anything else is fetched once).
+
+The screen never learns where the picture is. Its page message carries a mark of the background (`bg`) and its pace
+(`bgr`), and the screen asks for the source `page:<index>` with the owner `page` at the glass's size, within the board's
+cap, as `bmp16` (a P4 names `jpeg` first). Only that page may ask for it. The app fetches each address once for every
+screen and keeps it an hour. On the screen one picture object lies at the bottom of the home page, under the top bar,
+the cards and the page bar (`backdrop_show`), and shows the picture of the page placed; the store keeps every page's
+picture, and while the screen is in use and the store has room the other pages' pictures are fetched ahead, so a swipe
+shows them at once. Cards keep their colour over it; a card set to Background: none lets the picture show. A board
+without pictures (the CYD) has none, and an older app gives none.
+
 ## Capture: the screen's own camera
 
 - The **board** names the sensor's I2C bus and clock (`CAMERA_I2C`, `CAMERA_XCLK_PIN`: the feature `camera_sensor`)

@@ -876,7 +876,8 @@
         "destination_exists": "Der Zielbildschirm hat bereits ein gespeichertes Layout",
         "update_tall": "Aktualisiere den Bildschirm, um diese Kachelgrößen zu verwenden",
         "memory": "Der Bildschirm hat nicht genug freien Speicher für dieses Layout. Verwende weniger Kacheln.",
-        "grid_range": "Dieser Bildschirm nimmt kein Raster dieser Größe an. Wähle neben der Vorschau ein anderes Raster."
+        "grid_range": "Dieser Bildschirm nimmt kein Raster dieser Größe an. Wähle neben der Vorschau ein anderes Raster.",
+        "background": "Ungültiger Seitenhintergrund"
       },
       "feedback": {
         "invalid": "Diese Antwort kann nicht geteilt werden. Wähle Ja oder Nicht ganz und nur die genannten Probleme.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} darf deine Geräte jetzt steuern.",
       "part_page": "Die Seite: Titel und Navigation",
       "part_page_hint": "Titel, Startseite und wie man hierher kommt",
-      "home_control_hint": "Setzt die Home-Taste links in die obere Leiste dieser Seite. Sie führt zur Startseite."
+      "home_control_hint": "Setzt die Home-Taste links in die obere Leiste dieser Seite. Sie führt zur Startseite.",
+      "background": {
+        "title": "Hintergrund",
+        "hint": "Ein Bild hinter der ganzen Seite: aus dem Internet, aus Home Assistant oder von einer Kamera. Es wird abgedunkelt, damit die Karten lesbar bleiben.",
+        "kind": "Bild aus",
+        "kinds": {
+          "none": "Keins",
+          "url": "Einer Adresse im Internet",
+          "www": "Dem www-Ordner von Home Assistant",
+          "media": "Den Medien von Home Assistant",
+          "entity": "Einer Entität (Kamera, Bild, Person)"
+        },
+        "address": {
+          "url": "Adresse",
+          "www": "Datei",
+          "media": "Medien"
+        },
+        "help": {
+          "url": "Eine öffentliche Bildadresse, die mit https:// beginnt. Adressen im eigenen Netz werden nicht geladen.",
+          "www": "Eine Datei im www-Ordner der Konfiguration von Home Assistant, als /local/ und ihr Pfad.",
+          "media": "Ein Bild aus den Medien von Home Assistant, als media-source:// und sein Pfad."
+        },
+        "wrong": {
+          "url": "Das ist keine Internetadresse: sie beginnt mit https:// oder http://.",
+          "www": "Eine Datei des www-Ordners beginnt mit /local/.",
+          "media": "Ein Medienbild beginnt mit media-source://."
+        },
+        "entity_search": "Entitäten suchen",
+        "entity_none": "Keine Entität mit Bild",
+        "entity_pick": "Entität wählen",
+        "dim": "Abgedunkelt",
+        "refresh": "Neu geladen",
+        "refresh_once": "Nie",
+        "refresh_minutes": "Alle {n} Min.",
+        "refresh_hour": "Stündlich",
+        "cards": "Karten behalten darüber ihre Farbe; eine Karte mit Hintergrund: keiner lässt das Bild durchscheinen. Bildschirme brauchen Firmware 0.65.0 und Bilder (nicht der CYD)."
+      }
     },
     "feedback": {
       "question": "Funktioniert dein Bildschirm wie erwartet?",

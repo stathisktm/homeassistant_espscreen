@@ -13,6 +13,7 @@ from core import (BAR_CARDS_FEATURE, ENTITY_REPEAT_MIN_FIRMWARE, FIRMWARE_MAX_BA
                   NIGHTSTAND_MIN_FIRMWARE, STORE_MAX_BAR_ITEMS, STORE_MAX_PAGES, STORE_MAX_TILES, is_key, repeated_entities, sizes_on)
 from page_layout import compile_tiles, fingerprint, grid_of_record, new_id
 from i18n import english
+import page_backdrop
 import tile_icons
 
 PROTOCOL = 2
@@ -84,6 +85,14 @@ def page_message(page, index, items, *, initial):
         # A page's own icon, which the Dock shows instead of its picture: its codepoint, as a tile's icon travels.
         if page.get("icon") in tile_icons.GLYPHS:
             message["icon"] = tile_icons.GLYPHS[page["icon"]]
+        # Its own background picture (app 0.4.109, firmware 0.65.0): a mark that changes with it and its pace, never
+        # where the picture is; the screen asks for it as page:<index>. A page without one says nothing.
+        background = page.get("background")
+        if background:
+            message["bg"] = page_backdrop.mark(background)
+            refresh = page_backdrop.refresh_of(background)
+            if refresh:
+                message["bgr"] = refresh
     return message
 
 

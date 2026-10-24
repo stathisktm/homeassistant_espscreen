@@ -876,7 +876,8 @@
         "destination_exists": "Het doelscherm heeft al een opgeslagen indeling",
         "update_tall": "Werk het scherm bij om deze tegelmaten te gebruiken",
         "memory": "Het scherm heeft onvoldoende vrij geheugen voor deze indeling. Gebruik minder tegels.",
-        "grid_range": "Dit scherm neemt geen raster van deze grootte aan. Kies een ander raster naast het voorbeeld."
+        "grid_range": "Dit scherm neemt geen raster van deze grootte aan. Kies een ander raster naast het voorbeeld.",
+        "background": "Ongeldige pagina-achtergrond"
       },
       "feedback": {
         "invalid": "Dit antwoord kan niet gedeeld worden. Kies ja of niet helemaal, en alleen de genoemde problemen.",
@@ -3340,7 +3341,43 @@
       "actions_allowed": "{name} mag je apparaten nu bedienen.",
       "part_page": "De pagina: titel en navigatie",
       "part_page_hint": "Titel, startpagina en hoe je hier komt",
-      "home_control_hint": "Zet de Home-knop links in de topbar van deze pagina. Hij gaat naar de startpagina."
+      "home_control_hint": "Zet de Home-knop links in de topbar van deze pagina. Hij gaat naar de startpagina.",
+      "background": {
+        "title": "Achtergrond",
+        "hint": "Een afbeelding achter de hele pagina: van internet, uit Home Assistant of van een camera. Hij wordt donkerder gemaakt zodat de kaarten leesbaar blijven.",
+        "kind": "Afbeelding van",
+        "kinds": {
+          "none": "Geen",
+          "url": "Een adres op internet",
+          "www": "De www-map van Home Assistant",
+          "media": "De media van Home Assistant",
+          "entity": "Een entiteit (camera, afbeelding, persoon)"
+        },
+        "address": {
+          "url": "Adres",
+          "www": "Bestand",
+          "media": "Media"
+        },
+        "help": {
+          "url": "Een openbaar adres van een afbeelding dat met https:// begint. Adressen in je eigen netwerk worden niet geladen.",
+          "www": "Een bestand in de www-map van de configuratie van Home Assistant, als /local/ en het pad.",
+          "media": "Een afbeelding uit de media van Home Assistant, als media-source:// en het pad."
+        },
+        "wrong": {
+          "url": "Dat is geen internetadres: het begint met https:// of http://.",
+          "www": "Een bestand van de www-map begint met /local/.",
+          "media": "Een media-afbeelding begint met media-source://."
+        },
+        "entity_search": "Entiteiten zoeken",
+        "entity_none": "Geen entiteit met een afbeelding",
+        "entity_pick": "Kies een entiteit",
+        "dim": "Donkerder",
+        "refresh": "Opnieuw geladen",
+        "refresh_once": "Nooit",
+        "refresh_minutes": "Elke {n} min",
+        "refresh_hour": "Elk uur",
+        "cards": "Kaarten houden hun kleur erboven; een kaart met Achtergrond: geen laat de afbeelding zien. Schermen hebben firmware 0.65.0 en afbeeldingen nodig (niet de CYD)."
+      }
     },
     "feedback": {
       "question": "Werkt je scherm zoals je verwacht?",

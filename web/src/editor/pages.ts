@@ -4,6 +4,7 @@
 // the draft's tiles are (editor/tiles.ts): each asks for the stores when it is called.
 import { andList, t } from "../i18n";
 import { entriesOf } from "../model/layout";
+import { validBackground, type PageBackground } from "../model/page-background";
 import pageRules from "../model/page-rules.json";
 import * as pages from "../model/pages";
 import { useDocumentStore } from "../stores/document";
@@ -60,6 +61,15 @@ export function connectTile(tileId: string, target: string | "home") {
 }
 export function setPageExcluded(id: string, excluded: boolean) {
   return useDocumentStore().editDocument((draft) => { const page = draft.pages.find((item) => item.id === id); if (page) page.navigation.excludeFromPagination = excluded; });
+}
+// A page's own background picture (app 0.4.109), or none: the key goes then, so the document stays as it was.
+export function setPageBackground(id: string, background: PageBackground | undefined) {
+  return useDocumentStore().editDocument((draft) => {
+    const page = draft.pages.find((item) => item.id === id);
+    if (!page) return;
+    if (background && validBackground(background)) page.background = { ...background };
+    else delete page.background;
+  });
 }
 // The Dock shows a page unless it says otherwise; shown again, the key goes, so the document stays as it was.
 export function setPageInDock(id: string, shown: boolean) {

@@ -876,7 +876,8 @@
         "destination_exists": "Lo schermo di destinazione ha già una disposizione salvata",
         "update_tall": "Aggiorna lo schermo per usare queste dimensioni di tessera",
         "memory": "Lo schermo non ha abbastanza memoria libera per questo layout. Usa meno riquadri.",
-        "grid_range": "Questo schermo non accetta una griglia di queste dimensioni. Scegli un’altra griglia accanto all’anteprima."
+        "grid_range": "Questo schermo non accetta una griglia di queste dimensioni. Scegli un’altra griglia accanto all’anteprima.",
+        "background": "Sfondo della pagina non valido"
       },
       "feedback": {
         "invalid": "Questa risposta non può essere condivisa. Scegli sì o non del tutto, e solo i problemi elencati.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} ora può comandare i tuoi dispositivi.",
       "part_page": "La pagina: titolo e navigazione",
       "part_page_hint": "Titolo, pagina iniziale e come ci si arriva",
-      "home_control_hint": "Mette il pulsante Home a sinistra nella barra in alto di questa pagina. Porta alla pagina iniziale."
+      "home_control_hint": "Mette il pulsante Home a sinistra nella barra in alto di questa pagina. Porta alla pagina iniziale.",
+      "background": {
+        "title": "Sfondo",
+        "hint": "Un'immagine dietro tutta la pagina: da internet, da Home Assistant o da una telecamera. Viene scurita perché le schede restino leggibili.",
+        "kind": "Immagine da",
+        "kinds": {
+          "none": "Nessuna",
+          "url": "Un indirizzo internet",
+          "www": "La cartella www di Home Assistant",
+          "media": "I media di Home Assistant",
+          "entity": "Un'entità (telecamera, immagine, persona)"
+        },
+        "address": {
+          "url": "Indirizzo",
+          "www": "File",
+          "media": "Media"
+        },
+        "help": {
+          "url": "Un indirizzo pubblico di un'immagine che inizia con https://. Quelli della tua rete non vengono caricati.",
+          "www": "Un file della cartella www della configurazione di Home Assistant, scritto /local/ e il suo percorso.",
+          "media": "Un'immagine dei media di Home Assistant, scritta media-source:// e il suo percorso."
+        },
+        "wrong": {
+          "url": "Non è un indirizzo internet: inizia con https:// o http://.",
+          "www": "Un file della cartella www inizia con /local/.",
+          "media": "Un'immagine dei media inizia con media-source://."
+        },
+        "entity_search": "Cerca entità",
+        "entity_none": "Nessuna entità con un'immagine",
+        "entity_pick": "Scegli un'entità",
+        "dim": "Scurito",
+        "refresh": "Ricaricato",
+        "refresh_once": "Mai",
+        "refresh_minutes": "Ogni {n} min",
+        "refresh_hour": "Ogni ora",
+        "cards": "Le schede mantengono il loro colore sopra; una scheda con Sfondo: nessuno lascia vedere l'immagine. Gli schermi richiedono il firmware 0.65.0 e le immagini (non il CYD)."
+      }
     },
     "feedback": {
       "question": "Il tuo schermo funziona come ti aspetti?",

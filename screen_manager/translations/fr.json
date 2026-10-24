@@ -876,7 +876,8 @@
         "destination_exists": "L’écran de destination possède déjà une disposition enregistrée",
         "update_tall": "Mettez l’écran à jour pour utiliser ces tailles de tuiles",
         "memory": "L’écran ne dispose pas de suffisamment de mémoire libre pour cette disposition. Utilisez moins de tuiles.",
-        "grid_range": "Cet écran n’accepte pas une grille de cette taille. Choisissez une autre grille à côté de l’aperçu."
+        "grid_range": "Cet écran n’accepte pas une grille de cette taille. Choisissez une autre grille à côté de l’aperçu.",
+        "background": "Arrière-plan de page non valide"
       },
       "feedback": {
         "invalid": "Cette réponse ne peut pas être partagée. Choisissez oui ou pas vraiment, et seulement les problèmes proposés.",
@@ -3769,7 +3770,43 @@
       "actions_allowed": "{name} peut maintenant commander vos appareils.",
       "part_page": "La page : titre et navigation",
       "part_page_hint": "Titre, page d'accueil et comment y arriver",
-      "home_control_hint": "Place le bouton Accueil à gauche de la barre du haut de cette page. Il mène à la page d'accueil."
+      "home_control_hint": "Place le bouton Accueil à gauche de la barre du haut de cette page. Il mène à la page d'accueil.",
+      "background": {
+        "title": "Arrière-plan",
+        "hint": "Une image derrière toute la page : d'internet, de Home Assistant ou d'une caméra. Elle est assombrie pour que les cartes restent lisibles.",
+        "kind": "Image de",
+        "kinds": {
+          "none": "Aucune",
+          "url": "Une adresse internet",
+          "www": "Le dossier www de Home Assistant",
+          "media": "Les médias de Home Assistant",
+          "entity": "Une entité (caméra, image, personne)"
+        },
+        "address": {
+          "url": "Adresse",
+          "www": "Fichier",
+          "media": "Média"
+        },
+        "help": {
+          "url": "Une adresse publique d'image commençant par https://. Celles de votre propre réseau ne sont pas chargées.",
+          "www": "Un fichier du dossier www de la configuration de Home Assistant, écrit /local/ et son chemin.",
+          "media": "Une image des médias de Home Assistant, écrite media-source:// et son chemin."
+        },
+        "wrong": {
+          "url": "Ce n'est pas une adresse internet : elle commence par https:// ou http://.",
+          "www": "Un fichier du dossier www commence par /local/.",
+          "media": "Une image des médias commence par media-source://."
+        },
+        "entity_search": "Rechercher des entités",
+        "entity_none": "Aucune entité avec une image",
+        "entity_pick": "Choisir une entité",
+        "dim": "Assombrie",
+        "refresh": "Rechargée",
+        "refresh_once": "Jamais",
+        "refresh_minutes": "Toutes les {n} min",
+        "refresh_hour": "Toutes les heures",
+        "cards": "Les cartes gardent leur couleur par-dessus ; une carte avec Arrière-plan : aucun laisse voir l'image. Les écrans ont besoin du firmware 0.65.0 et des images (pas le CYD)."
+      }
     },
     "feedback": {
       "question": "Votre écran fonctionne-t-il comme prévu ?",

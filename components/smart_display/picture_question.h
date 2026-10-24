@@ -22,7 +22,8 @@
 
 namespace picture_question {
 // Who asks (picture_question.OWNERS in the app).
-enum class Owner : uint8_t { TILE, VIEW, CARD, SAVER, LIBRARY, PLUGIN_TILE, PLUGIN_CARD, PLUGIN_SAVER };
+// PAGE (firmware 0.65.0): a page's own background picture, `index` the page.
+enum class Owner : uint8_t { TILE, VIEW, CARD, SAVER, LIBRARY, PLUGIN_TILE, PLUGIN_CARD, PLUGIN_SAVER, PAGE };
 inline const char *owner_text(Owner o) {
   switch (o) {
     case Owner::TILE: return "tile";
@@ -32,6 +33,7 @@ inline const char *owner_text(Owner o) {
     case Owner::LIBRARY: return "library";
     case Owner::PLUGIN_TILE: return "plugin_tile";
     case Owner::PLUGIN_CARD: return "plugin_card";
+    case Owner::PAGE: return "page";
     default: return "plugin_saver";
   }
 }
@@ -141,7 +143,7 @@ inline std::string hex(uint32_t colour) {
 // The question as the app reads it: the compact JSON of the event's `q` (picture_question.parse in the app).
 inline std::string json(const Question &q) {
   std::string out = "{\"o\":\"" + std::string(owner_text(q.owner)) + "\"";
-  if (q.owner == Owner::TILE || q.owner == Owner::PLUGIN_TILE) out += ",\"i\":" + std::to_string(std::max(0, q.index));
+  if (q.owner == Owner::TILE || q.owner == Owner::PLUGIN_TILE || q.owner == Owner::PAGE) out += ",\"i\":" + std::to_string(std::max(0, q.index));
   if (!q.key.empty()) out += ",\"p\":" + quoted(q.key);
   if (!q.of.empty()) out += ",\"for\":" + quoted(q.of);
   out += ",\"src\":[";

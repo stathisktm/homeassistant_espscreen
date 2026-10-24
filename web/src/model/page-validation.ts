@@ -7,6 +7,7 @@ import { TILE, ofType, taps as catalogueTaps } from './catalogue';
 import { PLUGIN_LIST_MAX, PLUGIN_OPTIONS_BYTES, PLUGIN_TILE } from './plugins';
 import rules from './page-rules.json';
 import { TINT_RULES, TINT_WHEN, tintHex } from './tint';
+import { validBackground } from './page-background';
 import type { PageLayout, PageTile } from '../types';
 
 const bytes = (s: string) => new TextEncoder().encode(s).length;
@@ -60,7 +61,9 @@ export function validatePageShape(layout: PageLayout, plugins = false) {
     throw new Error(t('addon.errors.layout.title'));
   if (!Array.isArray(layout.pages)) fail();
   for (const page of layout.pages) {
-    fields(page, ['id', 'navigation', 'topbar', 'tiles', 'icon'], ['id', 'navigation', 'topbar', 'tiles']);
+    fields(page, ['id', 'navigation', 'topbar', 'tiles', 'icon', 'background'], ['id', 'navigation', 'topbar', 'tiles']);
+    // A page's own background picture (app 0.4.109), as page_backdrop.validate takes it.
+    if (page.background !== undefined && !validBackground(page.background)) fail('background');
     fields(page.navigation, ['excludeFromPagination', 'showInDock'], ['excludeFromPagination']);
     const bar = page.topbar;
     fields(bar, ['leading', 'title', 'trailing']);

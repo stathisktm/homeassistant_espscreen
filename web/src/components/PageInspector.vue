@@ -23,6 +23,7 @@ import { useDocumentStore } from "../stores/document";
 import { useInspectorStore } from "../stores/inspector";
 import { useEntitiesStore } from "../stores/entities";
 import { glyph } from "../model/topbar";
+import PageBackgroundSection from "./inspector/PageBackgroundSection.vue";
 
 const scr = useScreenStore();
 const topbar = useTopbarStore();
@@ -118,6 +119,8 @@ const cells = computed(() => Math.min(12, (doc.documentGrid?.columns || 2) * (do
           <small v-if="scr.noTitle" class="help">{{ t('editor.topbar.no_title_hint') }}</small>
         </div>
       </Section>
+
+      <PageBackgroundSection :page="page" :disabled="!scr.pageReady" />
 
       <Section :title="t('editor.pages.sections.navigation')" icon="gesture-swipe-horizontal">
         <div class="switch-row">

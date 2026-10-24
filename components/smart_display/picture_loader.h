@@ -37,7 +37,8 @@ enum class Slot : uint8_t { FULL, THUMB, LIVE };
 // How much a picture matters, the order downloads go in.
 enum class Rank : uint8_t { ALERT, VIEW, CARD, LIBRARY, PAGE, AHEAD };
 // Who wants a picture: one of each kind, or one per tile.
-enum class Kind : uint8_t { ALERT, VIEW, CARD, LIBRARY, TILE };
+// BACKDROP (firmware 0.65.0): a page's own background, one owner per page.
+enum class Kind : uint8_t { ALERT, VIEW, CARD, LIBRARY, TILE, BACKDROP };
 struct Owner {
   Kind kind = Kind::VIEW;
   uint32_t index = 0;  // the tile's index; 0 where there is one
