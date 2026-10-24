@@ -1,5 +1,8 @@
 ## Unreleased
 
+- **0.4.102: the Preview in Greek.** The editor's Preview, the screen's own firmware in the browser, is built again:
+  it speaks Greek with the Greek letters, and shows this fork's colours by state and second lines as the screen does.
+
 - **A weather tile takes its colours by state.** Home Assistant's weather states with a dash (`clear-night`,
   `snowy-rainy`, `lightning-rainy`, `windy-variant`) were refused as rule words and dropped when the page was saved, so a
   weather card at night kept its own colour. They are kept now.
