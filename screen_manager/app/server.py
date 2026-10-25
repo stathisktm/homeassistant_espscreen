@@ -2945,10 +2945,12 @@ class Manager:
                         self.snapshots.vacuum_warm(card['map']['e'],card['map']['m'])
         if tile['entity'].startswith('calendar.'):
             extra = {**(extra or {}), 'cal': await self.calendar_extras(tile)}
-        # A weather tile's colour pictures are the night's while the sun is down (app 0.4.117, firmware 0.70.0).
+        # A weather tile's colour pictures are the night's while the sun is down (app 0.4.117, firmware 0.70.0). As
+        # JSON's true: the screen reads it as a boolean (`extra["nt"] | false`), which a number 1 is not, so app 0.4.117
+        # to 0.4.119 sent a night no screen saw (app 0.4.120).
         if (tile['entity'].startswith('weather.') and options.get('weather_icons') == 'emoji'
                 and (self.ha.states.get('sun.sun') or {}).get('state') == 'below_horizon'):
-            extra = {**(extra or {}), 'nt': 1}
+            extra = {**(extra or {}), 'nt': True}
         message=state_message(index,tile,states,extra,
                               precision=header_bar.precision_of(entry) if tile['entity'].startswith('sensor.') else None,entry=entry,
                               units=getattr(self.ha,'units',None),week=week)

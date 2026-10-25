@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.120: the night's weather pictures show.** The app told the screen that the sun was down as a number, where the
+  screen reads a yes or no, so a weather tile with colour weather emoji kept its day's pictures at night. It says yes
+  now: the moon, the night's clouds and rain show while the sun is down. No firmware update is needed (0.70.0 or newer).
+
 - **0.4.119: the forecast's days in Iris too.** With colour weather emoji, the days and hours of a weather tile's week
   and of the card a tap opens show the Iris pictures as well, where they still showed the old icons; the weather now
   on that card takes the night's while the sun is down. Screens need firmware 0.71.0.

@@ -47,6 +47,14 @@ class TheNight(unittest.TestCase):
         # With its icons, it follows nothing more.
         self.assertEqual(manager.related_entities({'entity': 'weather.home', 'options': {}}), ())
 
+    def test_the_night_is_a_boolean_as_the_screen_reads_it(self):
+        # The screen reads `nt` as a boolean (ArduinoJson's `| false` takes no number for it): the app sends true.
+        server = (ROOT / 'screen_manager/app/server.py').read_text(encoding='utf-8')
+        receiver = (ROOT / 'components/smart_display/page_receiver.cpp').read_text(encoding='utf-8')
+        self.assertIn("extra = {**(extra or {}), 'nt': True}", server)
+        self.assertNotIn("'nt': 1}", server)
+        self.assertIn('tile.weather_night = extra["nt"] | false;', receiver)
+
 
 class TheChart(unittest.TestCase):
     """The days and hours of the week and of the card a tap opens take the pictures too (firmware 0.71.0)."""
