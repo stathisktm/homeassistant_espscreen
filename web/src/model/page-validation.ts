@@ -27,7 +27,7 @@ const CALENDAR_MORE = ['calendarWeekStart', 'calendarHours', 'calendarWeekNumber
 // A sensor's meter (firmware 0.56.0, meter.validate) and a card's colour by state (app 0.4.91, tint.validate), as the
 // page document names them.
 const METER_FIELDS = ['meterStyle', 'meterMin', 'meterMax', 'meterSegments', 'meterColors', 'meterThresholds'] as const;
-const TINT_FIELDS = ['tint', 'tintIcon', 'opacity', 'iconRules', 'iconPlain'] as const;
+const TINT_FIELDS = ['tint', 'tintIcon', 'opacity', 'iconRules', 'iconPlain', 'weatherIcons'] as const;
 const entity = (value: any, domains: string[]) => typeof value === 'string' && value.length <= 120 &&
   matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, value) && domains.includes(value.split('.')[0]);
 // Any icon of Material Design Icons by its name (app 0.4.115): the add-on checks the name against the font itself.
@@ -223,6 +223,8 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
   if (a.tintIcon !== undefined && (a.tintIcon !== true || a.tint === undefined)) fail();
   // The icon alone (app 0.4.115), as core.validate_layout keeps it: true or nothing.
   if (a.iconPlain !== undefined && a.iconPlain !== true) fail('normalization');
+  // A weather tile's colour pictures (app 0.4.116): "emoji" or nothing.
+  if (a.weatherIcons !== undefined && a.weatherIcons !== 'emoji') fail('normalization');
   // How much of the card covers a page's background (app 0.4.111), as core.validate_layout keeps it.
   if (a.opacity !== undefined && (![80, 60, 40, 20].includes(a.opacity) || a.background === 'none')) fail('normalization');
   // An icon by state (app 0.4.112), as tint.validate_icons keeps it.

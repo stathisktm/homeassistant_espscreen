@@ -4212,6 +4212,8 @@ def create_app(manager, development=False):
             screen['live_camera'] = manager.live_camera(screen)
             # The Dock (docs/MODULES.md): the editor offers "Show in Dock" on a page of a board that has it.
             screen['dock'] = has_module(screen, 'dock')
+            # A weather tile's colour pictures (app 0.4.116): the editor offers them on a board with the module.
+            screen['weather_emoji'] = has_module(screen, 'weather_emoji')
             # A vacuum's larger tile (docs/VACUUM.md, "A larger tile"): its map, rooms and routines on a board with the
             # vacuum card's module; the editor offers them there only, and a screen whose hello lacks vacuum_tile gets
             # the keys (catalogue screen else).

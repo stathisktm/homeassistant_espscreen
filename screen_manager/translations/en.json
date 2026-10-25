@@ -2382,6 +2382,10 @@
         "hvac_modes": "Mode",
         "fan_modes": "Fan",
         "swing_modes": "Swing"
+      },
+      "weather_emoji": {
+        "label": "Colour weather emoji",
+        "hint": "Colour pictures of the weather (sun, clouds, rain) in the place of its icons, on the tile, the forecast and the week."
       }
     },
     "precision": {

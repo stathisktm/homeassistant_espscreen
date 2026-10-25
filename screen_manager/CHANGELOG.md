@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.116: colour weather emoji.** A weather tile's "Colour weather emoji": colour pictures of the weather (sun,
+  clouds, rain, snow, storm) in the place of its icons, on the tile, its forecast's days and its week, the same in the
+  editor's preview. The pictures are Noto Emoji's (Apache License 2.0). Screens need firmware 0.69.0 and 8 MB of flash
+  or more: a 4 MB board such as the CYD keeps the icons.
+
 - **0.4.115: every Home Assistant icon, and the icon without its circle.** The icon picker now finds any of Home
   Assistant's icons by name (all of Material Design Icons, some seven thousand), for a tile, an icon rule, a page and a
   top bar item, and a tile's Automatic icon is Home Assistant's own even where it is not in the set every screen

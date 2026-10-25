@@ -604,6 +604,9 @@ struct Tile {
   bool tint_icon = false;
   // The icon alone on the card, without its round ground (firmware 0.68.0, option icon_plain).
   bool icon_plain = false;
+  // A weather tile's colour pictures in the place of its icons (firmware 0.69.0, option weather_icons "emoji", module
+  // weather_emoji): read on every board, drawn where the module is.
+  bool weather_emoji = false;
   // How much of the card covers what lies under it (firmware 0.67.0, option opacity): a page's background shows through.
   uint8_t card_opa = 255;
   std::string icon;  // UTF-8 glyph of a chosen icon the icon fonts contain; empty keeps the domain icon.

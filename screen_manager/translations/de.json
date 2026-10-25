@@ -2811,6 +2811,10 @@
         "hvac_modes": "Modus",
         "fan_modes": "Lüfter",
         "swing_modes": "Schwenken"
+      },
+      "weather_emoji": {
+        "label": "Farbige Wetter-Emoji",
+        "hint": "Farbige Bilder des Wetters (Sonne, Wolken, Regen) anstelle der Symbole, auf der Kachel, in der Vorhersage und in der Woche."
       }
     },
     "precision": {

@@ -2811,6 +2811,10 @@
         "hvac_modes": "Modalità",
         "fan_modes": "Ventola",
         "swing_modes": "Oscillazione"
+      },
+      "weather_emoji": {
+        "label": "Emoji meteo a colori",
+        "hint": "Immagini a colori del meteo (sole, nuvole, pioggia) al posto delle icone, sul riquadro, nella previsione e nella settimana."
       }
     },
     "precision": {

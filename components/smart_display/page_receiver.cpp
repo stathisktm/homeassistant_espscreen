@@ -770,6 +770,8 @@ std::string receive(const std::string &payload) {
     tile.card_opa = static_cast<uint8_t>(std::clamp(options["opacity"] | 100, 20, 100) * 255 / 100);
     // The icon alone, without its round ground (firmware 0.68.0).
     tile.icon_plain = options["icon_plain"] | false;
+    // A weather tile's colour pictures (firmware 0.69.0, module weather_emoji).
+    tile.weather_emoji = string(options["weather_icons"], 8) == "emoji";
     // An icon these fonts lack takes the one of the set the app names beside it (firmware 0.68.0, icon_fb: any icon of
     // Material Design Icons may be chosen, and a screen carries those its pages use once it is built for them); with
     // neither, the domain icon.

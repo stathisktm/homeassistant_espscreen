@@ -11,6 +11,10 @@
 # there ESPHome's default for it would win over a line here. ESP Screens writes it (core.installation_yaml,
 # Firmware.allow_table_update). And nothing here hooks into `esphome: on_boot:`, which a package would take from the
 # core: the component starts by itself.
+substitutions:
+  # No colour weather pictures (module weather_emoji, docs/MODULES.md): this flash has no room for them.
+  WEATHER_EMOJI: "0"
+
 flash_layout:
 
 text_sensor:

@@ -3,6 +3,10 @@
 .tile .ic:not(.thumb) { color: var(--tile-icon); background: var(--tile-circle); border-radius: 50%; padding: 5px; }
 /* The icon alone on the card (app 0.4.115, option icon_plain): its circle keeps its place and drops its ground. */
 .tile.icon-plain .ic:not(.thumb), .tile.icon-plain .vc-circle { background: transparent; }
+/* A weather tile's colour picture in the place of its icon (app 0.4.116, module weather_emoji): the glyph keeps its
+   room and goes transparent, the picture stands over it at nine tenths of its size, as on the glass. */
+.tile.weather-emoji .ic:not(.thumb) { color: transparent; background-image: var(--weather-emoji); background-size: auto 90%;
+  background-repeat: no-repeat; background-position: center; background-origin: content-box; }
 .tile .tog:not(.off) { background: var(--tile-accent); }
 /* A player's album cover over a card of one row (TileLine): behind the card's words in the card's own stacking
    (the card isolates), dimmed as the screen's SHADE, the words light and the icon in a dark circle once it is here. */

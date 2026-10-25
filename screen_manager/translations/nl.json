@@ -2382,6 +2382,10 @@
         "hvac_modes": "Modus",
         "fan_modes": "Ventilator",
         "swing_modes": "Zwenken"
+      },
+      "weather_emoji": {
+        "label": "Gekleurde weer-emoji",
+        "hint": "Gekleurde afbeeldingen van het weer (zon, wolken, regen) in plaats van de pictogrammen, op de tegel, de verwachting en de week."
       }
     },
     "precision": {

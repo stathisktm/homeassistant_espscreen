@@ -2811,6 +2811,10 @@
         "hvac_modes": "Tryb",
         "fan_modes": "Wentylator",
         "swing_modes": "Nawiew"
+      },
+      "weather_emoji": {
+        "label": "Kolorowe emoji pogody",
+        "hint": "Kolorowe obrazki pogody (słońce, chmury, deszcz) zamiast ikon, na kafelku, w prognozie i w tygodniu."
       }
     },
     "precision": {

@@ -52,6 +52,8 @@ APPEARANCE = {
     "opacity": "opacity",
     # The icon alone, without its round ground (app 0.4.115).
     "iconPlain": "icon_plain",
+    # A weather tile's colour pictures in the place of its icons (app 0.4.116, module weather_emoji).
+    "weatherIcons": "weather_icons",
     # An icon by state (app 0.4.112, tint.validate_icons): rules that give the tile another icon.
     "iconRules": "icons",
 }

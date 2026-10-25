@@ -2811,6 +2811,10 @@
         "hvac_modes": "Mód",
         "fan_modes": "Ventilátor",
         "swing_modes": "Lengetés"
+      },
+      "weather_emoji": {
+        "label": "Színes időjárás-emoji",
+        "hint": "Az időjárás színes képei (nap, felhők, eső) az ikonok helyén, a csempén, az előrejelzésben és a héten."
       }
     },
     "precision": {

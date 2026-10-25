@@ -75,3 +75,9 @@ the add-on and the editor offer a module's options only on boards that have it.
   icon of its own (`icon` in the page document, one of the pickable MDI icons, sent as its codepoint): the Dock then
   shows that icon instead of the page's picture. On lite, up from
   the bottom goes home.
+- **weather_emoji** (full): a weather tile's colour pictures in the place of its icons, where its option
+  `weather_icons` is `emoji` (`module_weather_emoji.h`): on the tile, its forecast's days and its week. The pictures
+  are Noto Emoji's (`fonts/weather-emoji-*.png`), built at the mini and the card icon font's size by
+  `packages/core.yaml` and handed over at boot (`weather_pictures.h`); `packages/hardware/flash-4mb.yaml` sets
+  `WEATHER_EMOJI: "0"`, so a lite board builds them as single pixels. The editor offers the option where `boards.json`
+  lists the module, and lite keeps the icons.

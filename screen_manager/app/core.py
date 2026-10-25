@@ -179,7 +179,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.68.0'
+FIRMWARE_VERSION = '0.69.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -1969,7 +1969,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', 'icon_plain', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', 'icon_plain', 'weather_icons', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -2014,6 +2014,13 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 raise ValueError(t('addon.errors.layout.background'))
             # How much of the card covers what lies under it (app 0.4.111, firmware 0.67.0): a page's background shows
             # through a card of 80, 60, 40 or 20 percent. A whole card (100) is no key, and a card without one has none.
+            # A weather tile's colour pictures in the place of its icons (app 0.4.116, firmware 0.69.0, module
+            # weather_emoji): "emoji" on a weather tile alone, the icons without the key.
+            if 'weather_icons' in options:
+                if options['weather_icons'] not in ('emoji', 'icons'):
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting='weather_icons'))
+                if options['weather_icons'] != 'emoji' or not tile['entity'].startswith('weather.'):
+                    options = {k: v for k, v in options.items() if k != 'weather_icons'}
             # The icon alone, without its round ground (app 0.4.115, firmware 0.68.0): kept only as true.
             if 'icon_plain' in options:
                 if type(options['icon_plain']) is not bool:

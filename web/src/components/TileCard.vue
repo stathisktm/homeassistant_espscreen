@@ -23,10 +23,13 @@ import { useUiStore } from "../stores/ui";
 import { placeTile, removeTile } from "../editor/tiles";
 import { useDocumentStore } from "../stores/document";
 import { useInspectorStore } from "../stores/inspector";
+import { useEntitiesStore } from "../stores/entities";
+import { weatherPicture } from "../model/weather-emoji";
 
 const ui = useUiStore();
 const doc = useDocumentStore();
 const insp = useInspectorStore();
+const entities = useEntitiesStore();
 
 const props = defineProps<TileCardProps>();
 const emit = defineEmits<{ navigate: [tileId: string] }>();
@@ -60,9 +63,13 @@ const classes = computed(() => {
   return { wide: face.wide, full: face.full, tall: face.tall, "watch-card": kind.value === "watch", "tall-action": face.tallAction || face.tallStack, "big-key": face.bigKey,
     photo: card.loaded.artwork && !!card.artwork, camera: (kind.value === "camera" && card.loaded.camera) || (kind.value === "favorite" && card.loaded.favorite),
     glass: !!card.head, bare: props.tile.options?.background === "none", "icon-plain": props.tile.options?.icon_plain === true,
+    "weather-emoji": !!weatherEmoji.value,
     "see-through": typeof props.tile.options?.opacity === "number" && props.tile.options.opacity < 100 && props.tile.options?.background !== "none", placeholder: props.placeholder || (!card.live && !card.foreign), chosen: card.chosen,
     "just-added": !props.preview && !!props.tile.id && doc.justAdded === props.tile.id };
 });
+// A weather tile's colour picture in the place of its icon (app 0.4.116), as the screen draws it.
+const weatherEmoji = computed(() => props.tile.entity.startsWith("weather.") && props.tile.options?.weather_icons === "emoji"
+  ? weatherPicture(entities.liveOf(props.tile.entity)?.state) : null);
 const style = computed(() => {
   const background = card.background;
   // A card a page's background shows through (app 0.4.111): its colour mixed with nothing, in app.css (.see-through).
@@ -72,6 +79,7 @@ const style = computed(() => {
     ...card.glassStyle.frame,
     ...(seeThrough ? { "--tile-opacity": `${opacity}%`, ...(background ? { "--tile-face": background } : {}) }
       : background && props.tile.options?.background !== "none" ? { backgroundColor: background } : {}),
+    ...(weatherEmoji.value ? { "--weather-emoji": `url("${weatherEmoji.value}")` } : {}),
     "--tile-cols": card.shape.columns, "--tile-icon": card.palette.icon, "--tile-circle": card.palette.circle, "--tile-accent": card.palette.accent, ...(card.watchStyle?.pad ?? {}) };
 });
 

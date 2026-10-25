@@ -60,6 +60,8 @@ export type TileOptions = {
   tint_icon?: boolean;
   // The icon alone, without its round ground (app 0.4.115, firmware 0.68.0).
   icon_plain?: boolean;
+  // A weather tile's colour pictures in the place of its icons (app 0.4.116, firmware 0.69.0, module weather_emoji).
+  weather_icons?: "emoji";
   // How much of the card covers what lies under it, in percent (app 0.4.111, firmware 0.67.0); left out, all of it.
   opacity?: number;
   // An icon by state (app 0.4.112, model/icon-rules.ts): the first rule that fits gives the tile's icon.
@@ -121,7 +123,7 @@ export type PageTile = {
     // A sensor's meter (firmware 0.56.0): TileOptions' meter, min, max, segments, colors and thresholds; and a card's
     // colour by state (app 0.4.91): TileOptions' tint.
     meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[];
-    tint?: TileOptions["tint"]; tintIcon?: boolean; iconPlain?: boolean; opacity?: number; iconRules?: TileOptions["icons"] };
+    tint?: TileOptions["tint"]; tintIcon?: boolean; iconPlain?: boolean; weatherIcons?: "emoji"; opacity?: number; iconRules?: TileOptions["icons"] };
   interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string;
     hvac_modes?: string[]; fan_modes?: string[]; swing_modes?: string[] };
   children?: ChildTile[];
@@ -335,6 +337,8 @@ export type Screen = {
   battery?: boolean;
   // Whether its board has the Dock (boards.json `modules`, docs/MODULES.md): a page then offers Show in Dock.
   dock?: boolean;
+  // Whether its board draws a weather tile's colour pictures (boards.json `modules`: weather_emoji, app 0.4.116).
+  weather_emoji?: boolean;
   /** Streams a camera live (a P4 whose hello says `live`, or such a board while it is offline): Live is a camera tile's
    * first and default pace there (app dev). */
   live_camera?: boolean;

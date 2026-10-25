@@ -459,6 +459,10 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
       <!-- The icon alone on the card, without its round ground (app 0.4.115, firmware 0.68.0). -->
       <SwitchRow v-if="showIcon && !key" class="icon-plain-choice" :label="t('editor.tile.icon.plain')" :description="t('editor.tile.icon.plain_hint')"
         :model-value="tile.options?.icon_plain === true" @update:model-value="(on: boolean) => setTileOption(tile, 'icon_plain', on || undefined)" />
+      <!-- A weather tile's colour pictures in the place of its icons (app 0.4.116, firmware 0.69.0, module weather_emoji). -->
+      <SwitchRow v-if="tile.entity.startsWith('weather.') && scr.currentScreen?.weather_emoji" class="weather-emoji-choice"
+        :label="t('editor.tile.weather_emoji.label')" :description="t('editor.tile.weather_emoji.hint')"
+        :model-value="tile.options?.weather_icons === 'emoji'" @update:model-value="(on: boolean) => setTileOption(tile, 'weather_icons', on ? 'emoji' : undefined)" />
       <PropRow v-if="!key" :label="t('editor.tile.background.label')" icon="palette-outline" stack>
         <template #aside>{{ backgroundName }}</template>
         <div class="sw" @pointerleave="previewBackground(null)">

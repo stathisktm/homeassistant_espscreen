@@ -2811,6 +2811,10 @@
         "hvac_modes": "Modo",
         "fan_modes": "Ventilador",
         "swing_modes": "Oscilación"
+      },
+      "weather_emoji": {
+        "label": "Emoji del tiempo en color",
+        "hint": "Imágenes en color del tiempo (sol, nubes, lluvia) en lugar de sus iconos, en el mosaico, la previsión y la semana."
       }
     },
     "precision": {

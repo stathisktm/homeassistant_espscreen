@@ -242,7 +242,9 @@ const appearanceKeys = { display: "display", icon: "icon", background: "backgrou
   // A card's colour by state (app 0.4.91): its rules, which the add-on resolves for the screens.
   tint: "tint", tintIcon: "tint_icon", opacity: "opacity", iconRules: "icons",
   // The icon alone, without its round ground (app 0.4.115).
-  iconPlain: "icon_plain" } as const;
+  iconPlain: "icon_plain",
+  // A weather tile's colour pictures in the place of its icons (app 0.4.116).
+  weatherIcons: "weather_icons" } as const;
 
 /** A render view, never a second saved or editable layout. */
 export function projectLayout(layout: PageLayout, grid: PageGrid): Layout {

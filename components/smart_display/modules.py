@@ -27,6 +27,8 @@ MODULES = {
     "clock_faces": {"min_tier": "full", "define": "SD_MOD_CLOCK_FACES"},
     # A doorbell's ring opens its camera live with a chime, on a screen that streams (a P4); lite shows alerts only.
     "doorbell": {"min_tier": "full", "define": "SD_MOD_DOORBELL"},
+    # Colour pictures of the weather in the place of its icons, where a weather tile asks for them; lite keeps the icons.
+    "weather_emoji": {"min_tier": "full", "define": "SD_MOD_WEATHER_EMOJI"},
 }
 
 

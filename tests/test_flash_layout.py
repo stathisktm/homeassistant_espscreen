@@ -128,7 +128,10 @@ class TheBoards(unittest.TestCase):
         """A package's `esphome: on_boot:` or `ota:` would take the place of the core's or lose against the screen's own
         (the first version of this did both); the component starts by itself."""
         package = load((ROOT / 'packages/hardware/flash-4mb.yaml').read_text())
-        self.assertEqual(list(package), ['flash_layout', 'text_sensor'])
+        self.assertEqual(list(package), ['substitutions', 'flash_layout', 'text_sensor'])
+        # A substitution merges by its name, so it takes nothing of the core's: the one that leaves out the colour
+        # weather pictures (module weather_emoji, app 0.4.116), which this flash has no room for.
+        self.assertEqual(package['substitutions'], {'WEATHER_EMOJI': '0'})
         self.assertEqual([sensor['name'] for sensor in package['text_sensor']], list(core.NAME_SCREEN_FLASH))
 
     def test_no_other_board_s_firmware_changes(self):

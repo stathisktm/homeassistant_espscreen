@@ -37,6 +37,9 @@ GSL3680 touch firmware (components/gsl3680_v3/gsl3680_firmware.h)
 Fonts and icons
   Roboto and Montserrat: SIL Open Font License 1.1 (fonts/Roboto-OFL.txt). Material Design Icons: Pictogrammers Free
   License, the fonts under the Apache License 2.0 (fonts/MDI-LICENSE.txt). They keep their own licences.
+  Noto Emoji's weather pictures (fonts/weather-emoji-*.png and web/src/assets/weather-emoji, from
+  https://github.com/googlefonts/noto-emoji): Copyright Google LLC, Apache License 2.0
+  (fonts/Noto-Emoji-Apache-2.0.txt).
 
 Pictures
   The front door in the camera pictures under docs/images is a photo by Virginia Marinova on Unsplash, used under the

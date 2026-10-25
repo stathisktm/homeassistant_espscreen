@@ -65,6 +65,10 @@
 #ifdef SD_MOD_DOORBELL
 #include "module_doorbell.h"
 #endif
+#include "weather_pictures.h"
+#ifdef SD_MOD_WEATHER_EMOJI
+#include "module_weather_emoji.h"
+#endif
 #include "plugin_api.h"
 #include "plugin_host.h"
 #include "screen_hooks.h"
@@ -7205,7 +7209,12 @@ inline bool render_week(Widgets &w,const Tile &t,bool large,int width,int height
   auto *disc=show(part_dot(w,0,0,disc_y,std::min(circle,height)));
   set_color(disc,LV_STYLE_BG_COLOR,lv_color_hex(t.available()?theme::tint(sky,38):theme::hex(theme::TRACK)));
   const int gh=line_of(w.icon_font);
-  words(1,w.icon_font,0,disc_y+(std::min(circle,height)-gh)/2,std::min(circle,height),LV_TEXT_ALIGN_CENTER,t.available()?weather_icon(t.state):"\U000F0595",t.available()?theme::icon(sky):theme::hex(theme::OFF));
+  auto *sky_icon=words(1,w.icon_font,0,disc_y+(std::min(circle,height)-gh)/2,std::min(circle,height),LV_TEXT_ALIGN_CENTER,t.available()?weather_icon(t.state):"\U000F0595",t.available()?theme::icon(sky):theme::hex(theme::OFF));
+#ifdef SD_MOD_WEATHER_EMOJI
+  weather_emoji::dress(sky_icon,t.available()?t.state:"",t.weather_emoji,true);
+#else
+  (void)sky_icon;
+#endif
   const int th=line_of(bold),nh=line_of(text),hy=(circle-th-nh)/2;
   if(low){
     const int c0=std::min(circle,height)+gap,tfh=line_of(tf);
@@ -7302,8 +7311,11 @@ inline void render_forecast(Widgets &w,const Tile &t,bool large,int width,int he
     set_color(disc,LV_STYLE_BG_COLOR,lv_color_hex(t.available()?theme::tint(sky,38):theme::hex(theme::TRACK)));
     const lv_font_t *glyph=l.circle.w>=m.circle||!mini_icon_font?w.icon_font:mini_icon_font;
     const int gh=lv_font_get_line_height(glyph);
-    paint(show(part_label(w,1,glyph,l.circle.x,l.circle.y+(l.circle.h-gh)/2,l.circle.w,LV_TEXT_ALIGN_CENTER,t.available()?weather_icon(t.state):"\U000F0595")),
-          t.available()?theme::icon(sky):theme::hex(theme::OFF));
+    auto *sky_icon=show(part_label(w,1,glyph,l.circle.x,l.circle.y+(l.circle.h-gh)/2,l.circle.w,LV_TEXT_ALIGN_CENTER,t.available()?weather_icon(t.state):"\U000F0595"));
+    paint(sky_icon,t.available()?theme::icon(sky):theme::hex(theme::OFF));
+#ifdef SD_MOD_WEATHER_EMOJI
+    weather_emoji::dress(sky_icon,t.available()?t.state:"",t.weather_emoji,glyph==w.icon_font);
+#endif
   }
   if(l.face>=0){
     words(2,faces[l.face],l.temp,LV_TEXT_ALIGN_LEFT,now_text,ink);
@@ -7318,7 +7330,12 @@ inline void render_forecast(Widgets &w,const Tile &t,bool large,int width,int he
     for(int k=0;k<l.days;++k){
       const auto &f=days[k];const auto &r=l.rows[k];const unsigned base=4+k*6;
       words(base,bold,r.name,LV_TEXT_ALIGN_LEFT,f.day,ink);
-      words(base+1,mini,r.icon,LV_TEXT_ALIGN_CENTER,weather_icon(f.condition),weather_accent(f.condition));
+      auto *day_icon=words(base+1,mini,r.icon,LV_TEXT_ALIGN_CENTER,weather_icon(f.condition),weather_accent(f.condition));
+#ifdef SD_MOD_WEATHER_EMOJI
+      weather_emoji::dress(day_icon,f.condition,t.weather_emoji);
+#else
+      (void)day_icon;
+#endif
       if(!r.rain.empty()&&std::isfinite(f.rain)&&f.rain>=30)words(base+2,text,r.rain,LV_TEXT_ALIGN_LEFT,screen_text::percent((int)std::lround(f.rain)),rain);
       words(base+3,text,{r.low.x,r.low.y,r.low.w,r.low.h},LV_TEXT_ALIGN_RIGHT,degrees(f.low),muted);
       auto *track=show(part_bar(w,base+4,r.bar.x,r.bar.y,r.bar.w,r.bar.h));
@@ -7346,7 +7363,12 @@ inline void render_forecast(Widgets &w,const Tile &t,bool large,int width,int he
     const auto &f=days[k];const auto &c=l.columns[k];const unsigned base=5+k*5;
     const bool beside=!c.name.empty()&&c.name.y>c.icon.y;
     if(!c.name.empty())words(base,text,c.name,beside?LV_TEXT_ALIGN_LEFT:LV_TEXT_ALIGN_CENTER,f.day,muted);
-    words(base+1,mini,c.icon,LV_TEXT_ALIGN_CENTER,weather_icon(f.condition),weather_accent(f.condition));
+    auto *day_icon=words(base+1,mini,c.icon,LV_TEXT_ALIGN_CENTER,weather_icon(f.condition),weather_accent(f.condition));
+#ifdef SD_MOD_WEATHER_EMOJI
+    weather_emoji::dress(day_icon,f.condition,t.weather_emoji);
+#else
+    (void)day_icon;
+#endif
     const std::string hi=degrees(f.high),lo=degrees(f.low);
     const int hw=text_width(hi,bold),lw=text_width(lo,text),x0=c.temps.x+(c.temps.w-(hw+space+lw))/2;
     words(base+2,bold,{x0,c.temps.y,hw+2,c.temps.h},LV_TEXT_ALIGN_LEFT,hi,ink);
@@ -8724,6 +8746,10 @@ inline void render_slot(size_t slot) {
   if(w.loading&&!(t.live()||t.is_map()||t.favorite()))lv_obj_add_flag(w.loading,LV_OBJ_FLAG_HIDDEN);
   label(w.title, t.name.empty() ? t.entity : t.name);
   label(w.icon, icon_for(t));
+#ifdef SD_MOD_WEATHER_EMOJI
+  // A weather tile's colour picture over its icon (firmware 0.69.0); any other tile has its glyph back.
+  weather_emoji::dress(w.icon, t.available() ? t.state : "", d == "weather" && t.weather_emoji, true);
+#endif
   bool watch=t.display=="watch";
   // Home Assistant's own words for the value (a duration in hours and minutes, firmware 0.56.0+) carry their units.
   std::string unit=watch&&t.extra().state_word.empty()?t.unit:"";
