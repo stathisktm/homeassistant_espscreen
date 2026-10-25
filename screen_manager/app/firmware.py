@@ -98,9 +98,12 @@ def profile_meta(text):
         return int(value) if isinstance(value, (int, str)) and str(value).strip().isdigit() and int(value) > 0 else None
     built = {name: count(key) for name, key in (('columns', 'GRID_COLS'), ('rows', 'GRID_ROWS'),
                                                ('columns_portrait', 'GRID_COLS_PORTRAIT'), ('rows_portrait', 'GRID_ROWS_PORTRAIT'))}
+    # The icons beyond the set it is built with (app 0.4.115, extra_icons.py): what updates.icons_due compares.
+    icons = substitutions.get('EXTRA_ICONS')
     return {'node': resolve(block.get('name')), 'friendly': resolve(block.get('friendly_name')),
             'screen': ours, 'api_key': key if isinstance(key, str) else None, 'package': package,
-            'rotation': rotation, 'built_grid': {name: value for name, value in built.items() if value}}
+            'rotation': rotation, 'built_grid': {name: value for name, value in built.items() if value},
+            'icons': icons if isinstance(icons, str) else ''}
 
 # What New screen offers, board by board in the catalog's order (boards.yaml, written into boards.json with what each
 # board's files say): what it is called and printed on it, how far it has been tried, its glass (canvas, density,
@@ -190,6 +193,9 @@ class Firmware:
         self.downloaded = set()
         self._names = {}  # file -> (stat signature, meta or None); parsed only when the file changes
         self.language = None  # the language builds speak: the manager's Settings -> Language & region (app 0.2.90)
+        # The icons a profile's screen uses beyond the set (app 0.4.115): profile name -> (text, big text), or None for a
+        # profile of no screen this app knows; the manager's extra_icons_of_profile.
+        self.extra_icons = None
         # The app's build line (build_queue.BuildQueue), which alone starts a job here; None on its own (a test).
         self.builds = None
         # The build server builds go to first when it is on (build_server.BuildServer, docs/BUILDS.md "On a build
@@ -366,7 +372,15 @@ class Firmware:
         left alone, as is an English one without the line (English is the packages' own default). True when it changed."""
         return self._set_substitution(name, 'LANGUAGE', language, default='en', what='language')
 
-    def _set_substitution(self, name, key, value, default=None, what='setting'):
+    def set_extra_icons(self, name, text, big):
+        """Let the screen's next build carry the icons its pages use beyond the set (app 0.4.115, extra_icons.py): the
+        EXTRA_ICONS and EXTRA_ICONS_BIG lines of the profile's substitutions, each icon written as its \\U escape so the
+        YAML stays readable text. A profile without them that needs none is left alone. True when it changed."""
+        escaped = lambda value: '"' + ''.join(f'\\U{ord(char):08X}' for char in value) + '"'
+        changed = self._set_substitution(name, 'EXTRA_ICONS', text, default='', what='icons', literal=escaped(text))
+        return self._set_substitution(name, 'EXTRA_ICONS_BIG', big, default='', what='icons', literal=escaped(big)) or changed
+
+    def _set_substitution(self, name, key, value, default=None, what='setting', literal=None):
         """One substitution of an existing profile, changed or added without reformatting the user's YAML.
 
         A profile that doesn't build from ESP Screens' packages is left alone, as is one that already says this, one
@@ -391,7 +405,7 @@ class Firmware:
         substitutions = substitutions or {}
         if substitutions.get(key) == value or (value == default and key not in substitutions):
             return False
-        line = f'{key}: {json.dumps(value)}'
+        line = f'{key}: {json.dumps(value) if literal is None else literal}'
         block = re.search(r'(?m)^substitutions:[ \t]*(?:#.*)?\n', text)
         if block:
             # The block: indented lines, blank ones and comments, up to the next key at the start of a line.
@@ -1047,6 +1061,14 @@ packages:
                 self.set_language(profile.name, self.language())
             except (OSError, ValueError, yaml.YAMLError) as error:
                 LOG.warning('Could not write the language into %s (%s)', profile.name, error)
+        # The icons the screen's pages use beyond the set (app 0.4.115), also for a profile made before.
+        if managed and callable(self.extra_icons):
+            try:
+                icons = self.extra_icons(profile.name)
+                if icons is not None:
+                    self.set_extra_icons(profile.name, *icons)
+            except (OSError, ValueError, yaml.YAMLError) as error:
+                LOG.warning('Could not write the icons into %s (%s)', profile.name, error)
         # What the app's channel builds from (core.ref): the stable app's own release tag, dev for an app added from the
         # `#dev` URL. An app with no channel (a local copy, a fork) leaves it as it is.
         if managed and channel():

@@ -1945,7 +1945,9 @@
       "icon": {
         "auto_ha": "Automatic (from Home Assistant)",
         "auto_default": "Automatic (default)",
-        "needs_firmware": "The screen shows a chosen icon from firmware 0.2.18."
+        "needs_firmware": "The screen shows a chosen icon from firmware 0.2.18.",
+        "plain": "Icon only, no circle",
+        "plain_hint": "The icon stands on the card without the round background behind it."
       },
       "goes_to": {
         "label": "Goes to page",
@@ -2416,7 +2418,10 @@
       "search_label": "Search for an icon",
       "none_text_only": "No icon, text only",
       "aria": "Icon: {name}",
-      "none_found": "No icon found."
+      "none_found": "No icon found.",
+      "all_group": "All Home Assistant icons",
+      "all_hint": "Search by name in all {count} icons Home Assistant has, such as \"garage\" or \"fridge\".",
+      "all_update": "A screen draws an icon from this list after its next update: the app offers it once the icon is used."
     },
     "inspect": {
       "title": "Current data",

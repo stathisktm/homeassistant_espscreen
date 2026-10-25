@@ -1,5 +1,13 @@
 ## Unreleased
 
+- **0.4.115: every Home Assistant icon, and the icon without its circle.** The icon picker now finds any of Home
+  Assistant's icons by name (all of Material Design Icons, some seven thousand), for a tile, an icon rule, a page and a
+  top bar item, and a tile's Automatic icon is Home Assistant's own even where it is not in the set every screen
+  carries. A screen is built with the icons its own pages use, so it spends flash only on those: when you use a new
+  one, the screen's Update is offered (fewer fit on a 4 MB board such as the CYD). Until then it shows Home Assistant's
+  icon of the set. And a tile's "Icon only, no circle": the icon stands on the card without the round background
+  behind it. Screens need firmware 0.68.0.
+
 - **0.4.114: the editor's pages show what the screen shows.** A page's background stands behind the mockup's cards,
   painted by the app as the screen gets it (cut to the screen's shape and darkened), so see-through cards show it too;
   and a line you set that is too wide for its card goes round slowly, as on the glass. No firmware update is needed.

@@ -152,7 +152,7 @@ export function inkOf(text: string, font: string): Ink {
   }
   return ink;
 }
-export const barFonts = (m: BarMetrics) => ({ name: `500 ${m.name}px "Bar Roboto"`, text: `400 ${m.text}px "Bar Roboto"`, icon: `${m.icon}px "Tile Icons"` });
+export const barFonts = (m: BarMetrics) => ({ name: `500 ${m.name}px "Bar Roboto"`, text: `400 ${m.text}px "Bar Roboto"`, icon: `${m.icon}px "Tile Icons", "Tile Icons All"` });
 // Same integer arithmetic as header_bar::gaps() in the firmware, from the digit height in pixels.
 export function barGaps(cap: number) {
   return { icon: Math.max(2, Math.floor((cap * 4 + 5) / 10)), item: Math.max(6, Math.floor((cap * 125 + 50) / 100)), name: Math.max(8, Math.floor((cap * 16 + 5) / 10)) };

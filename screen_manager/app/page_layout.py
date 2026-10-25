@@ -50,6 +50,8 @@ APPEARANCE = {
     "tintIcon": "tint_icon",
     # How much of the card covers a page's background (app 0.4.111).
     "opacity": "opacity",
+    # The icon alone, without its round ground (app 0.4.115).
+    "iconPlain": "icon_plain",
     # An icon by state (app 0.4.112, tint.validate_icons): rules that give the tile another icon.
     "iconRules": "icons",
 }
@@ -464,7 +466,7 @@ def validate_document(data, grid):
                 page["background"] = page_backdrop.validate(page["background"])
             except ValueError:
                 raise LayoutError(t('addon.errors.pages.background')) from None
-        if "icon" in page and (not isinstance(page["icon"], str) or page["icon"] not in tile_icons.ICONS):
+        if "icon" in page and not tile_icons.known(page["icon"]):
             raise LayoutError(t('addon.errors.pages.fields'))
         _identity(page["id"], seen, page=True)
     page_ids = seen.copy()

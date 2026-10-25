@@ -8,6 +8,7 @@ import re
 import time
 import atomic
 import changelog
+import extra_icons
 from build_queue import Round
 from core import FIRMWARE_VERSION, SHAPES, board_of, channel, firmware_target, parse_firmware
 from i18n import Text, english, screen_t, shown, t
@@ -152,6 +153,21 @@ class Updater:
             return False
         return (screen.get('language') or 'en') != region.language()
 
+    def icons_due(self, screen, profiles=None):
+        """True when the screen's pages use an icon its build lacks (app 0.4.115, extra_icons.py): one its profile does
+        not name yet. A profile of no screen of ESP Screens, and a screen this app has no profile for, say nothing."""
+        wanted = getattr(self.manager, 'extra_icons_of', None)
+        if not callable(wanted):
+            return False
+        if profiles is None:
+            profiles = self.manager.firmware.profile_names()
+        profile, _ = self.resolve(screen, profiles)
+        meta = profiles.get(profile) if profile else None
+        if not meta or not meta.get('screen'):
+            return False
+        icons = wanted(screen['id'], meta)
+        return bool(icons and set(extra_icons.text(icons[0])) - set(meta.get('icons') or ''))
+
     def speaks_region(self, screen):
         """Whether the screen says it speaks the language of Settings -> Language & region: what an update waits for."""
         region = getattr(self.manager, 'region', None)
@@ -175,6 +191,7 @@ class Updater:
             profiles = self.manager.firmware.profile_names()
         version = parse_version(screen.get('firmware'))
         language = self.language_due(screen)
+        icons = bool(version) and self.icons_due(screen, profiles)
         profile, host = self.resolve(screen, profiles)
         target = self.target_for(screen, profiles)
         build = self.build_of(screen['id'])
@@ -182,11 +199,11 @@ class Updater:
         result = self.results.get(screen['id'])
         # A failed round is over once the screen runs what it went for (installed another way, or a later round): it
         # runs well, so the failure is no longer news. Not while the language it went for is still due.
-        if (result and result.get('state') == 'failed' and screen.get('online') and version and not language
+        if (result and result.get('state') == 'failed' and screen.get('online') and version and not language and not icons
                 and parse_version(result.get('version')) and version >= parse_version(result.get('version'))):
             result = None
-        return {'available': bool(version and version < parse_version(target)) or (bool(version) and language),
-                'language': bool(version) and language, 'target': target,
+        return {'available': bool(version and version < parse_version(target)) or (bool(version) and language) or icons,
+                'language': bool(version) and language, 'icons': icons, 'target': target,
                 'profile': profile, 'host': host, 'state': state, 'phase': build.phase if state == 'running' else None,
                 'result': shown_result(result)}
 

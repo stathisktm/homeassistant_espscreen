@@ -83,8 +83,9 @@ def page_message(page, index, items, *, initial):
         if page["navigation"].get("showInDock") is False:
             message["dock"] = False
         # A page's own icon, which the Dock shows instead of its picture: its codepoint, as a tile's icon travels.
-        if page.get("icon") in tile_icons.GLYPHS:
-            message["icon"] = tile_icons.GLYPHS[page["icon"]]
+        # Any icon of the font since app 0.4.115: a screen built without it shows the page's picture, as before.
+        if tile_icons.known(page.get("icon")):
+            message["icon"] = tile_icons.ALL_GLYPHS[page["icon"]]
         # Its own background picture (app 0.4.109, firmware 0.65.0): a mark that changes with it and its pace, never
         # where the picture is; the screen asks for it as page:<index>. A page without one says nothing.
         background = page.get("background")
@@ -115,7 +116,11 @@ def tile_message(message, tile, *, initial, holders=None):
         message["op"] = "state"
         # HA may change an automatic icon with the entity's state. This is a
         # resolved value, separate from the saved icon choice in configuration.
-        message["icon"] = message.pop("o", {}).get("icon", "")
+        options = message.pop("o", {})
+        message["icon"] = options.get("icon", "")
+        # The icon of the set while the screen's fonts lack that one (firmware 0.68.0+, app 0.4.115).
+        if options.get("icon_fb"):
+            message["ifb"] = options["icon_fb"]
     return message
 
 

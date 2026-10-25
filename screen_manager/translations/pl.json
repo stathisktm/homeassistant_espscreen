@@ -2374,7 +2374,9 @@
       "icon": {
         "auto_ha": "Automatycznie (z Home Assistant)",
         "auto_default": "Automatycznie (domyślna)",
-        "needs_firmware": "Ekran pokazuje wybraną ikonę od wersji firmware 0.2.18."
+        "needs_firmware": "Ekran pokazuje wybraną ikonę od wersji firmware 0.2.18.",
+        "plain": "Tylko ikona, bez koła",
+        "plain_hint": "Ikona stoi na kafelku bez okrągłego tła za nią."
       },
       "goes_to": {
         "label": "Przechodzi do strony",
@@ -2845,7 +2847,10 @@
       "search_label": "Szukaj ikony",
       "none_text_only": "Bez ikony, tylko tekst",
       "aria": "Ikona: {name}",
-      "none_found": "Nie znaleziono ikony."
+      "none_found": "Nie znaleziono ikony.",
+      "all_group": "Wszystkie ikony Home Assistant",
+      "all_hint": "Szukaj po nazwie wśród wszystkich {count} ikon Home Assistant, np. \"garage\" lub \"fridge\".",
+      "all_update": "Ekran pokaże ikonę z tej listy po swojej następnej aktualizacji: aplikacja zaproponuje ją, gdy tylko ikona zostanie użyta."
     },
     "inspect": {
       "title": "Bieżące dane",

@@ -180,8 +180,14 @@ marked *generated* is written by the tool named and never edited by hand.
 - **Add-on** (`screen_manager/app`): the attributes the screen needs in `ATTRS` in `core.py`; `DOMAIN_ICONS` and the
   domains `accent()` treats as on in `header_bar.py`; the default icons in `tile_icons.py` (`HA_DEFAULTS`, `DEFAULTS`,
   which mirrors the firmware's `icon_for`, and `BIG_GLYPHS`). Then `tools/generate_icons.py` (generated: the glyph lists
-  in `packages/core.yaml`, `web/src/assets/tile-icons.woff`, `components/smart_display/tile_icon_names.h`) and
+  in `packages/core.yaml`, `web/src/assets/tile-icons.woff`, `components/smart_display/tile_icon_names.h`, and the
+  whole font: `screen_manager/app/mdi_icons.json` and `web/src/assets/mdi-all.woff2`) and
   `tools/generate_page_rules.py` (generated: `web/src/model/page-rules.json`, held by `tests/test_page_conformance.py`).
+  The set is what every screen carries. A tile, a rule, a page and a top bar item may pick any icon of the font
+  (`tile_icons.ALL_GLYPHS`): `extra_icons.py` names the ones a screen's own pages use beyond the set, the app writes
+  them into the screen's YAML before a build (the `EXTRA_ICONS` and `EXTRA_ICONS_BIG` substitutions), and the update
+  is offered when that list grows. Until then the screen draws the icon of the set the app sends beside it
+  (`icon_fb`, `ifb`, `j`). So a new type needs its default icons in the set only when every screen must draw them.
 - **Editor** (`web/src`): `components/Library.vue` (`FILTERS` and `tone()`), `components/TileCard.vue` (`isOn`,
   `status`), `model/layout.ts` (`domains`), `model/tile-palette.ts` and `model/tall-controls.ts` (their domain lists).
   Then `npm test && npm run build`, and commit `screen_manager/app/static` (generated) with it.

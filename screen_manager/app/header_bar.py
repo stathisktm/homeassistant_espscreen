@@ -303,6 +303,20 @@ def auto_icon(entity, state, entry=None):
     own = tile_icons.ha_icon(attrs) or tile_icons.default_glyph(entity, raw, attrs, entry)
     if own:
         return own
+    return table_icon(entity, attrs, raw)
+
+def auto_icons(entity, state, entry=None):
+    """(codepoint, fallback) of an item on Automatic (app 0.4.115): Home Assistant's icon, any of the font, and the
+    one of auto_icon while a screen may lack it."""
+    attrs = (state or {}).get('attributes') or {}
+    best, _ = tile_icons.entity_glyph(entity, (state or {}).get('state'), attrs, entry)
+    fallback = auto_icon(entity, state, entry)
+    if not best or best in tile_icons.CARRIED:
+        return fallback, None
+    return best, fallback if fallback != best else None
+
+def table_icon(entity, attrs, raw):
+    """The icon of the device class and domain tables, for an entity Home Assistant names none of the set for."""
     domain, device_class = entity.split('.')[0], attrs.get('device_class')
     if domain == 'weather':
         name = tile_icons.WEATHER.get(raw, 'weather-partly-cloudy')
@@ -327,9 +341,15 @@ def entity_item(item, states, registry=None, units=None, tz=None, words=None, ca
     state = states.get(entity)
     wire = {'k': 'text'}
     if item['icon'] == 'auto':
-        wire['i'] = auto_icon(entity, state, (registry or {}).get(entity) if isinstance(registry, dict) else None)
+        icon, fallback = auto_icons(entity, state, (registry or {}).get(entity) if isinstance(registry, dict) else None)
+        wire['i'] = icon
     elif item['icon'] != 'none':
-        wire['i'] = tile_icons.ICONS[item['icon']][0]
+        icon = tile_icons.ALL_GLYPHS[item['icon']]
+        wire['i'] = icon
+        fallback = None if icon in tile_icons.CARRIED else auto_icon(entity, state, (registry or {}).get(entity) if isinstance(registry, dict) else None)
+    # The icon of the set while the screen's fonts lack that one (firmware 0.68.0+, app 0.4.115).
+    if item['icon'] != 'none' and fallback:
+        wire['j'] = fallback
     # Its card, whatever the item shows: its icon alone opens it too (GitHub #252).
     if card is not None:
         wire['d'] = card

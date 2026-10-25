@@ -2374,7 +2374,9 @@
       "icon": {
         "auto_ha": "Automatica (da Home Assistant)",
         "auto_default": "Automatica (predefinita)",
-        "needs_firmware": "Lo schermo mostra l'icona scelta a partire dal firmware 0.2.18."
+        "needs_firmware": "Lo schermo mostra l'icona scelta a partire dal firmware 0.2.18.",
+        "plain": "Solo icona, senza cerchio",
+        "plain_hint": "L'icona resta sul riquadro senza lo sfondo rotondo dietro."
       },
       "goes_to": {
         "label": "Porta alla pagina",
@@ -2845,7 +2847,10 @@
       "search_label": "Cerca un'icona",
       "none_text_only": "Nessuna icona, solo testo",
       "aria": "Icona: {name}",
-      "none_found": "Nessuna icona trovata."
+      "none_found": "Nessuna icona trovata.",
+      "all_group": "Tutte le icone di Home Assistant",
+      "all_hint": "Cerca per nome tra tutte le {count} icone di Home Assistant, come \"garage\" o \"fridge\".",
+      "all_update": "Uno schermo mostra un'icona di questa lista dopo il suo prossimo aggiornamento: l'app lo propone appena l'icona è usata."
     },
     "inspect": {
       "title": "Dati attuali",

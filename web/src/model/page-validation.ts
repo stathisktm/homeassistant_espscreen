@@ -27,10 +27,12 @@ const CALENDAR_MORE = ['calendarWeekStart', 'calendarHours', 'calendarWeekNumber
 // A sensor's meter (firmware 0.56.0, meter.validate) and a card's colour by state (app 0.4.91, tint.validate), as the
 // page document names them.
 const METER_FIELDS = ['meterStyle', 'meterMin', 'meterMax', 'meterSegments', 'meterColors', 'meterThresholds'] as const;
-const TINT_FIELDS = ['tint', 'tintIcon', 'opacity', 'iconRules'] as const;
+const TINT_FIELDS = ['tint', 'tintIcon', 'opacity', 'iconRules', 'iconPlain'] as const;
 const entity = (value: any, domains: string[]) => typeof value === 'string' && value.length <= 120 &&
   matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, value) && domains.includes(value.split('.')[0]);
-const icon = (value: any, none = false) => value === 'auto' || (none && value === 'none') || rules.icons.includes(value);
+// Any icon of Material Design Icons by its name (app 0.4.115): the add-on checks the name against the font itself.
+const icon = (value: any, none = false) => value === 'auto' || (none && value === 'none') ||
+  rules.icons.includes(value) || (typeof value === 'string' && value.length <= 64 && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value));
 // A plugin tile's options in their kept shape (the add-on's core.plugin_options): at most 12, each a short text, a
 // number, true/false, a pick {value, label}, or a list of up to 16 texts or picks (plugin API 0.12), together at most
 // PLUGIN_OPTIONS_BYTES of JSON. Whether a value fits its option is the plugin's manifest's.
@@ -219,6 +221,8 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
   // A card's colour by state (app 0.4.91), as tint.validate checks it: at most eight rules, each a state word or a
   // temperature and a colour the screen knows.
   if (a.tintIcon !== undefined && (a.tintIcon !== true || a.tint === undefined)) fail();
+  // The icon alone (app 0.4.115), as core.validate_layout keeps it: true or nothing.
+  if (a.iconPlain !== undefined && a.iconPlain !== true) fail('normalization');
   // How much of the card covers a page's background (app 0.4.111), as core.validate_layout keeps it.
   if (a.opacity !== undefined && (![80, 60, 40, 20].includes(a.opacity) || a.background === 'none')) fail('normalization');
   // An icon by state (app 0.4.112), as tint.validate_icons keeps it.

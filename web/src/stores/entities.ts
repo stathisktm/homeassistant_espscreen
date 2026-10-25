@@ -39,7 +39,25 @@ export const useEntitiesStore = defineStore("entities", () => {
   // followed on its own).
   const iconsByName = computed<Record<string, { name: string; cp: string; label: string }>>(() =>
     Object.fromEntries((toRaw(inv.inventory.icons)?.groups || []).flatMap((g) => g.icons.map((i) => [i.name, i]))));
-  const iconNamed = (name: string | undefined) => (name ? iconsByName.value[name] : undefined);
+  // Every other icon of Material Design Icons (app 0.4.115, api/icons/all): asked once, the first time a name the set
+  // lacks is looked up or the picker searches; a name stays its own label.
+  const allIcons = ref<Record<string, string> | null>(null);
+  let askedAll = false;
+  // A list that could not be had is asked again only when the picker opens (`again`), not on every lookup.
+  async function loadAllIcons(again = false) {
+    if (askedAll && !(again && !allIcons.value)) return;
+    askedAll = true;
+    try { allIcons.value = await getJson<Record<string, string>>("icons/all"); } catch { /* the set alone, for now */ }
+  }
+  function iconNamed(name: string | undefined) {
+    if (!name) return undefined;
+    const own = iconsByName.value[name];
+    if (own) return own;
+    const cp = allIcons.value?.[name];
+    if (cp) return { name, cp, label: name.replaceAll("-", " ") };
+    if (!allIcons.value && name !== "auto" && name !== "none") void loadAllIcons();
+    return undefined;
+  }
   // What the firmware draws without a choice: Home Assistant's own icon, else the domain icon.
   function automaticIcon(id: string): string {
     const plugin = plugins.pluginTileOf(id);
@@ -184,7 +202,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   }
 
   return {
-    ...lookups({ entityName, iconNamed, automaticIcon, tileIconCp, liveOf }),
+    ...lookups({ entityName, iconNamed, automaticIcon, tileIconCp, liveOf }), allIcons, loadAllIcons,
     capabilities, entityActions, subtitleValues, loadCapabilities, loadSubtitleValues, loadEntityActions,
     liveStates, loadStates, loadLibraryStates, reloadState, topbarPreviews, loadOverview, loadHistory,
   };

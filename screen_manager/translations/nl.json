@@ -1945,7 +1945,9 @@
       "icon": {
         "auto_ha": "Automatisch (uit Home Assistant)",
         "auto_default": "Automatisch (standaard)",
-        "needs_firmware": "Het scherm toont een gekozen icoon vanaf firmware 0.2.18."
+        "needs_firmware": "Het scherm toont een gekozen icoon vanaf firmware 0.2.18.",
+        "plain": "Alleen pictogram, zonder cirkel",
+        "plain_hint": "Het pictogram staat op de tegel zonder de ronde achtergrond erachter."
       },
       "goes_to": {
         "label": "Gaat naar pagina",
@@ -2416,7 +2418,10 @@
       "search_label": "Zoek een icoon",
       "none_text_only": "Geen icoon, alleen tekst",
       "aria": "Icoon: {name}",
-      "none_found": "Geen icoon gevonden."
+      "none_found": "Geen icoon gevonden.",
+      "all_group": "Alle pictogrammen van Home Assistant",
+      "all_hint": "Zoek op naam in alle {count} pictogrammen van Home Assistant, zoals \"garage\" of \"fridge\".",
+      "all_update": "Een scherm toont een pictogram uit deze lijst na zijn volgende update: de app biedt die aan zodra het pictogram gebruikt wordt."
     },
     "inspect": {
       "title": "Actuele gegevens",

@@ -2374,7 +2374,9 @@
       "icon": {
         "auto_ha": "Automatisch (aus Home Assistant)",
         "auto_default": "Automatisch (Standard)",
-        "needs_firmware": "Ein gewähltes Symbol zeigt der Bildschirm ab Firmware 0.2.18."
+        "needs_firmware": "Ein gewähltes Symbol zeigt der Bildschirm ab Firmware 0.2.18.",
+        "plain": "Nur Symbol, ohne Kreis",
+        "plain_hint": "Das Symbol steht auf der Kachel ohne den runden Hintergrund dahinter."
       },
       "goes_to": {
         "label": "Führt zu Seite",
@@ -2845,7 +2847,10 @@
       "search_label": "Symbol suchen",
       "none_text_only": "Kein Symbol, nur Text",
       "aria": "Symbol: {name}",
-      "none_found": "Kein Symbol gefunden."
+      "none_found": "Kein Symbol gefunden.",
+      "all_group": "Alle Symbole von Home Assistant",
+      "all_hint": "Suche nach Namen in allen {count} Symbolen von Home Assistant, etwa \"garage\" oder \"fridge\".",
+      "all_update": "Ein Bildschirm zeigt ein Symbol aus dieser Liste nach seinem nächsten Update: Die App bietet es an, sobald das Symbol verwendet wird."
     },
     "inspect": {
       "title": "Aktuelle Daten",

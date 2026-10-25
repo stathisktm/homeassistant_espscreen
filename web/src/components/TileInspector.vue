@@ -456,6 +456,9 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
         :auto-label="t(fromHA ? 'editor.tile.icon.auto_ha' : 'editor.tile.icon.auto_default')"
         :note="scr.supports(0, 2, 18) ? '' : t('editor.tile.icon.needs_firmware')"
         @pick="(n) => setTileOption(tile, 'icon', n)" />
+      <!-- The icon alone on the card, without its round ground (app 0.4.115, firmware 0.68.0). -->
+      <SwitchRow v-if="showIcon && !key" class="icon-plain-choice" :label="t('editor.tile.icon.plain')" :description="t('editor.tile.icon.plain_hint')"
+        :model-value="tile.options?.icon_plain === true" @update:model-value="(on: boolean) => setTileOption(tile, 'icon_plain', on || undefined)" />
       <PropRow v-if="!key" :label="t('editor.tile.background.label')" icon="palette-outline" stack>
         <template #aside>{{ backgroundName }}</template>
         <div class="sw" @pointerleave="previewBackground(null)">

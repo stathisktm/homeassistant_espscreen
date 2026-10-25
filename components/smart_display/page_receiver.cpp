@@ -14,6 +14,8 @@ static bool parse_bar_item(JsonVariant value, header_bar::Item &item) {
     item.kind = header_bar::kind(string(value["k"], 8));
     if (item.kind == header_bar::Kind::none) return false;
     uint32_t icon = tile_icon::codepoint(string(value["i"], 8));
+    // An icon these fonts lack takes the one of the set the app names beside it (firmware 0.68.0, `j`).
+    if (icon && !has_icon_glyph(icon)) icon = tile_icon::codepoint(string(value["j"], 8));
     item.icon = icon && has_icon_glyph(icon) ? icon : 0;
     item.text = string(value["t"], header_bar::TEXT_BYTES);
     item.epoch = value["e"].is<unsigned>() ? value["e"].as<uint32_t>() : 0;
@@ -740,6 +742,7 @@ std::string receive(const std::string &payload) {
     Tile &tile = model.tiles[index];
     if (!initial) {
       uint32_t icon = tile_icon::codepoint(string(root["icon"], 8));
+      if (icon && !has_icon_glyph(icon)) icon = tile_icon::codepoint(string(root["ifb"], 8));
       tile.icon = icon && has_icon_glyph(icon) ? tile_icon::utf8(icon) : "";
     }
     auto a = root["a"].as<JsonObject>();
@@ -765,8 +768,13 @@ std::string receive(const std::string &payload) {
     tile.tint_icon = options["tint_icon"] | false;
     // How much of the card covers a page's background (firmware 0.67.0): 20 to 100 percent, the whole card without it.
     tile.card_opa = static_cast<uint8_t>(std::clamp(options["opacity"] | 100, 20, 100) * 255 / 100);
-    // An icon these fonts lack (a newer set than this firmware) keeps the domain icon.
+    // The icon alone, without its round ground (firmware 0.68.0).
+    tile.icon_plain = options["icon_plain"] | false;
+    // An icon these fonts lack takes the one of the set the app names beside it (firmware 0.68.0, icon_fb: any icon of
+    // Material Design Icons may be chosen, and a screen carries those its pages use once it is built for them); with
+    // neither, the domain icon.
     uint32_t icon = tile_icon::codepoint(string(options["icon"], 8));
+    if (icon && !has_icon_glyph(icon)) icon = tile_icon::codepoint(string(options["icon_fb"], 8));
     tile.icon = icon && has_icon_glyph(icon) ? tile_icon::utf8(icon) : "";
     tile.tap = string(options["tap"]); if (tile.tap.empty()) tile.tap="auto";
     tile.display = string(options["display"]); if (tile.display.empty()) tile.display="standard";

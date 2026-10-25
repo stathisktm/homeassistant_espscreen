@@ -59,7 +59,7 @@ const classes = computed(() => {
   const face = card.face;
   return { wide: face.wide, full: face.full, tall: face.tall, "watch-card": kind.value === "watch", "tall-action": face.tallAction || face.tallStack, "big-key": face.bigKey,
     photo: card.loaded.artwork && !!card.artwork, camera: (kind.value === "camera" && card.loaded.camera) || (kind.value === "favorite" && card.loaded.favorite),
-    glass: !!card.head, bare: props.tile.options?.background === "none",
+    glass: !!card.head, bare: props.tile.options?.background === "none", "icon-plain": props.tile.options?.icon_plain === true,
     "see-through": typeof props.tile.options?.opacity === "number" && props.tile.options.opacity < 100 && props.tile.options?.background !== "none", placeholder: props.placeholder || (!card.live && !card.foreign), chosen: card.chosen,
     "just-added": !props.preview && !!props.tile.id && doc.justAdded === props.tile.id };
 });

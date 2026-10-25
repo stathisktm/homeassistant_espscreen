@@ -9131,7 +9131,7 @@ inline void render_slot(size_t slot) {
   // colour it was given and the icon and its circle take the rule's colour; on, the whole card takes it as before.
   const bool icon_tint=t.tint_icon&&!on&&available&&t.background&&t.background!=t.own_background;
   const uint32_t ground=icon_tint?t.own_background:t.background;
-  const uint32_t paint=t.background|(t.transparent?1u<<24:0)|(icon_tint?1u<<25:0)|(static_cast<uint32_t>(t.card_opa>>4)<<26);
+  const uint32_t paint=t.background|(t.transparent?1u<<24:0)|(icon_tint?1u<<25:0)|(static_cast<uint32_t>(t.card_opa>>4)<<26)|(t.icon_plain?1u<<30:0);
   if (w.cached_active == palette_state && w.cached_paint == paint && !w.panel_dirty) { style_tall(w,t);ring_favorite(w,t);lap(swipe_profile::GEOMETRY); return; }
   w.cached_active = palette_state;w.cached_paint=paint;w.panel_dirty=false;
   // Home Assistant's colour for the state (tile_controls::accent), and a lamp's own colour while it is on.
@@ -9164,6 +9164,9 @@ inline void render_slot(size_t slot) {
   set_number(w.tile,LV_STYLE_BORDER_OPA,t.transparent ? LV_OPA_TRANSP : LV_OPA_COVER);
   set_color(w.tile,LV_STYLE_BORDER_COLOR,lv_color_hex(theme::outline(ground)));
   set_color(w.circle,LV_STYLE_BG_COLOR,circle_color);
+  // The icon alone on the card (firmware 0.68.0, option icon_plain): its circle keeps its place and drops its ground; a
+  // picture in the icon's place keeps it.
+  set_number(w.circle,LV_STYLE_BG_OPA,t.icon_plain&&!w.key&&!(palette_state&8)?LV_OPA_TRANSP:LV_OPA_COVER);
   set_color(w.icon,LV_STYLE_TEXT_COLOR,icon_color);
   // A key is its circle: the card takes the circle's colour and its press, with no border (firmware 0.8.0+).
   if(w.key){

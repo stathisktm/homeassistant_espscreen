@@ -179,7 +179,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.67.0'
+FIRMWARE_VERSION = '0.68.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -1298,7 +1298,7 @@ def validate_header(data, most=HEADER_MAX_ITEMS):
                      'icon': item.get('icon', 'auto'), 'show': item.get('show', 'always')}
             if clean['content'] not in HEADER_CONTENTS or clean['show'] not in HEADER_SHOWS:
                 raise ValueError(t('addon.errors.top_bar.invalid_setting'))
-            if not (clean['icon'] in ('auto', 'none') or isinstance(clean['icon'], str) and clean['icon'] in tile_icons.ICONS):
+            if not (clean['icon'] in ('auto', 'none') or tile_icons.known(clean['icon'])):
                 raise ValueError(t('addon.errors.choose_icon'))
             # An item that shows its icon alone needs one.
             if clean['content'] == 'icon' and clean['icon'] == 'none':
@@ -1961,7 +1961,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 raise ValueError(t('addon.errors.layout.invalid_setting', setting='tap'))
             if 'background' in options and (not isinstance(options['background'], str) or options['background'] not in TILE_BACKGROUNDS):
                 raise ValueError(t('addon.errors.layout.background'))
-            if 'icon' in options and not (options['icon'] == 'auto' or isinstance(options['icon'], str) and options['icon'] in tile_icons.ICONS):
+            if 'icon' in options and not (options['icon'] == 'auto' or tile_icons.known(options['icon'])):
                 raise ValueError(t('addon.errors.choose_icon'))
             if options:
                 item['options'] = deepcopy(options)
@@ -1969,7 +1969,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', 'icon_plain', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -2002,7 +2002,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting=key))
             # An icon by state (app 0.4.112): the same rules with an icon of the set; the screen gets the icon itself.
             try:
-                options = tint.validate_icons(options, tile_icons.ICONS)
+                options = tint.validate_icons(options, tile_icons.ALL_GLYPHS)
             except ValueError:
                 raise ValueError(t('addon.errors.layout.invalid_setting', setting='icons')) from None
             # A navigation tile (screen.page_<n>, firmware 0.2.62+) has a name, an icon, a colour and a width; never the page.
@@ -2014,12 +2014,18 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 raise ValueError(t('addon.errors.layout.background'))
             # How much of the card covers what lies under it (app 0.4.111, firmware 0.67.0): a page's background shows
             # through a card of 80, 60, 40 or 20 percent. A whole card (100) is no key, and a card without one has none.
+            # The icon alone, without its round ground (app 0.4.115, firmware 0.68.0): kept only as true.
+            if 'icon_plain' in options:
+                if type(options['icon_plain']) is not bool:
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting='icon_plain'))
+                if options['icon_plain'] is not True:
+                    options = {k: v for k, v in options.items() if k != 'icon_plain'}
             if 'opacity' in options:
                 if type(options['opacity']) is not int or options['opacity'] not in (*TILE_OPACITIES, 100):
                     raise ValueError(t('addon.errors.layout.invalid_setting', setting='opacity'))
                 if options['opacity'] == 100 or options.get('background') == 'none':
                     options = {k: v for k, v in options.items() if k != 'opacity'}
-            if 'icon' in options and not (options['icon'] == 'auto' or isinstance(options['icon'], str) and options['icon'] in tile_icons.ICONS):
+            if 'icon' in options and not (options['icon'] == 'auto' or tile_icons.known(options['icon'])):
                 raise ValueError(t('addon.errors.choose_icon'))
             domain = tile['entity'].split('.')[0]
             # The bedside clock is the whole page, always, and the only tile with keys.
@@ -2591,14 +2597,24 @@ def extras(tile, states, forecast=None, tz=None, hourly=None, now=None, device=N
 def tile_icon(tile, attrs, state=None, entry=None):
     """Codepoint the screen shows: the chosen icon, else HA's own mdi icon, else the icon Home Assistant's frontend shows
     for this state (app 0.2.67); None keeps the firmware default."""
+    return tile_icon_pair(tile, attrs, state, entry)[0]
+
+def tile_icon_pair(tile, attrs, state=None, entry=None):
+    """(codepoint, fallback): the icon of tile_icon, any of Material Design Icons since app 0.4.115, and when the screen
+    may not carry it yet (outside tile_icons.GLYPHS), the icon of the set Home Assistant would show instead, which
+    firmware 0.68.0+ draws until the screen is built with it (extra_icons.py)."""
+    automatic = lambda: tile_icons.ha_icon(attrs) or tile_icons.default_glyph(tile['entity'], state, attrs, entry)
+    def chosen(name):
+        code = tile_icons.ALL_GLYPHS[name]
+        return code, (None if code in tile_icons.CARRIED else automatic())
     # An icon by state (app 0.4.112, tint.icon_of): the first rule that fits wins over every other.
     ruled = tint.icon_of(tile, state, attrs or {})
-    if ruled in tile_icons.ICONS:
-        return tile_icons.ICONS[ruled][0]
+    if tile_icons.known(ruled):
+        return chosen(ruled)
     choice = tile.get('options', {}).get('icon', 'auto')
-    if choice in tile_icons.ICONS:
-        return tile_icons.ICONS[choice][0]
-    return tile_icons.ha_icon(attrs) or tile_icons.default_glyph(tile['entity'], state, attrs, entry)
+    if tile_icons.known(choice):
+        return chosen(choice)
+    return tile_icons.entity_glyph(tile['entity'], state, attrs, entry)
 
 def screen_options(tile, attrs, state=None, entry=None):
     """Stored options on the wire; `icon` travels as the resolved codepoint (firmware 0.2.18+, ignored before)
@@ -2610,9 +2626,12 @@ def screen_options(tile, attrs, state=None, entry=None):
     options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'icons', 'controls', 'action', 'tint', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
     # A meter's colours travel as numbers (firmware 0.56.0): the screen keeps no table of names.
     options = meter.screen_options(options)
-    icon = tile_icon(tile, attrs, state, entry)
+    icon, fallback = tile_icon_pair(tile, attrs, state, entry)
     if icon:
         options['icon'] = icon
+        # The icon of the set to draw while the screen's fonts lack this one (firmware 0.68.0+, app 0.4.115).
+        if fallback:
+            options['icon_fb'] = fallback
     controls = resolve_controls(tile)
     if controls:
         options['controls'] = controls
@@ -3093,7 +3112,7 @@ def discover(registry, states, devices, areas):
         entities.append({'id': eid, 'name': state.get('attributes', {}).get('friendly_name') or item.get('name') or item.get('original_name') or eid,
                          'device': device.get('name_by_user') or device.get('name') or '', 'area': area,
                          'state': state.get('state', 'unavailable'),
-                         'icon': tile_icons.ha_icon(state.get('attributes')) or tile_icons.default_glyph(eid, state.get('state'), state.get('attributes'), item),
+                         'icon': tile_icons.entity_glyph(eid, state.get('state'), state.get('attributes'), item)[0],
                          # Top-bar-only domains (a phone's tracker, a lock) stay out of the tile picker.
                          **({} if tile else {'tile': False}), **unavailable_since(state)})
     # YAML entities may not have an entity-registry entry. Their icon is the one the screen gets (tile_icon): Home
@@ -3105,7 +3124,7 @@ def discover(registry, states, devices, areas):
         tile = entity_id(eid)
         if (tile or header_entity(eid)) and eid not in registered and eid not in in_registry:
             entities.append({'id': eid, 'name': state.get('attributes', {}).get('friendly_name', eid), 'device': '', 'area': '', 'state': state['state'],
-                             'icon': tile_icons.ha_icon(state.get('attributes')) or tile_icons.default_glyph(eid, state.get('state'), state.get('attributes')),
+                             'icon': tile_icons.entity_glyph(eid, state.get('state'), state.get('attributes'))[0],
                              **({} if tile else {'tile': False}), **unavailable_since(state)})
     return screens, sorted(entities, key=lambda e: e['name'].casefold())
 

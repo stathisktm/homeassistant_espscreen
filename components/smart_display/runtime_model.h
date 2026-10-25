@@ -602,6 +602,8 @@ struct Tile {
   // whether that colour goes to the icon alone while the tile is off (its option tint_icon).
   uint32_t own_background = 0;
   bool tint_icon = false;
+  // The icon alone on the card, without its round ground (firmware 0.68.0, option icon_plain).
+  bool icon_plain = false;
   // How much of the card covers what lies under it (firmware 0.67.0, option opacity): a page's background shows through.
   uint8_t card_opa = 255;
   std::string icon;  // UTF-8 glyph of a chosen icon the icon fonts contain; empty keeps the domain icon.

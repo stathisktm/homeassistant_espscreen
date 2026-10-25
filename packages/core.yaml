@@ -16,13 +16,18 @@
 # fonts/materialdesignicons-webfont.ttf (Apache 2.0, github.com/Templarian/MaterialDesign-Webfont).
 ############################################################
 substitutions:
-  SCREEN_FIRMWARE_VERSION: "0.67.0"
+  SCREEN_FIRMWARE_VERSION: "0.68.0"
   DASHBOARD_INBOX_INTERNAL: "false"
   CALIBRATION_ON_BOOT: "false"                     # a bench build: start on the touch test page
   ROOM_NAME: ""                                    # top left until ESP Screens sends the screen name
   # The language of every text on the screen (app 0.2.90): a file in screen_manager/translations, English for any
   # text it lacks. ESP Screens writes it into the screen's own YAML, from Home Assistant's language or its Settings.
   LANGUAGE: "en"
+  # The icons this screen's own pages use beyond the set every screen carries (app 0.4.115): Home Assistant has thousands,
+  # and ESP Screens writes the ones a screen's tiles, rules, pages and top bar name into its own YAML (extra_icons.py).
+  # EXTRA_ICONS goes into the card fonts, EXTRA_ICONS_BIG into the full-page card's; empty, the set alone.
+  EXTRA_ICONS: ""
+  EXTRA_ICONS_BIG: ""
   # The letters a language written in another script needs beyond the Latin ones the text fonts always carry
   # (docs/TRANSLATING.md, "Letters"): only a screen built in such a language carries them, so no other screen spends
   # flash on them. One list per script with the letters its languages here write (Russian's and Greek's now), the same
@@ -1415,6 +1420,7 @@ font:
       - "\U000F0904" # power-sleep
       - "\U000F18F2" # refresh-auto
       - "\U000F14DE" # rocket-launch
+      - "${EXTRA_ICONS}" # the icons of this screen's own pages beyond the set
 
   - file: "${FONT_DIR}/materialdesignicons-webfont.ttf"
     id: materialdesign_icons_mini
@@ -1489,6 +1495,7 @@ font:
       - "\U000F05D6" # alert-circle-outline
       - "\U000F059C" # weather-sunset-up
       - "\U000F059B" # weather-sunset-down
+      - "${EXTRA_ICONS_BIG}" # the icons of this screen's own pages beyond the set
 
 
   - file: "${FONT_DIR}/materialdesignicons-webfont.ttf"

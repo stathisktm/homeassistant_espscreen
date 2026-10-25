@@ -54,6 +54,7 @@ import plugin_pictures
 import map_tiles
 import valetudo_map
 import tile_icons
+import extra_icons
 from updates import Updater
 import core
 import entity_settings
@@ -1040,6 +1041,7 @@ class Manager:
         self.region = Region(self.path.parent / 'language.json', ha_language=lambda: getattr(self.ha, 'ha_language', None))
         self.ha.language_of = self.region.language
         self.firmware.language = self.region.language
+        self.firmware.extra_icons = self.extra_icons_of_profile
         self.ha.on_config = self.language_changed
         self.ha.on_time_zone = self.time_zone_changed
         self._clock_resync = None
@@ -3391,6 +3393,30 @@ class Manager:
             return self.preview_layouts.get(preview_images.revision_of(inbox), self.preview_tiles)
         return self.layouts.get(inbox, {}).get('tiles', [])
 
+    def extra_icons_of(self, inbox, meta=None):
+        """(names, big) of the icons a screen's pages use beyond the set (extra_icons.py, app 0.4.115), as many as its
+        board has room for; None for a screen without a saved document."""
+        record = self.store.get(self.aliases.get(inbox, inbox)) if hasattr(self, 'store') else None
+        if not record or record.get('format') != PAGE_FORMAT:
+            return None
+        pages = (record.get('layout') or {}).get('pages') or []
+        names, big = extra_icons.wanted(self.layouts.get(inbox, {}).get('tiles', []), pages, self.ha.states,
+                                        self.registry_index())
+        package = (meta or {}).get('package')
+        tier = (SHAPES.get(package) or SHAPES.get(board_of(self.screen(inbox) or {})) or {}).get('tier')
+        return extra_icons.capped(names, big, tier)
+
+    def extra_icons_of_profile(self, profile):
+        """(text, big text) of EXTRA_ICONS and EXTRA_ICONS_BIG for a build of this profile, or None when it is the
+        profile of no screen this app knows (New screen's first build, a profile of something else)."""
+        profiles = self.firmware.profile_names()
+        meta = profiles.get(profile)
+        if not meta or not meta.get('screen'):
+            return None
+        screen = next((s for s in self.screens() if self.updates.resolve(s, profiles)[0] == profile), None)
+        icons = self.extra_icons_of(screen['id'], meta) if screen else None
+        return (extra_icons.text(icons[0]), extra_icons.text(icons[1])) if icons else None
+
     def page_background(self, inbox, index):
         """The background a page of a screen's saved document has (page_backdrop.py, app 0.4.109), or None; for a firmware
         preview of the editor, the page's of the layout it compiled, by its revision, or of the last one compiled."""
@@ -4629,6 +4655,11 @@ def create_app(manager, development=False):
         body = await asyncio.get_running_loop().run_in_executor(None, media_library.preview_jpeg, manager.thumbnails[url])
         return web.Response(body=body, content_type='image/jpeg', headers={'Cache-Control': 'private, max-age=3600'})
 
+    async def all_icons(request):
+        """Every icon of Material Design Icons by name and codepoint (app 0.4.115, tile_icons.ALL_GLYPHS): what the
+        editor's picker searches beyond the set it opens with. The same for every request, so the browser keeps it."""
+        return web.json_response(tile_icons.ALL_GLYPHS, headers={'Cache-Control': 'private, max-age=86400'})
+
     async def page_background_preview(request):
         """A page's background for the editor's mockup (app 0.4.114): from a source the add-on keeps for a page
         (page_backdrop.validate), fetched the way the screens' is (never an address in the house) and darkened as they
@@ -5325,6 +5356,7 @@ def create_app(manager, development=False):
     app.router.add_get('/api/media/browse', media_browse)
     app.router.add_get('/api/media/picture', media_picture)
     app.router.add_get('/api/page-background', page_background_preview)
+    app.router.add_get('/api/icons/all', all_icons)
     app.router.add_get('/api/media/link', media_link)
     app.router.add_post('/api/firmware-preview', firmware_preview)
     app.router.add_post('/api/firmware-preview/import', import_document)

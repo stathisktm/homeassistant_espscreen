@@ -41,7 +41,7 @@ code { font-family: var(--mono); font-size: 0.92em; background: var(--code-bg); 
 pre { margin: 0; padding: 12px 14px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; overflow: auto; font: 12px/1.5 var(--mono); color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.mdi { font-family: "Tile Icons"; font-style: normal; font-weight: normal; line-height: 1; }
+.mdi { font-family: "Tile Icons", "Tile Icons All"; font-style: normal; font-weight: normal; line-height: 1; }
 [hidden] { display: none !important; }
 
 /* ---- Shell ---- */
@@ -679,7 +679,7 @@ button.insp-sec-head:hover h3 { color: var(--ink); }
 .choice-field:hover:not(:disabled) { background: var(--surface-2); }
 .choice-field[data-state="open"] { border-color: var(--accent); box-shadow: var(--focus); }
 .choice-field > .ui-icon { margin-left: auto; color: var(--muted); font-size: 16px; }
-.choice-glyph { font-family: "Tile Icons"; font-size: 17px; color: var(--ink-2); flex: none; }
+.choice-glyph { font-family: "Tile Icons", "Tile Icons All"; font-size: 17px; color: var(--ink-2); flex: none; }
 .choice-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .choice-list { min-width: var(--reka-popover-trigger-width); max-height: min(340px, var(--reka-popover-content-available-height)); overflow: auto; display: grid; gap: 1px; }
 .choice-list .ui-menu-item { width: 100%; text-align: left; font-size: 13px; }

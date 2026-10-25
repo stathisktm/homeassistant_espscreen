@@ -76,6 +76,13 @@
   src: url("../assets/tile-icons.woff") format("woff");
   font-display: block;
 }
+/* Every other icon of Material Design Icons (app 0.4.115): a tile may pick any of them, as Home Assistant shows them.
+   The browser fetches this font only for an icon the one above lacks. */
+@font-face {
+  font-family: "Tile Icons All";
+  src: url("../assets/mdi-all.woff2") format("woff2");
+  font-display: block;
+}
 @font-face {
   font-family: "Bar Roboto";
   font-weight: 400;

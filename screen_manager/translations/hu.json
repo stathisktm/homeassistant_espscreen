@@ -2374,7 +2374,9 @@
       "icon": {
         "auto_ha": "Automatikus (a Home Assistantból)",
         "auto_default": "Automatikus (alapértelmezett)",
-        "needs_firmware": "A kijelző a 0.2.18-as firmware-től mutatja a választott ikont."
+        "needs_firmware": "A kijelző a 0.2.18-as firmware-től mutatja a választott ikont.",
+        "plain": "Csak ikon, kör nélkül",
+        "plain_hint": "Az ikon a csempén áll, mögötte kerek háttér nélkül."
       },
       "goes_to": {
         "label": "Ugrás oldalra",
@@ -2845,7 +2847,10 @@
       "search_label": "Ikon keresése",
       "none_text_only": "Nincs ikon, csak szöveg",
       "aria": "Ikon: {name}",
-      "none_found": "Nincs ilyen ikon."
+      "none_found": "Nincs ilyen ikon.",
+      "all_group": "A Home Assistant összes ikonja",
+      "all_hint": "Keress név szerint a Home Assistant mind a(z) {count} ikonja között, például \"garage\" vagy \"fridge\".",
+      "all_update": "A kijelző a következő frissítése után mutat egy ikont ebből a listából: az alkalmazás felajánlja, amint az ikont használod."
     },
     "inspect": {
       "title": "Aktuális adatok",

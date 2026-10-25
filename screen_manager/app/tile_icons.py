@@ -6,7 +6,9 @@ the three icon fonts of both board profiles and builds the editor font
 fonts/materialdesignicons-webfont.ttf. Firmware 0.2.18+ carries every glyph here.
 """
 
+import json
 import re
+from pathlib import Path
 
 from i18n import t
 
@@ -424,6 +426,16 @@ HA_DEFAULTS = (
 # Pickable icons by name, and every glyph the firmware fonts contain.
 ICONS = {name: (codepoint, label) for _, icons in GROUPS for name, codepoint, label in icons}
 GLYPHS = {**{name: codepoint for name, (codepoint, _) in ICONS.items()}, **dict(FIXED), **dict(HA_DEFAULTS)}
+# Every icon of Material Design Icons by name (app 0.4.115, written by tools/generate_icons.py from the same font): what
+# a tile, a rule, a page and a top bar item may pick, as Home Assistant shows any of them. A screen carries GLYPHS and,
+# built for it, the ones its own pages use beyond them (extra_icons.py); ICONS stay the groups the picker opens with.
+ALL_GLYPHS = json.loads((Path(__file__).with_name('mdi_icons.json')).read_text())
+ALL_BY_CODE = {code: name for name, code in ALL_GLYPHS.items()}
+CARRIED = frozenset(GLYPHS.values())
+
+def known(name):
+    """Whether `name` is an icon of Material Design Icons that a tile may pick."""
+    return isinstance(name, str) and name in ALL_GLYPHS
 
 # Mirrors runtime_tiles::icon_for() so the editor mockup shows what the screen draws.
 DEFAULTS = {'light': 'lightbulb', 'climate': 'air-conditioner', 'humidifier': 'air-humidifier', 'vacuum': 'robot-vacuum', 'fan': 'fan',
@@ -537,17 +549,29 @@ def ha_default_icon(entity_id, state, attributes, entry, icons):
         icon = icon_for_state(state, (isinstance(device_class, str) and component.get(device_class)) or component.get('_'))
     return icon[4:] if isinstance(icon, str) and icon.startswith('mdi:') else None
 
-def default_glyph(entity_id, state, attributes, entry=None, icons=None):
-    """Codepoint of Home Assistant's default icon when the firmware fonts carry it; None keeps the screen's own icon."""
+def default_glyph(entity_id, state, attributes, entry=None, icons=None, table=None):
+    """Codepoint of Home Assistant's default icon when `table` has it (the set every screen's fonts carry unless
+    ALL_GLYPHS is asked); None keeps the screen's own icon."""
     if entity_id.split('.', 1)[0] in OWN_ICON_DOMAINS:
         return None
     name = ha_default_icon(entity_id, state, attributes, entry, HA_ICONS if icons is None else icons)
-    return GLYPHS.get(name) if name else None
+    return (GLYPHS if table is None else table).get(name) if name else None
 
-def ha_icon(attributes):
-    """Codepoint of Home Assistant's own `mdi:` icon when the firmware carries it, else None."""
+def ha_icon(attributes, table=None):
+    """Codepoint of Home Assistant's own `mdi:` icon when `table` has it (the set every screen carries unless ALL_GLYPHS
+    is asked), else None."""
     icon = attributes.get('icon') if isinstance(attributes, dict) else None
-    return GLYPHS.get(icon[4:]) if isinstance(icon, str) and icon.startswith('mdi:') else None
+    return (GLYPHS if table is None else table).get(icon[4:]) if isinstance(icon, str) and icon.startswith('mdi:') else None
+
+def entity_glyph(entity_id, state, attributes, entry=None):
+    """(codepoint, fallback) of the icon Home Assistant shows for an entity (app 0.4.115): any icon of the font, and
+    when a screen may lack it (outside GLYPHS), the one of the set it showed before, which firmware 0.68.0+ draws in its
+    place until it is built with the icon (extra_icons.py). (None, None) keeps the screen's own icon."""
+    best = ha_icon(attributes, ALL_GLYPHS) or default_glyph(entity_id, state, attributes, entry, table=ALL_GLYPHS)
+    if not best or best in CARRIED:
+        return best, None
+    fallback = ha_icon(attributes) or default_glyph(entity_id, state, attributes, entry)
+    return best, fallback if fallback != best else None
 
 def label_key(name):
     """The translation key of an icon's label ('ceiling-light'), or of a group's ('Media and music')."""
