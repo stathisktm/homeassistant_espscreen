@@ -30,6 +30,7 @@ import { copiedTiles, copyChosen, cutChosen, pasteCopied, removeTiles, shortcut 
 import { movePage, pageTitleShown, setHomePage } from "../editor/pages";
 import { useDocumentStore } from "../stores/document";
 import { useInspectorStore } from "../stores/inspector";
+import { BACKGROUND_DIM_DEFAULT, validBackground } from "../model/page-background";
 
 const ui = useUiStore();
 const region = useRegionStore();
@@ -45,6 +46,16 @@ const { cellsOf, grid, pageOf, spanOf } = doc.editorLayout;
 const props = defineProps<{ page: number; entries: { tile: Tile; slot: number }[]; pages: number; moving: Tile | null; map?: boolean; preview?: boolean; canGoBack?: boolean }>();
 const emit = defineEmits<{ navigate: [intent: NavigationIntent] }>();
 const owned = computed(() => doc.pageAt(props.page));
+// The page's own background (app 0.4.109) behind the mockup's cards, painted by the add-on as the screen gets it
+// (api/page-background, app 0.4.114): cut to the screen's shape and darkened as the page says.
+const backdropStyle = computed(() => {
+  const background = owned.value?.background;
+  if (!background || !validBackground(background)) return undefined;
+  const shape = doc.screenShape;
+  const query = new URLSearchParams({ source: background.source, dim: String(background.dim ?? BACKGROUND_DIM_DEFAULT),
+    w: String(Math.round(shape?.width || 480)), h: String(Math.round(shape?.height || 480)) });
+  return { backgroundImage: `url("api/page-background?${query}")`, backgroundSize: "cover", backgroundPosition: "center" };
+});
 // A click on the page itself opens its settings: its head ("Page 3"), the room around the tiles and its dots. A tile, an
 // empty cell, the screen's top bar and the menus keep their own click (app 0.4.32).
 function pageClick(event: MouseEvent) {
@@ -154,7 +165,7 @@ async function onKey(e: KeyboardEvent) {
         <PageMenu v-if="owned" :id="owned.id" />
       </span>
     </div>
-    <div class="device" :class="{ compact: canvas.isCompact, roomy: canvas.roomyNames }">
+    <div class="device" :class="{ compact: canvas.isCompact, roomy: canvas.roomyNames, backdrop: !!backdropStyle }" :style="backdropStyle">
       <div class="bar-wrap" :class="{ selected: !preview && barSelected }" :title="preview ? undefined : t('editor.page.edit_bar')" :role="preview ? undefined : 'button'" :tabindex="preview ? undefined : 0"
         @click="!preview && insp.openBar(0, page)" @keydown.enter.prevent="!preview && insp.openBar(0, page)">
         <TopbarSvg :items="topbar.topbarItems(page)" :name-text="pageTitleShown(page)" :home="topbar.homeKeyShown(page)" :back="backInHeader" />

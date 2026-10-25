@@ -425,6 +425,10 @@ a:hover { text-decoration: underline; }
 .tile .head.top { flex: none; }
 .tile .nm { font-size: 11.5px; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile .st { font-size: 10.5px; color: #5a5f66; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A line set by hand too wide for its card goes round, as on the glass (composables/marquee.ts, app 0.4.114). */
+.tile .st.marquee { text-overflow: clip; animation: st-marquee var(--marquee-seconds, 6s) ease-in-out infinite alternate; }
+@keyframes st-marquee { 0%, 18% { text-indent: 0; } 82%, 100% { text-indent: var(--marquee-shift, 0); } }
+@media (prefers-reduced-motion: reduce) { .tile .st.marquee { animation: none; text-overflow: ellipsis; } }
 .device.compact .tile { padding: 6px 7px; }
 .device.compact .tile .nm { font-size: 10.5px; }
 /* A name with room (a single column standing up, a double-width card) a little larger, as the screen draws it

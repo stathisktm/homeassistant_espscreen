@@ -179,5 +179,19 @@ class Sources(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(found.raw, b'camera')
         self.assertEqual(found.dim, 55, 'its 40 and 15 more in the dark look')
 
+
+class Mockup(unittest.TestCase):
+    def test_the_editor_gets_the_picture_cut_and_darkened(self):
+        """The editor's mockup (app 0.4.114, api/page-background): the page's shape, darkened as the screen gets it."""
+        import io
+        from PIL import Image
+        raw = io.BytesIO()
+        Image.new('RGB', (740, 500), (200, 100, 50)).save(raw, 'PNG')
+        body = page_backdrop.preview_jpeg(raw.getvalue(), 480, 320, 30)
+        with Image.open(io.BytesIO(body)) as image:
+            self.assertEqual((image.format, image.size), ('JPEG', (480, 320)))
+            r, g, b = image.getpixel((240, 160))
+            self.assertTrue(abs(r - 140) <= 4 and abs(g - 70) <= 4 and abs(b - 35) <= 4, (r, g, b))
+
 if __name__ == '__main__':
     unittest.main()

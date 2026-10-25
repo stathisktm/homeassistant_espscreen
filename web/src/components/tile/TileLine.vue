@@ -5,6 +5,7 @@
 // under its head. A cover laid out by its room (firmware 0.57.0) has its controls beside the name on a wide card and
 // under it on a card of one cell, where they fit.
 import { glyph } from "../../model/topbar";
+import { vMarquee } from "../../composables/marquee";
 import { textEms } from "../../model/ui-scale";
 import type { TileCardView } from "../../composables/useTileCard";
 import CoverTilePreview from "../CoverTilePreview.vue";
@@ -23,7 +24,7 @@ const card = props.card;
        system): the card's words light on it and the icon in a dark circle, as on a taller card. -->
   <img v-if="card.artwork" :key="card.artwork" class="line-art" :src="card.artwork" alt="" @load="card.loaded.artwork = true" @error="card.loaded.artwork = false" />
   <template v-if="card.face.kind === 'graph'">
-    <span class="head"><span class="ic mdi">{{ glyph(card.icon) }}</span><span class="tx"><span class="nm">{{ card.texts.name }}</span><span class="st">{{ card.texts.line }}</span></span></span>
+    <span class="head"><span class="ic mdi">{{ glyph(card.icon) }}</span><span class="tx"><span class="nm">{{ card.texts.name }}</span><span v-marquee="card.handLine" class="st">{{ card.texts.line }}</span></span></span>
     <SensorHistory :entity="card.tile.entity" :hours="Number(card.tile.options?.history_hours || 24)" />
   </template>
   <!-- A card over the whole page as the glass lays it out (render_full): one big button, or a player's media card. -->
@@ -54,7 +55,7 @@ const card = props.card;
       <span class="nm">{{ card.texts.name }}</span>
       <span v-if="card.goesTo" class="goto">{{ card.texts.pageLink }}</span>
       <span v-else-if="card.face.display === 'watch'" class="big">{{ card.texts.value }}<small v-if="card.texts.unit && !card.gone">{{ card.texts.unit }}</small></span>
-      <span v-else-if="card.texts.line" class="st" :class="{ off: card.gone }">{{ card.texts.line }}</span>
+      <span v-else-if="card.texts.line" v-marquee="card.handLine" class="st" :class="{ off: card.gone }">{{ card.texts.line }}</span>
     </span>
     <span v-if="card.tile.options?.inline === 'slider'" class="mini-slider" :style="card.sliderStyle"></span>
     <span v-if="card.face.controls" class="ctl">
@@ -78,7 +79,7 @@ const card = props.card;
         <span class="nm">{{ card.texts.name }}</span>
         <span v-if="card.goesTo" class="goto">{{ card.texts.pageLink }}</span>
         <span v-else-if="card.face.display === 'watch'" class="big">{{ card.texts.value }}<small v-if="card.texts.unit && !card.gone">{{ card.texts.unit }}</small></span>
-        <span v-else-if="card.texts.line" class="st" :class="{ off: card.gone }">{{ card.texts.line }}</span>
+        <span v-else-if="card.texts.line" v-marquee="card.handLine" class="st" :class="{ off: card.gone }">{{ card.texts.line }}</span>
       </span>
     </span>
     <span v-if="card.tile.options?.inline === 'slider'" class="mini-slider" :style="card.sliderStyle"></span>

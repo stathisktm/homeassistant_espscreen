@@ -4629,6 +4629,27 @@ def create_app(manager, development=False):
         body = await asyncio.get_running_loop().run_in_executor(None, media_library.preview_jpeg, manager.thumbnails[url])
         return web.Response(body=body, content_type='image/jpeg', headers={'Cache-Control': 'private, max-age=3600'})
 
+    async def page_background_preview(request):
+        """A page's background for the editor's mockup (app 0.4.114): from a source the add-on keeps for a page
+        (page_backdrop.validate), fetched the way the screens' is (never an address in the house) and darkened as they
+        get it. The editor shows the draft's, so it names the source; only what a page may name is fetched."""
+        query = request.query
+        try:
+            background = page_backdrop.validate({'source': query.get('source', ''), 'dim': int(query.get('dim', page_backdrop.DIM_DEFAULT))})
+            width, height = (max(64, min(1280, int(query.get(key, 480)))) for key in ('w', 'h'))
+        except (ValueError, TypeError):
+            raise web.HTTPBadRequest() from None
+        found = await manager.backdrops.picture(background['source'], page_backdrop.refresh_of(background))
+        if found is None:
+            raise web.HTTPNotFound()
+        raw, digest = found
+        tag = f'"{digest[:16]}-{background["dim"]}-{width}x{height}"'
+        headers = {'ETag': tag, 'Cache-Control': 'private, max-age=60'}
+        if request.headers.get('If-None-Match') == tag:
+            return web.Response(status=304, headers=headers)
+        body = await asyncio.get_running_loop().run_in_executor(None, page_backdrop.preview_jpeg, raw, width, height, background['dim'])
+        return web.Response(body=body, content_type='image/jpeg', headers=headers)
+
     async def camera_preview(request):
         # A camera that fills a taller card on the mockup (app 0.3.8): prepared pixels only, as for a cover.
         entity = request.query.get('entity', '')
@@ -5303,6 +5324,7 @@ def create_app(manager, development=False):
     app.router.add_get('/api/camera-preview', camera_preview)
     app.router.add_get('/api/media/browse', media_browse)
     app.router.add_get('/api/media/picture', media_picture)
+    app.router.add_get('/api/page-background', page_background_preview)
     app.router.add_get('/api/media/link', media_link)
     app.router.add_post('/api/firmware-preview', firmware_preview)
     app.router.add_post('/api/firmware-preview/import', import_document)

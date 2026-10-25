@@ -163,3 +163,17 @@ class Backdrops:
         if not picture:
             raise ValueError('no picture')
         return await ha.entity_picture(picture)
+
+
+def preview_jpeg(raw, width, height, dim):
+    """The editor's mockup of a page's background (app 0.4.114): the picture cut to the page's shape and darkened as the
+    screen gets it (picture_paint, fit cover), as a JPEG the browser shows behind the mockup's cards."""
+    import io
+    import picture_paint
+    import picture_question as pq
+    question = pq.Question(pq.Owner('page', 0), (pq.Source('page', '0'),), (width, height),
+                           (pq.Place(0, 0, width, height, fit='cover', dim=dim),))
+    image = picture_paint.picture(question, [raw])
+    out = io.BytesIO()
+    image.save(out, 'JPEG', quality=85, optimize=True)
+    return out.getvalue()

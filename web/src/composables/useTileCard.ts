@@ -117,6 +117,8 @@ export function useTileCard(props: TileCardProps) {
   const note = computed(() => (face.value.display !== "standard" ? displayName(face.value.display) : ""));
   const status = computed(() => stateText(props.tile.entity, current.value, { runs: runs.value, note: note.value,
     controlled: Boolean(face.value.controls && face.value.controls !== "none" && (face.value.wide || face.value.tall) && !face.value.full) }, words.value));
+  // A line set by hand (any but the card's own and none): one too wide for its card goes round (vMarquee, app 0.4.114).
+  const handLine = computed(() => { const sub = props.tile.options?.sub; return typeof sub === "string" && sub !== "auto" && sub !== "none"; });
   const line = computed(() => subLine(String(props.tile.options?.sub ?? "auto"), current.value, status.value,
     (id: string) => entities.liveOf(id), words.value, String(props.tile.options?.sub2 ?? "")));
   const fill = computed(() => fillPercent(domain.value, current.value));
@@ -392,7 +394,7 @@ export function useTileCard(props: TileCardProps) {
 
   return proxyRefs({
     tile: computed(() => props.tile), preview: computed(() => Boolean(props.preview)), placeholder: computed(() => Boolean(props.placeholder)),
-    grid, foreign, domain, shape, goesTo, current, gone, face, texts, fill, lit, on, palette, background, icon, chip, wideFit, glassScale, sliderStyle, head, panel, pill, glassStyle, tall, tallStyle, full, fullStyle,
+    grid, foreign, domain, shape, goesTo, current, handLine, gone, face, texts, fill, lit, on, palette, background, icon, chip, wideFit, glassScale, sliderStyle, head, panel, pill, glassStyle, tall, tallStyle, full, fullStyle,
     watchFace, watchStyle, clock, energy: energyPaints(), pluginTile, pluginRow, artwork, cameraPicture, favoritePicture, favoriteIcon, loaded,
     keyPlaces, chosen, live, features: computed(() => Number(current.value?.a?.supported_features || 0)),
     key,

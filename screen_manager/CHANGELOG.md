@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.114: the editor's pages show what the screen shows.** A page's background stands behind the mockup's cards,
+  painted by the app as the screen gets it (cut to the screen's shape and darkened), so see-through cards show it too;
+  and a line you set that is too wide for its card goes round slowly, as on the glass. No firmware update is needed.
+
 - **0.4.113: choose a thermostat's modes.** A climate tile's Modes: a chip for each mode it lists (its modes, fan modes
   and swing modes), so the tile and its card offer only the ones you use, as Home Assistant's own climate features let
   you choose them. At least one stays. No firmware update is needed: the screen is sent only the modes kept.
