@@ -16,7 +16,8 @@ describe("a weather tile's colour pictures", () => {
 
   it("has a picture for every condition, windy-variant as windy", () => {
     for (const condition of CONDITIONS) expect(weatherPicture(condition), condition).toBeTruthy();
-    expect(weatherPicture("windy-variant")).toBe(weatherPicture("windy"));
+    expect(weatherPicture("rainy", true)).not.toBe(weatherPicture("rainy"));
+    expect(weatherPicture("sunny", true)).toBe(weatherPicture("clear-night"));
     expect(weatherPicture("unavailable")).toBeNull();
     expect(weatherPicture(undefined)).toBeNull();
   });

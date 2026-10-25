@@ -77,7 +77,9 @@ the add-on and the editor offer a module's options only on boards that have it.
   the bottom goes home.
 - **weather_emoji** (full): a weather tile's colour pictures in the place of its icons, where its option
   `weather_icons` is `emoji` (`module_weather_emoji.h`): on the tile, its forecast's days and its week. The pictures
-  are Noto Emoji's (`fonts/weather-emoji-*.png`), built at the mini and the card icon font's size by
-  `packages/core.yaml` and handed over at boot (`weather_pictures.h`); `packages/hardware/flash-4mb.yaml` sets
-  `WEATHER_EMOJI: "0"`, so a lite board builds them as single pixels. The editor offers the option where `boards.json`
-  lists the module, and lite keeps the icons.
+  are the Iris weather emoji (`fonts/iris`, MIT License), by day and by night (the app's `nt` while `sun.sun` is below
+  the horizon), built at the mini and the card icon font's size by `packages/core.yaml` and handed over at boot
+  (`weather_pictures.h`). The card's own picture moves: Iris's 15 frames round in four seconds (an `animation:` per
+  picture, at most 40 px), on a board of 16 MB or more; a board file with less says `WEATHER_MOTION: "0"` and its
+  pictures stand still. `packages/hardware/flash-4mb.yaml` sets `WEATHER_EMOJI: "0"`, so a lite board builds them as
+  single pixels. The editor offers the option where `boards.json` lists the module, and lite keeps the icons.

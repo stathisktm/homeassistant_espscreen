@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.117: Iris weather emoji, moving.** "Colour weather emoji" now shows the Iris weather emoji: glossy pictures
+  for every condition, the night's (a moon, a night cloud) while the sun is down, and the tile's own picture moves,
+  round and round in four seconds, on a screen with 16 MB of flash or more (the Guition 4848S040, the P4 boards, most
+  others). A screen with 8 MB shows the same pictures standing still. The editor shows them moving too. Screens need
+  firmware 0.70.0.
+
 - **0.4.116: colour weather emoji.** A weather tile's "Colour weather emoji": colour pictures of the weather (sun,
   clouds, rain, snow, storm) in the place of its icons, on the tile, its forecast's days and its week, the same in the
   editor's preview. The pictures are Noto Emoji's (Apache License 2.0). Screens need firmware 0.69.0 and 8 MB of flash

@@ -21,6 +21,8 @@ packages:
   self_test: !include ../features/self-test.yaml
 
 substitutions:
+  # 8 MB of flash: a weather tile's pictures stand still (firmware 0.70.0, module weather_emoji).
+  WEATHER_MOTION: "0"
   # The key of this board file; the firmware reports it so ESP Screens knows what board a screen is.
   BOARD_ID: "sensecapd1"
   DEVICE_NAME: "sensecapd1-new"

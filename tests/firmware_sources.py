@@ -8,9 +8,10 @@ def runtime_source():
     text = (ROOT / 'runtime_tiles.h').read_text()
     # The parser lives in its own compilation unit (page_receiver.cpp, firmware 0.3.3+); the source contracts read it
     # where runtime_tiles.h names its header.
-    # A player's library (media_library.cpp, firmware 0.24.0+) likewise, after the parser.
+    # A player's library (media_library.cpp, firmware 0.24.0+) likewise, after the parser, and the weather cards
+    # (weather_cards.cpp, firmware 0.70.0) at the end.
     return text.replace('#include "page_receiver.h"', (ROOT / 'page_receiver.h').read_text() + (ROOT / 'page_receiver.cpp').read_text()
-                        + (ROOT / 'media_library.cpp').read_text())
+                        + (ROOT / 'media_library.cpp').read_text()) + (ROOT / 'weather_cards.cpp').read_text()
 
 
 def firmware_domains():

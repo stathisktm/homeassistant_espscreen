@@ -131,7 +131,7 @@ class TheBoards(unittest.TestCase):
         self.assertEqual(list(package), ['substitutions', 'flash_layout', 'text_sensor'])
         # A substitution merges by its name, so it takes nothing of the core's: the one that leaves out the colour
         # weather pictures (module weather_emoji, app 0.4.116), which this flash has no room for.
-        self.assertEqual(package['substitutions'], {'WEATHER_EMOJI': '0'})
+        self.assertEqual(package['substitutions'], {'WEATHER_EMOJI': '0', 'WEATHER_MOTION': '0'})
         self.assertEqual([sensor['name'] for sensor in package['text_sensor']], list(core.NAME_SCREEN_FLASH))
 
     def test_no_other_board_s_firmware_changes(self):

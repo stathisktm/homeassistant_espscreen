@@ -16,7 +16,7 @@
 # fonts/materialdesignicons-webfont.ttf (Apache 2.0, github.com/Templarian/MaterialDesign-Webfont).
 ############################################################
 substitutions:
-  SCREEN_FIRMWARE_VERSION: "0.69.0"
+  SCREEN_FIRMWARE_VERSION: "0.70.0"
   DASHBOARD_INBOX_INTERNAL: "false"
   CALIBRATION_ON_BOOT: "false"                     # a bench build: start on the touch test page
   ROOM_NAME: ""                                    # top left until ESP Screens sends the screen name
@@ -31,6 +31,9 @@ substitutions:
   # A weather tile's colour pictures (firmware 0.69.0, module weather_emoji): "1" builds them at the icons' sizes, "0"
   # (packages/hardware/flash-4mb.yaml, the boards without the module) as single pixels.
   WEATHER_EMOJI: "1"
+  # A weather tile's moving picture (firmware 0.70.0): "1" builds its frames, "0" (a board with less than 16 MB of
+  # flash, in its board file, and flash-4mb.yaml) single pixels, so its pictures stand still.
+  WEATHER_MOTION: "1"
   # The letters a language written in another script needs beyond the Latin ones the text fonts always carry
   # (docs/TRANSLATING.md, "Letters"): only a screen built in such a language carries them, so no other screen spends
   # flash on them. One list per script with the letters its languages here write (Russian's and Greek's now), the same
@@ -171,21 +174,48 @@ esphome:
           runtime_tiles::display_font = id(display_digits)->get_lv_font();
           runtime_tiles::brand_font = id(brand_wordmark)->get_lv_font();
           runtime_tiles::brand_mark = id(tessera_mark)->get_lv_image_dsc();
-          // The weather's colour pictures (firmware 0.69.0, weather_pictures.h), in the order of its CONDITIONS.
+          // The weather's colour pictures (weather_pictures.h), in the order of its NAMES, and their frames.
           weather_pictures::set(0, id(weather_emoji_sunny_s)->get_lv_image_dsc(), id(weather_emoji_sunny_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(0, id(weather_motion_sunny));
           weather_pictures::set(1, id(weather_emoji_clear_night_s)->get_lv_image_dsc(), id(weather_emoji_clear_night_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(1, id(weather_motion_clear_night));
           weather_pictures::set(2, id(weather_emoji_cloudy_s)->get_lv_image_dsc(), id(weather_emoji_cloudy_m)->get_lv_image_dsc());
-          weather_pictures::set(3, id(weather_emoji_partlycloudy_s)->get_lv_image_dsc(), id(weather_emoji_partlycloudy_m)->get_lv_image_dsc());
-          weather_pictures::set(4, id(weather_emoji_rainy_s)->get_lv_image_dsc(), id(weather_emoji_rainy_m)->get_lv_image_dsc());
-          weather_pictures::set(5, id(weather_emoji_pouring_s)->get_lv_image_dsc(), id(weather_emoji_pouring_m)->get_lv_image_dsc());
-          weather_pictures::set(6, id(weather_emoji_snowy_s)->get_lv_image_dsc(), id(weather_emoji_snowy_m)->get_lv_image_dsc());
-          weather_pictures::set(7, id(weather_emoji_snowy_rainy_s)->get_lv_image_dsc(), id(weather_emoji_snowy_rainy_m)->get_lv_image_dsc());
-          weather_pictures::set(8, id(weather_emoji_fog_s)->get_lv_image_dsc(), id(weather_emoji_fog_m)->get_lv_image_dsc());
-          weather_pictures::set(9, id(weather_emoji_hail_s)->get_lv_image_dsc(), id(weather_emoji_hail_m)->get_lv_image_dsc());
-          weather_pictures::set(10, id(weather_emoji_lightning_s)->get_lv_image_dsc(), id(weather_emoji_lightning_m)->get_lv_image_dsc());
-          weather_pictures::set(11, id(weather_emoji_lightning_rainy_s)->get_lv_image_dsc(), id(weather_emoji_lightning_rainy_m)->get_lv_image_dsc());
-          weather_pictures::set(12, id(weather_emoji_windy_s)->get_lv_image_dsc(), id(weather_emoji_windy_m)->get_lv_image_dsc());
-          weather_pictures::set(13, id(weather_emoji_exceptional_s)->get_lv_image_dsc(), id(weather_emoji_exceptional_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(2, id(weather_motion_cloudy));
+          weather_pictures::set(3, id(weather_emoji_partly_cloudy_day_s)->get_lv_image_dsc(), id(weather_emoji_partly_cloudy_day_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(3, id(weather_motion_partly_cloudy_day));
+          weather_pictures::set(4, id(weather_emoji_partly_cloudy_night_s)->get_lv_image_dsc(), id(weather_emoji_partly_cloudy_night_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(4, id(weather_motion_partly_cloudy_night));
+          weather_pictures::set(5, id(weather_emoji_rain_s)->get_lv_image_dsc(), id(weather_emoji_rain_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(5, id(weather_motion_rain));
+          weather_pictures::set(6, id(weather_emoji_night_rain_s)->get_lv_image_dsc(), id(weather_emoji_night_rain_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(6, id(weather_motion_night_rain));
+          weather_pictures::set(7, id(weather_emoji_heavy_rain_s)->get_lv_image_dsc(), id(weather_emoji_heavy_rain_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(7, id(weather_motion_heavy_rain));
+          weather_pictures::set(8, id(weather_emoji_snow_s)->get_lv_image_dsc(), id(weather_emoji_snow_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(8, id(weather_motion_snow));
+          weather_pictures::set(9, id(weather_emoji_snow_night_s)->get_lv_image_dsc(), id(weather_emoji_snow_night_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(9, id(weather_motion_snow_night));
+          weather_pictures::set(10, id(weather_emoji_sleet_s)->get_lv_image_dsc(), id(weather_emoji_sleet_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(10, id(weather_motion_sleet));
+          weather_pictures::set(11, id(weather_emoji_fog_s)->get_lv_image_dsc(), id(weather_emoji_fog_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(11, id(weather_motion_fog));
+          weather_pictures::set(12, id(weather_emoji_fog_night_s)->get_lv_image_dsc(), id(weather_emoji_fog_night_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(12, id(weather_motion_fog_night));
+          weather_pictures::set(13, id(weather_emoji_hail_s)->get_lv_image_dsc(), id(weather_emoji_hail_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(13, id(weather_motion_hail));
+          weather_pictures::set(14, id(weather_emoji_thunderstorm_s)->get_lv_image_dsc(), id(weather_emoji_thunderstorm_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(14, id(weather_motion_thunderstorm));
+          weather_pictures::set(15, id(weather_emoji_thunderstorm_night_s)->get_lv_image_dsc(), id(weather_emoji_thunderstorm_night_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(15, id(weather_motion_thunderstorm_night));
+          weather_pictures::set(16, id(weather_emoji_thunderstorm_rain_s)->get_lv_image_dsc(), id(weather_emoji_thunderstorm_rain_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(16, id(weather_motion_thunderstorm_rain));
+          weather_pictures::set(17, id(weather_emoji_windy_s)->get_lv_image_dsc(), id(weather_emoji_windy_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(17, id(weather_motion_windy));
+          weather_pictures::set(18, id(weather_emoji_wind_s)->get_lv_image_dsc(), id(weather_emoji_wind_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(18, id(weather_motion_wind));
+          weather_pictures::set(19, id(weather_emoji_hurricane_s)->get_lv_image_dsc(), id(weather_emoji_hurricane_m)->get_lv_image_dsc());
+          weather_pictures::set_frames(19, id(weather_motion_hurricane));
+          weather_pictures::awake = []() { return !id(display_dimmed); };
           runtime_tiles::firmware_version = "${SCREEN_FIRMWARE_VERSION}";
           runtime_tiles::now_time = []() { return id(homeassistant_time).now(); };
           runtime_tiles::screen_awake = []() { return !id(display_dimmed); };
@@ -932,150 +962,315 @@ image:
     type: RGB565
     transparency: alpha_channel
     resize: ${ ((FONT_ICON_HOME_SIZE | int) * 17 / 24) | round | int }x${ ((FONT_ICON_HOME_SIZE | int) * 17 / 24) | round | int }
-  # Colour pictures of the weather (firmware 0.69.0, module weather_emoji, weather_pictures.h): Noto Emoji
-  # (fonts/Noto-Emoji-Apache-2.0.txt) at nine tenths of the mini and the card icon font. A board without the
-  # module (flash-4mb.yaml says WEATHER_EMOJI: "0") builds them as single pixels.
+  # Colour pictures of the weather (module weather_emoji, weather_pictures.h): the Iris weather emoji
+  # (fonts/iris, MIT License, firmware 0.70.0) at nine tenths of the mini and the card icon font. A board without
+  # the module (flash-4mb.yaml says WEATHER_EMOJI: "0") builds them as single pixels.
   - id: weather_emoji_sunny_s
-    file: "${FONT_DIR}/weather-emoji-sunny.png"
+    file: "${FONT_DIR}/iris/sunny.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_sunny_m
-    file: "${FONT_DIR}/weather-emoji-sunny.png"
+    file: "${FONT_DIR}/iris/sunny.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_clear_night_s
-    file: "${FONT_DIR}/weather-emoji-clear-night.png"
+    file: "${FONT_DIR}/iris/clear-night.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_clear_night_m
-    file: "${FONT_DIR}/weather-emoji-clear-night.png"
+    file: "${FONT_DIR}/iris/clear-night.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_cloudy_s
-    file: "${FONT_DIR}/weather-emoji-cloudy.png"
+    file: "${FONT_DIR}/iris/cloudy.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_cloudy_m
-    file: "${FONT_DIR}/weather-emoji-cloudy.png"
+    file: "${FONT_DIR}/iris/cloudy.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_partlycloudy_s
-    file: "${FONT_DIR}/weather-emoji-partlycloudy.png"
+  - id: weather_emoji_partly_cloudy_day_s
+    file: "${FONT_DIR}/iris/partly-cloudy-day.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_partlycloudy_m
-    file: "${FONT_DIR}/weather-emoji-partlycloudy.png"
+  - id: weather_emoji_partly_cloudy_day_m
+    file: "${FONT_DIR}/iris/partly-cloudy-day.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_rainy_s
-    file: "${FONT_DIR}/weather-emoji-rainy.png"
+  - id: weather_emoji_partly_cloudy_night_s
+    file: "${FONT_DIR}/iris/partly-cloudy-night.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_rainy_m
-    file: "${FONT_DIR}/weather-emoji-rainy.png"
+  - id: weather_emoji_partly_cloudy_night_m
+    file: "${FONT_DIR}/iris/partly-cloudy-night.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_pouring_s
-    file: "${FONT_DIR}/weather-emoji-pouring.png"
+  - id: weather_emoji_rain_s
+    file: "${FONT_DIR}/iris/rain.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_pouring_m
-    file: "${FONT_DIR}/weather-emoji-pouring.png"
+  - id: weather_emoji_rain_m
+    file: "${FONT_DIR}/iris/rain.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_snowy_s
-    file: "${FONT_DIR}/weather-emoji-snowy.png"
+  - id: weather_emoji_night_rain_s
+    file: "${FONT_DIR}/iris/night-rain.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_snowy_m
-    file: "${FONT_DIR}/weather-emoji-snowy.png"
+  - id: weather_emoji_night_rain_m
+    file: "${FONT_DIR}/iris/night-rain.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_snowy_rainy_s
-    file: "${FONT_DIR}/weather-emoji-snowy-rainy.png"
+  - id: weather_emoji_heavy_rain_s
+    file: "${FONT_DIR}/iris/heavy-rain.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_snowy_rainy_m
-    file: "${FONT_DIR}/weather-emoji-snowy-rainy.png"
+  - id: weather_emoji_heavy_rain_m
+    file: "${FONT_DIR}/iris/heavy-rain.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_snow_s
+    file: "${FONT_DIR}/iris/snow.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_snow_m
+    file: "${FONT_DIR}/iris/snow.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_snow_night_s
+    file: "${FONT_DIR}/iris/snow-night.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_snow_night_m
+    file: "${FONT_DIR}/iris/snow-night.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_sleet_s
+    file: "${FONT_DIR}/iris/sleet.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_sleet_m
+    file: "${FONT_DIR}/iris/sleet.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_fog_s
-    file: "${FONT_DIR}/weather-emoji-fog.png"
+    file: "${FONT_DIR}/iris/fog.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_fog_m
-    file: "${FONT_DIR}/weather-emoji-fog.png"
+    file: "${FONT_DIR}/iris/fog.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_fog_night_s
+    file: "${FONT_DIR}/iris/fog-night.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_fog_night_m
+    file: "${FONT_DIR}/iris/fog-night.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_hail_s
-    file: "${FONT_DIR}/weather-emoji-hail.png"
+    file: "${FONT_DIR}/iris/hail.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_hail_m
-    file: "${FONT_DIR}/weather-emoji-hail.png"
+    file: "${FONT_DIR}/iris/hail.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_lightning_s
-    file: "${FONT_DIR}/weather-emoji-lightning.png"
+  - id: weather_emoji_thunderstorm_s
+    file: "${FONT_DIR}/iris/thunderstorm.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_lightning_m
-    file: "${FONT_DIR}/weather-emoji-lightning.png"
+  - id: weather_emoji_thunderstorm_m
+    file: "${FONT_DIR}/iris/thunderstorm.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_lightning_rainy_s
-    file: "${FONT_DIR}/weather-emoji-lightning-rainy.png"
+  - id: weather_emoji_thunderstorm_night_s
+    file: "${FONT_DIR}/iris/thunderstorm-night.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_lightning_rainy_m
-    file: "${FONT_DIR}/weather-emoji-lightning-rainy.png"
+  - id: weather_emoji_thunderstorm_night_m
+    file: "${FONT_DIR}/iris/thunderstorm-night.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_thunderstorm_rain_s
+    file: "${FONT_DIR}/iris/thunderstorm-rain.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_thunderstorm_rain_m
+    file: "${FONT_DIR}/iris/thunderstorm-rain.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_windy_s
-    file: "${FONT_DIR}/weather-emoji-windy.png"
+    file: "${FONT_DIR}/iris/windy.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
   - id: weather_emoji_windy_m
-    file: "${FONT_DIR}/weather-emoji-windy.png"
+    file: "${FONT_DIR}/iris/windy.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_exceptional_s
-    file: "${FONT_DIR}/weather-emoji-exceptional.png"
+  - id: weather_emoji_wind_s
+    file: "${FONT_DIR}/iris/wind.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
-  - id: weather_emoji_exceptional_m
-    file: "${FONT_DIR}/weather-emoji-exceptional.png"
+  - id: weather_emoji_wind_m
+    file: "${FONT_DIR}/iris/wind.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_hurricane_s
+    file: "${FONT_DIR}/iris/hurricane.png"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_MINI_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
+  - id: weather_emoji_hurricane_m
+    file: "${FONT_DIR}/iris/hurricane.png"
     type: RGB565
     transparency: alpha_channel
     resize: ${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }x${ [1, (((FONT_ICON_SIZE | int) * 0.9 * (WEATHER_EMOJI | int)) | round | int)] | max }
 
+# A weather tile's moving picture (firmware 0.70.0, module weather_emoji): Iris's 15 frames round in four seconds,
+# at nine tenths of the card icon font and at most 40 px (LVGL scales them up to the card's), about 1.3 MB on
+# a board of 16 MB. A board with less flash says WEATHER_MOTION: "0" and builds single pixels: its pictures stand
+# still. The top-level form, which ESPHome 2026.6.2 (min_version) knows.
+animation:
+  - id: weather_motion_sunny
+    file: "${FONT_DIR}/iris/sunny.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_clear_night
+    file: "${FONT_DIR}/iris/clear-night.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_cloudy
+    file: "${FONT_DIR}/iris/cloudy.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_partly_cloudy_day
+    file: "${FONT_DIR}/iris/partly-cloudy-day.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_partly_cloudy_night
+    file: "${FONT_DIR}/iris/partly-cloudy-night.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_rain
+    file: "${FONT_DIR}/iris/rain.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_night_rain
+    file: "${FONT_DIR}/iris/night-rain.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_heavy_rain
+    file: "${FONT_DIR}/iris/heavy-rain.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_snow
+    file: "${FONT_DIR}/iris/snow.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_snow_night
+    file: "${FONT_DIR}/iris/snow-night.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_sleet
+    file: "${FONT_DIR}/iris/sleet.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_fog
+    file: "${FONT_DIR}/iris/fog.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_fog_night
+    file: "${FONT_DIR}/iris/fog-night.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_hail
+    file: "${FONT_DIR}/iris/hail.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_thunderstorm
+    file: "${FONT_DIR}/iris/thunderstorm.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_thunderstorm_night
+    file: "${FONT_DIR}/iris/thunderstorm-night.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_thunderstorm_rain
+    file: "${FONT_DIR}/iris/thunderstorm-rain.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_windy
+    file: "${FONT_DIR}/iris/windy.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_wind
+    file: "${FONT_DIR}/iris/wind.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
+  - id: weather_motion_hurricane
+    file: "${FONT_DIR}/iris/hurricane.webp"
+    type: RGB565
+    transparency: alpha_channel
+    resize: ${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }x${ [1, [40, (((FONT_ICON_SIZE | int) * 0.9) | round | int)] | min * (WEATHER_EMOJI | int) * (WEATHER_MOTION | int)] | max }
 font:
   # The five text fonts (headline, watch_value, label, sublabel, sublabel_big) carry the same characters, the ones
   # header_bar.GLYPHS in the add-on sends: every printable ASCII character (firmware 0.36.0+, "bbno$" in GitHub #147)

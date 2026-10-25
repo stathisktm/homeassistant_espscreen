@@ -14,6 +14,7 @@
 substitutions:
   # No colour weather pictures (module weather_emoji, docs/MODULES.md): this flash has no room for them.
   WEATHER_EMOJI: "0"
+  WEATHER_MOTION: "0"
 
 flash_layout:
 

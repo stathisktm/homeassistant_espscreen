@@ -2941,6 +2941,10 @@ class Manager:
                         self.snapshots.vacuum_warm(card['map']['e'],card['map']['m'])
         if tile['entity'].startswith('calendar.'):
             extra = {**(extra or {}), 'cal': await self.calendar_extras(tile)}
+        # A weather tile's colour pictures are the night's while the sun is down (app 0.4.117, firmware 0.70.0).
+        if (tile['entity'].startswith('weather.') and options.get('weather_icons') == 'emoji'
+                and (self.ha.states.get('sun.sun') or {}).get('state') == 'below_horizon'):
+            extra = {**(extra or {}), 'nt': 1}
         message=state_message(index,tile,states,extra,
                               precision=header_bar.precision_of(entry) if tile['entity'].startswith('sensor.') else None,entry=entry,
                               units=getattr(self.ha,'units',None),week=week)

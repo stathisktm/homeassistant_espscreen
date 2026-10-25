@@ -920,6 +920,8 @@ std::string receive(const std::string &payload) {
     tile.last_run = extra["last"].is<unsigned>() ? extra["last"].as<uint32_t>() : 0;
     // An automation whose actions run right now (firmware 0.7.0+).
     tile.running = extra["run"].as<bool>();
+    // The sun is down (firmware 0.70.0): a weather tile's pictures are the night's.
+    tile.weather_night = extra["nt"] | false;
     next.sunrise = string(extra["rise"], 5); next.sunset = string(extra["set"], 5);
     next.timer_end = extra["end"].is<unsigned>() ? extra["end"].as<uint32_t>() : 0;
     next.duration = string(extra["dur"], 16); next.remaining = string(extra["rem"], 16);

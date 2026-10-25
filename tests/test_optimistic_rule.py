@@ -9,7 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OPTIMISTIC = (ROOT / 'components/smart_display/optimistic.h').read_text()
-TILES = (ROOT / 'components/smart_display/runtime_tiles.h').read_text()
+# The weather cards are drawn in a compilation unit of their own (weather_cards.cpp, firmware 0.70.0).
+TILES = (ROOT / 'components/smart_display/runtime_tiles.h').read_text() + (ROOT / 'components/smart_display/weather_cards.cpp').read_text()
 MODEL = (ROOT / 'components/smart_display/runtime_model.h').read_text()
 DOC = (ROOT / 'docs/OPTIMISTIC.md').read_text()
 
@@ -57,10 +58,11 @@ class CardParts(unittest.TestCase):
                   'render_select_detail': 'select_card_shape', 'render_remote_detail': 'select_card_shape', 'render_vacuum_detail': 'vacuum_card_shape',
                   'render_lock_detail': 'security_card_shape', 'render_alarm_detail': 'security_card_shape',
                   'render_weather_detail': 'picture_card_shape', 'render_history_detail': 'picture_card_shape'}
-        for card in re.findall(r'^inline void (render_[a-z]+_detail)\(', TILES, re.M):
+        # A card drawn in a compilation unit of its own (weather_cards.cpp) is a plain function there.
+        for card in re.findall(r'^(?:inline )?void (render_[a-z]+_detail)\(', TILES, re.M):
             self.assertIn(card, shapes, f'{card} is a card without a shape (docs/CARD_PARTS.md)')
         for card, shape in shapes.items():
-            body = TILES[TILES.index(f'inline void {card}('):]
+            body = TILES[re.search(rf'^(?:inline )?void {card}\([^;]*?\{{$', TILES, re.M).start():]
             body = body[:body.index('\n}\n')]
             self.assertIn(f'card_shaped(t,{shape});', body, f'{card} names no shape (docs/CARD_PARTS.md)')
 

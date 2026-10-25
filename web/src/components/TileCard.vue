@@ -69,7 +69,7 @@ const classes = computed(() => {
 });
 // A weather tile's colour picture in the place of its icon (app 0.4.116), as the screen draws it.
 const weatherEmoji = computed(() => props.tile.entity.startsWith("weather.") && props.tile.options?.weather_icons === "emoji"
-  ? weatherPicture(entities.liveOf(props.tile.entity)?.state) : null);
+  ? weatherPicture(entities.liveOf(props.tile.entity)?.state, entities.liveOf("sun.sun")?.state === "below_horizon") : null);
 const style = computed(() => {
   const background = card.background;
   // A card a page's background shows through (app 0.4.111): its colour mixed with nothing, in app.css (.see-through).
