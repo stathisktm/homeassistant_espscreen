@@ -48,6 +48,24 @@ class TheNight(unittest.TestCase):
         self.assertEqual(manager.related_entities({'entity': 'weather.home', 'options': {}}), ())
 
 
+class TheChart(unittest.TestCase):
+    """The days and hours of the week and of the card a tap opens take the pictures too (firmware 0.71.0)."""
+
+    def test_the_chart_draws_a_picture_where_its_tile_has_them(self):
+        component = ROOT / 'components/smart_display'
+        chart = (component / 'weather_chart.h').read_text(encoding='utf-8')
+        # A picture item, asked for through the module's hook, for the days, the hours and the weather now.
+        self.assertIn('enum Kind : uint8_t { TEXT, RECT, LINE, DOT, IMAGE }', chart)
+        self.assertIn('inline const lv_image_dsc_t *(*picture)(const std::string &condition, bool night, int side) = nullptr;', chart)
+        self.assertEqual(chart.count(', c.pictures);'), 2, 'the days of the week and the hours')
+        self.assertIn('c.pictures, c.night);', chart)
+        self.assertIn('a.pictures != b.pictures || a.night != b.night', chart)
+        # Every chart of a tile says whether it has them, and the module answers the hook.
+        self.assertIn('c.pictures=t.weather_emoji;c.night=t.weather_night;', (component / 'runtime_tiles.h').read_text(encoding='utf-8'))
+        self.assertIn('c.pictures=t.weather_emoji;c.night=t.weather_night;', (component / 'weather_cards.cpp').read_text(encoding='utf-8'))
+        self.assertIn('weather_chart::picture = &chart_picture', (component / 'module_weather_emoji.cpp').read_text(encoding='utf-8'))
+
+
 class ThePictures(unittest.TestCase):
     def test_every_condition_of_home_assistant_has_a_picture(self):
         # Home Assistant's conditions (tile_icons.WEATHER), each with a picture by day and by night (Iris's mapping).

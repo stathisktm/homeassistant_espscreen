@@ -78,6 +78,8 @@ void render_weather_detail(const Tile &t,bool large,int width,int height,int){
     auto *art=weather_chart::create(card);lv_obj_set_pos(art,xx,card_pad+hero_y+(hero-ih)/2);lv_obj_set_size(art,ih*5/4,ih);
     // The condition's two-tone picture, the one the chart draws for a day, in the largest face.
     weather_chart::Chart c;c.icon_only=true;c.fonts=weather_fonts();c.days.push_back({"",t.available()?t.state:"exceptional"});
+    // The tile's colour picture, the night's while the sun is down (firmware 0.71.0).
+    c.pictures=t.weather_emoji;c.night=t.weather_night;
     weather_chart::set(art,std::move(c));
     xx+=ih+gi;
   }

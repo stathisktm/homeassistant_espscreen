@@ -2006,6 +2006,8 @@ inline weather_chart::Chart weather_chart_of(const Tile &t,bool hourly){
   const Extra &x=t.extra();
   weather_chart::Chart c;
   c.hourly=hourly;c.large=ui::large();c.fonts=weather_fonts();c.unit=x.rain_unit.empty()?"mm":x.rain_unit;
+  // The tile's colour pictures on its days and hours too (firmware 0.71.0, module weather_emoji).
+  c.pictures=t.weather_emoji;c.night=t.weather_night;
   c.fahrenheit=t.unit.find('F')!=std::string::npos;
   const int today=weather_today();
   c.today=today>=0?today:(x.forecast.size()&&x.forecast[0].weekday>=0?x.forecast[0].weekday:0);

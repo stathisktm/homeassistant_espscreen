@@ -23,7 +23,8 @@ struct Fonts {
   const lv_font_t *axis = nullptr;           // the hours' times
 };
 struct Item {
-  enum Kind : uint8_t { TEXT, RECT, LINE, DOT } kind = TEXT;
+  // IMAGE (firmware 0.71.0): a weather tile's colour picture in the place of a condition's glyphs (module weather_emoji).
+  enum Kind : uint8_t { TEXT, RECT, LINE, DOT, IMAGE } kind = TEXT;
   bool round_start = false, round_end = false;
   lv_opa_t opa = LV_OPA_COVER;
   int16_t x1 = 0, y1 = 0, x2 = 0, y2 = 0;  // its area, relative to the chart
@@ -33,7 +34,12 @@ struct Item {
   uint32_t color = 0;
   const lv_font_t *font = nullptr;
   char text[16] = {};  // the chart's texts are short: a day's name, "-12°", "14.5 mm", a glyph
+  const lv_image_dsc_t *src = nullptr;  // an IMAGE's picture, drawn to fill its area
 };
+// A condition's colour picture by day or by night, as large as `side` or the nearest the board has; nullptr keeps the
+// glyphs. Set by the module weather_emoji (module_weather_emoji.cpp) where the board has it; a chart asks for it only
+// where its tile does (Chart::pictures).
+inline const lv_image_dsc_t *(*picture)(const std::string &condition, bool night, int side) = nullptr;
 // The parts, PSRAM first and never by an allocation that can throw (layout_memory.h): the Guition's internal RAM is
 // tight beside its panel, and an ESP32 build aborts where std::vector would throw.
 using Sink = layout_memory::Vector<Item>;
@@ -50,6 +56,9 @@ inline bool add(Sink &out, const Item &item) {
 struct Chart {
   bool hourly = false;
   bool icon_only = false;             // the first day's icon alone, in the largest face (the card's weather now)
+  // The tile's colour pictures in the place of the glyphs (firmware 0.71.0, option weather_icons), and whether the sun
+  // is down: the weather now takes the night's picture then; the days take the day's.
+  bool pictures = false, night = false;
   std::vector<Day> days;
   std::vector<Hour> hours;
   std::vector<std::string> weekdays;  // the hours' midnights, Sunday first
@@ -78,7 +87,8 @@ inline const Plan &plan_of(const Chart &c, const Metrics &m, int width, int heig
 inline bool same(const Chart &a, const Chart &b) {
   auto eq = [](float x, float y) { return (std::isnan(x) && std::isnan(y)) || x == y; };
   if (a.hourly != b.hourly || a.icon_only != b.icon_only || a.unit != b.unit || a.fahrenheit != b.fahrenheit || a.now != b.now ||
-      a.today != b.today || a.days.size() != b.days.size() || a.hours.size() != b.hours.size() || a.large != b.large) return false;
+      a.today != b.today || a.days.size() != b.days.size() || a.hours.size() != b.hours.size() || a.large != b.large ||
+      a.pictures != b.pictures || a.night != b.night) return false;
   for (size_t i = 0; i < a.days.size(); ++i) {
     const auto &x = a.days[i], &y = b.days[i];
     if (x.name != y.name || x.condition != y.condition || !eq(x.high, y.high) || !eq(x.low, y.low) || !eq(x.mm, y.mm) || !eq(x.chance, y.chance)) return false;
@@ -184,6 +194,21 @@ inline void paint(lv_layer_t *layer, const Sink &items, int x, int y) {
         lv_draw_line(layer, &d);
         break;
       }
+      case Item::IMAGE: {
+        // The picture scaled about its middle to the item's area, from its own size.
+        if (!i.src || !i.src->header.w || !i.src->header.h) break;
+        lv_draw_image_dsc_t d;
+        lv_draw_image_dsc_init(&d);
+        d.src = i.src;
+        const int side = std::max<int>(1, (int) (a.x2 - a.x1 + 1));
+        const int w = (int) i.src->header.w, h = (int) i.src->header.h;
+        d.scale_x = d.scale_y = (int32_t) (256L * side / std::max(w, h));
+        d.pivot.x = w / 2; d.pivot.y = h / 2;
+        const int cx = (int) (a.x1 + a.x2) / 2, cy = (int) (a.y1 + a.y2) / 2;
+        const lv_area_t at{cx - w / 2, cy - h / 2, cx - w / 2 + w - 1, cy - h / 2 + h - 1};
+        lv_draw_image(layer, &d, &at);
+        break;
+      }
       case Item::DOT: {
         lv_draw_rect_dsc_t d;
         lv_draw_rect_dsc_init(&d);
@@ -229,8 +254,20 @@ inline bool two_tone(const Fonts &f, const lv_font_t *big, const std::vector<std
   for (auto &c : conditions) if (falls(c)) return false;
   return true;
 }
-inline void icon(Sink &layer, const Fonts &f, const std::string &c, int cx, int y, const lv_font_t *big, const lv_font_t *small, bool tone) {
+inline void icon(Sink &layer, const Fonts &f, const std::string &c, int cx, int y, const lv_font_t *big, const lv_font_t *small, bool tone,
+                 bool pictures = false, bool night = false) {
   const int b = line_h(big), x = cx - b / 2;
+  // The tile's colour picture (firmware 0.71.0), nine tenths of the glyph's line, where the board has it.
+  if (pictures && picture) {
+    const int side = std::max(1, b * 9 / 10);
+    if (const lv_image_dsc_t *src = picture(c, night, side)) {
+      Item it;
+      it.kind = Item::IMAGE; it.src = src;
+      it.x1 = cx - side / 2; it.y1 = y + (b - side) / 2; it.x2 = it.x1 + side - 1; it.y2 = it.y1 + side - 1;
+      add(layer, it);
+      return;
+    }
+  }
   namespace h = theme::ha;
   auto gl = [&](const char *g, int gx, int gy, const lv_font_t *font, uint32_t color) {
     text(layer, g, gx, gy, line_h(font) * 3 / 2, font, color, LV_TEXT_ALIGN_LEFT);
@@ -293,7 +330,7 @@ inline void draw_week(Sink &layer, const lv_area_t &area, const Chart &c) {
     const auto &d = c.days[k];
     const int x = x0 + k * cw;
     text(layer, d.name, x, y0 + r.name, cw, l.name, k ? muted : ink);
-    icon(layer, c.fonts, d.condition, x + cw / 2, y0 + r.icon, l.icon, l.small, tone);
+    icon(layer, c.fonts, d.condition, x + cw / 2, y0 + r.icon, l.icon, l.small, tone, c.pictures);
     if (p.tier == 0) {
       // the high in its face and the low beside it in the smaller one, on one baseline
       const std::string hi = degrees(d.high), lo = degrees(d.low);
@@ -419,7 +456,7 @@ inline void draw_hours(Sink &layer, const lv_area_t &area, const Chart &c) {
     if (hour % step || i == 0) continue;
     const int span_w = (int) (slot * step), cx = x + (int) (slot / 2), lx = std::clamp(cx - span_w / 2, (int) area.x1, (int) area.x2 + 1 - span_w);
     if (cx - line_h(l.icon) / 2 < area.x1 || cx + line_h(l.icon) / 2 > area.x2) continue;
-    icon(layer, c.fonts, h.condition, cx, icon_y, l.icon, l.small, tone);
+    icon(layer, c.fonts, h.condition, cx, icon_y, l.icon, l.small, tone, c.pictures);
     text(layer, degrees(t[i]), lx, high_y, span_w, l.high, ink);
     char b[8];
     snprintf(b, sizeof(b), "%02d:00", hour);
@@ -445,7 +482,8 @@ inline void draw_event(lv_event_t *e) {
     if (c.icon_only) {
       if (!c.days.empty()) {
         const Level &l = c.fonts.levels[LEVELS - 1];
-        icon(k->items, c.fonts, c.days[0].condition, w / 2, 0, l.icon, l.small, two_tone(c.fonts, l.icon, {c.days[0].condition}));
+        icon(k->items, c.fonts, c.days[0].condition, w / 2, 0, l.icon, l.small, two_tone(c.fonts, l.icon, {c.days[0].condition}),
+             c.pictures, c.night);
       }
     } else if (c.hourly) draw_hours(k->items, local, c);
     else draw_week(k->items, local, c);

@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.119: the forecast's days in Iris too.** With colour weather emoji, the days and hours of a weather tile's week
+  and of the card a tap opens show the Iris pictures as well, where they still showed the old icons; the weather now
+  on that card takes the night's while the sun is down. Screens need firmware 0.71.0.
+
 - **0.4.118: the night's weather pictures at sunset.** A weather tile with colour weather emoji follows the sun: its
   pictures turn to the night's (and back) the moment the sun sets or rises, as a template on sun.sun does, instead of
   with the weather's next change. No firmware update is needed.

@@ -5,6 +5,7 @@
 #ifdef SD_MOD_WEATHER_EMOJI
 #include <algorithm>
 #include "module_weather_emoji.h"
+#include "weather_chart.h"
 #include "weather_pictures.h"
 
 namespace weather_emoji {
@@ -25,6 +26,13 @@ static const lv_image_dsc_t *picture_for(int index, int side) {
   if (card && card->header.w > 1) return card;
   return mini && mini->header.w > 1 ? mini : nullptr;
 }
+
+// The days and hours of the weather's chart (the week, the card a tap opens) take the pictures too (firmware 0.71.0),
+// still ones: weather_chart.h asks for them through its hook, which this sets before anything is drawn.
+static const lv_image_dsc_t *chart_picture(const std::string &condition, bool night, int side) {
+  return picture_for(index_of(condition, night), side);
+}
+static const bool chart_hooked = (weather_chart::picture = &chart_picture, true);
 
 #if LV_USE_IMAGE
 // The pictures that turn through their frames (a weather tile's own icon on a board built with frames), and the one
