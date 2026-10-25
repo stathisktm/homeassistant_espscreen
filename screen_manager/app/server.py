@@ -2565,6 +2565,10 @@ class Manager:
             # The selects and numbers of its device (effects page), and a group's lamps (lamp page, app 0.3.16).
             return (tuple(light_effects.related(tile['entity'], self.device_entries(tile['entity']), self.ha.states)) +
                     tuple(light_groups.lamp_ids(tile['entity'], self.ha.states)))
+        # A weather tile's colour pictures are the night's while the sun is down (app 0.4.118): it follows the sun, so
+        # the night's pictures come the moment it sets, not with the weather's next change.
+        if tile['entity'].startswith('weather.') and (tile.get('options') or {}).get('weather_icons') == 'emoji':
+            return ('sun.sun',)
         return ()
 
     def device_name_of(self, entity):

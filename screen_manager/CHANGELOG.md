@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.118: the night's weather pictures at sunset.** A weather tile with colour weather emoji follows the sun: its
+  pictures turn to the night's (and back) the moment the sun sets or rises, as a template on sun.sun does, instead of
+  with the weather's next change. No firmware update is needed.
+
 - **0.4.117: Iris weather emoji, moving.** "Colour weather emoji" now shows the Iris weather emoji: glossy pictures
   for every condition, the night's (a moon, a night cloud) while the sun is down, and the tile's own picture moves,
   round and round in four seconds, on a screen with 16 MB of flash or more (the Guition 4848S040, the P4 boards, most

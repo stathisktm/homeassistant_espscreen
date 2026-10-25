@@ -34,6 +34,20 @@ class TheOption(unittest.TestCase):
         self.assertEqual(screen_options({'entity': 'weather.home', 'options': {'weather_icons': 'emoji'}}, {}, 'sunny')['weather_icons'], 'emoji')
 
 
+class TheNight(unittest.TestCase):
+    """The night's pictures come the moment the sun sets (app 0.4.118), as a template on sun.sun has them."""
+
+    def test_a_weather_tile_with_its_pictures_follows_the_sun(self):
+        try:
+            from server import Manager
+        except ImportError as error:  # the app's server needs aiohttp
+            self.skipTest(str(error))
+        manager = object.__new__(Manager)          # nothing of the app is touched: a weather tile reaches no other branch
+        self.assertEqual(manager.related_entities({'entity': 'weather.home', 'options': {'weather_icons': 'emoji'}}), ('sun.sun',))
+        # With its icons, it follows nothing more.
+        self.assertEqual(manager.related_entities({'entity': 'weather.home', 'options': {}}), ())
+
+
 class ThePictures(unittest.TestCase):
     def test_every_condition_of_home_assistant_has_a_picture(self):
         # Home Assistant's conditions (tile_icons.WEATHER), each with a picture by day and by night (Iris's mapping).
