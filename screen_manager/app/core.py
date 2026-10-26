@@ -179,7 +179,7 @@ def our_ref(value):
 # The shared firmware of this app release: packages/core.yaml's SCREEN_FIRMWARE_VERSION, what every board builds
 # unless its own board file went ahead with a fix for that board alone (firmware_target, docs/BOARD_RELEASES.md). The
 # middle number is the core: the feature gates below name a shared X.Y.0, so a feature always ships with a new core.
-FIRMWARE_VERSION = '0.71.0'
+FIRMWARE_VERSION = '0.72.0'
 # The Auto standby switch a screen offers Home Assistant automations.
 AUTO_STANDBY_MIN_FIRMWARE = '0.2.41'
 # The settings page the screen opens itself, and the screen.settings tile that opens it.
@@ -1123,6 +1123,27 @@ TILE_OPACITIES = (80, 60, 40, 20)
 # modes, fan modes and swing modes, each a list of the ones kept; left out, all of them. The screen gets the lists cut
 # to those (state_message), so every firmware shows only them.
 CLIMATE_MODE_LISTS = ('hvac_modes', 'fan_modes', 'swing_modes')
+# The sensor a weather tile takes its temperature from (app 0.4.121): one's own, nearer the house than the weather's.
+TEMP_ENTITY = re.compile(r'sensor\.[a-z0-9_]{1,100}')
+
+def weather_temperature(tile, attrs, states):
+    """A weather tile's attributes with the temperature of its own sensor (option temp_entity, app 0.4.121), in the
+    weather's unit; the weather's own while the sensor has no number."""
+    entity = (tile.get('options') or {}).get('temp_entity')
+    state = states.get(entity) if isinstance(entity, str) else None
+    try:
+        value = float((state or {}).get('state'))
+    except (TypeError, ValueError):
+        return attrs
+    if not math.isfinite(value):
+        return attrs
+    unit = str(((state or {}).get('attributes') or {}).get('unit_of_measurement') or '')
+    wanted = str(attrs.get('temperature_unit') or unit or '°C')
+    if unit == '°F' and wanted == '°C':
+        value = (value - 32) * 5 / 9
+    elif unit == '°C' and wanted == '°F':
+        value = value * 9 / 5 + 32
+    return {**attrs, 'temperature': round(value, 1), 'temperature_unit': wanted}
 PLUGIN_OPTION_MAX = 12
 PLUGIN_TEXT_MAX = 64
 # A list option's values (plugin API 0.12), and what a tile's options take together as JSON (plugin_manifest's
@@ -1298,7 +1319,9 @@ def validate_header(data, most=HEADER_MAX_ITEMS):
                      'icon': item.get('icon', 'auto'), 'show': item.get('show', 'always')}
             if clean['content'] not in HEADER_CONTENTS or clean['show'] not in HEADER_SHOWS:
                 raise ValueError(t('addon.errors.top_bar.invalid_setting'))
-            if not (clean['icon'] in ('auto', 'none') or tile_icons.known(clean['icon'])):
+            # `emoji` (app 0.4.121): a weather entity's colour picture in the place of its icon.
+            if not (clean['icon'] in ('auto', 'none') or tile_icons.known(clean['icon'])
+                    or (clean['icon'] == 'emoji' and clean['entity'].startswith('weather.'))):
                 raise ValueError(t('addon.errors.choose_icon'))
             # An item that shows its icon alone needs one.
             if clean['content'] == 'icon' and clean['icon'] == 'none':
@@ -1969,7 +1992,7 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
             continue
         if 'options' in tile:
             options = tile['options']
-            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', 'icon_plain', 'weather_icons', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
+            if not isinstance(options, dict) or set(options) - {'tap', 'display', 'inline', 'history_hours', 'background', 'size', 'icon', 'controls', 'action', 'refresh', 'sub', 'sub2', 'fit', 'overlay', 'guard', 'tilt_open', 'flow', 'tint', 'tint_icon', 'opacity', 'icons', 'icon_plain', 'weather_icons', 'temp_entity', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.KEYS, *meter.KEYS}:
                 raise ValueError(t('addon.errors.layout.unknown_settings'))
             # A calendar card's choices (firmware 0.56.0): its calendars, its filters, its look; other tiles have none.
             if tile['entity'].startswith('calendar.'):
@@ -2014,6 +2037,12 @@ def validate_layout(data, stored=False, grid=DEFAULT_GRID):
                 raise ValueError(t('addon.errors.layout.background'))
             # How much of the card covers what lies under it (app 0.4.111, firmware 0.67.0): a page's background shows
             # through a card of 80, 60, 40 or 20 percent. A whole card (100) is no key, and a card without one has none.
+            # A weather tile's temperature from a sensor of one's own (app 0.4.121): a sensor's id, on a weather tile alone.
+            if 'temp_entity' in options:
+                if not isinstance(options['temp_entity'], str) or not TEMP_ENTITY.fullmatch(options['temp_entity']):
+                    raise ValueError(t('addon.errors.layout.invalid_setting', setting='temp_entity'))
+                if not tile['entity'].startswith('weather.'):
+                    options = {k: v for k, v in options.items() if k != 'temp_entity'}
             # A weather tile's colour pictures in the place of its icons (app 0.4.116, firmware 0.69.0, module
             # weather_emoji): "emoji" on a weather tile alone, the icons without the key.
             if 'weather_icons' in options:
@@ -2630,7 +2659,7 @@ def screen_options(tile, attrs, state=None, entry=None):
     # So do a favourite's own (app 0.4.42): the screen asks to play its tile, never an id.
     # A calendar's filters stay too (calendar_feed.OWN): the screen gets the events they let through, and a tile's
     # colour rules (app 0.4.91): the screen gets the colour each state asks for, in `x.bg` (tint.py).
-    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'icons', 'controls', 'action', 'tint', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
+    options = {k: v for k, v in tile.get('options', {}).items() if k not in ('icon', 'icons', 'controls', 'action', 'tint', 'temp_entity', *CLIMATE_MODE_LISTS, *MAP_OWN, *FAVORITE_OWN, *calendar_feed.OWN)}
     # A meter's colours travel as numbers (firmware 0.56.0): the screen keeps no table of names.
     options = meter.screen_options(options)
     icon, fallback = tile_icon_pair(tile, attrs, state, entry)
@@ -2711,6 +2740,9 @@ def state_message(index, tile, states, extra=None, precision=None, entry=None, u
         return message
     state = states.get(tile['entity'], {})
     attrs = state.get('attributes', {})
+    # A weather tile's temperature from a sensor of one's own (app 0.4.121).
+    if tile['entity'].startswith('weather.') and (tile.get('options') or {}).get('temp_entity'):
+        attrs = weather_temperature(tile, attrs, states)
     # The modes a thermostat's tile shows (app 0.4.113): its lists cut to the ones kept, before they are bounded, so a
     # mode past the eighth can be one of them.
     chosen = {key: tile.get('options', {}).get(key) for key in CLIMATE_MODE_LISTS}

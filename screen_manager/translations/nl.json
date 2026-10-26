@@ -2386,6 +2386,13 @@
       "weather_emoji": {
         "label": "Gekleurde weer-emoji",
         "hint": "Gekleurde afbeeldingen van het weer (zon, wolken, regen) in plaats van de pictogrammen, op de tegel, de verwachting en de week."
+      },
+      "weather_temp": {
+        "label": "Temperatuur",
+        "hint": "De eigen temperatuur, of een sensor van jezelf op die plek: een thermometer thuis meet echter dan de weerdienst.",
+        "own": "Die van het weer",
+        "search": "Sensoren zoeken",
+        "none": "Geen sensor met een getal"
       }
     },
     "precision": {
@@ -2516,6 +2523,10 @@
         "copy": "Deze balk naar andere pagina's kopiëren",
         "copy_hint": "De items, of de hele balk met de titel",
         "page_settings": "Instellingen van {page}"
+      },
+      "weather_emoji": {
+        "label": "Gekleurde weer-emoji",
+        "hint": "De gekleurde weerafbeelding in plaats van het pictogram, die van de nacht na zonsondergang."
       }
     },
     "screen_settings": {

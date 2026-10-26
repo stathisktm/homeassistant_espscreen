@@ -340,9 +340,16 @@ def entity_item(item, states, registry=None, units=None, tz=None, words=None, ca
     entity = item['entity']
     state = states.get(entity)
     wire = {'k': 'text'}
-    if item['icon'] == 'auto':
+    if item['icon'] in ('auto', 'emoji'):
         icon, fallback = auto_icons(entity, state, (registry or {}).get(entity) if isinstance(registry, dict) else None)
         wire['i'] = icon
+        # A weather entity's colour picture in the place of its icon (app 0.4.121, firmware 0.72.0): its condition, and
+        # the night while the sun is down (a boolean, as the screen reads it). The icon stays for older firmware.
+        condition = (state or {}).get('state')
+        if item['icon'] == 'emoji' and isinstance(condition, str) and condition not in ('unavailable', 'unknown'):
+            wire['w'] = condition[:20]
+            if (states.get('sun.sun') or {}).get('state') == 'below_horizon':
+                wire['n'] = True
     elif item['icon'] != 'none':
         icon = tile_icons.ALL_GLYPHS[item['icon']]
         wire['i'] = icon

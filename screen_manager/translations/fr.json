@@ -2815,6 +2815,13 @@
       "weather_emoji": {
         "label": "Emoji météo en couleur",
         "hint": "Des images en couleur de la météo (soleil, nuages, pluie) à la place de ses icônes, sur la tuile, la prévision et la semaine."
+      },
+      "weather_temp": {
+        "label": "Température",
+        "hint": "La sienne, ou un capteur à vous à sa place : un thermomètre à la maison mesure plus juste que le service météo.",
+        "own": "Celle de la météo",
+        "search": "Chercher des capteurs",
+        "none": "Aucun capteur avec un nombre"
       }
     },
     "precision": {
@@ -2945,6 +2952,10 @@
         "copy": "Copier cette barre vers d'autres pages",
         "copy_hint": "Ses éléments, ou toute la barre avec son titre",
         "page_settings": "Réglages de {page}"
+      },
+      "weather_emoji": {
+        "label": "Emoji météo en couleur",
+        "hint": "L'image en couleur de la météo à la place de son icône, celle de la nuit une fois le soleil couché."
       }
     },
     "screen_settings": {

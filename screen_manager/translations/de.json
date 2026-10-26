@@ -2815,6 +2815,13 @@
       "weather_emoji": {
         "label": "Farbige Wetter-Emoji",
         "hint": "Farbige Bilder des Wetters (Sonne, Wolken, Regen) anstelle der Symbole, auf der Kachel, in der Vorhersage und in der Woche."
+      },
+      "weather_temp": {
+        "label": "Temperatur",
+        "hint": "Die eigene Temperatur oder ein Sensor von dir an ihrer Stelle: Ein Thermometer daheim misst genauer als der Wetterdienst.",
+        "own": "Die des Wetters",
+        "search": "Sensoren suchen",
+        "none": "Kein Sensor mit einer Zahl"
       }
     },
     "precision": {
@@ -2945,6 +2952,10 @@
         "copy": "Diese Leiste auf andere Seiten kopieren",
         "copy_hint": "Ihre Elemente oder die ganze Leiste mit Titel",
         "page_settings": "Einstellungen von {page}"
+      },
+      "weather_emoji": {
+        "label": "Farbiges Wetter-Emoji",
+        "hint": "Das farbige Wetterbild anstelle des Symbols, nachts das der Nacht."
       }
     },
     "screen_settings": {

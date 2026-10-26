@@ -237,6 +237,11 @@ function writeSubTarget(attribute: string) {
 }
 const subTargetName = computed(() => (subTarget.value ? entities.entityName(subTarget.value) : ""));
 // Another entity: any Home Assistant has, this tile's own left out.
+// The sensors a weather tile may take its temperature from (app 0.4.121): those with a number now, the weather's own first.
+const OWN_WEATHER = "__weather__";
+const temperatureChoices = computed(() => [{ id: OWN_WEATHER, name: t("editor.tile.weather_temp.own"), hint: "" },
+  ...inv.inventory.entities.filter((item) => item.id.startsWith("sensor.") && item.state !== undefined && item.state !== "" && Number.isFinite(Number(item.state)))
+    .map((item) => ({ id: item.id, name: item.name, hint: [item.state, item.area].filter(Boolean).join(" · ") }))]);
 const entityChoices = computed(() => inv.inventory.entities.filter((item) => item.id !== props.tile.entity)
   .map((item) => ({ id: item.id, name: item.name, hint: item.area })));
 function writeSubText(value: string) {
@@ -460,6 +465,17 @@ const backgroundName = computed(() => inv.inventory.backgrounds?.[props.tile.opt
       <SwitchRow v-if="showIcon && !key" class="icon-plain-choice" :label="t('editor.tile.icon.plain')" :description="t('editor.tile.icon.plain_hint')"
         :model-value="tile.options?.icon_plain === true" @update:model-value="(on: boolean) => setTileOption(tile, 'icon_plain', on || undefined)" />
       <!-- A weather tile's colour pictures in the place of its icons (app 0.4.116, firmware 0.69.0, module weather_emoji). -->
+      <!-- A weather tile's temperature from a sensor of one's own (app 0.4.121), in the place of the weather's. -->
+      <PropRow v-if="tile.entity.startsWith('weather.')" :label="t('editor.tile.weather_temp.label')" icon="swap-horizontal" :hint="t('editor.tile.weather_temp.hint')">
+        <UiPicker :items="temperatureChoices" :placeholder="t('editor.tile.weather_temp.search')" :empty="t('editor.tile.weather_temp.none')" width="320px"
+          @pick="(id: string) => setTileOption(tile, 'temp_entity', id === OWN_WEATHER ? undefined : id)">
+          <template #trigger>
+            <button type="button" class="ghost-btn sub-entity" :aria-label="t('editor.tile.weather_temp.label')">
+              <Icon name="swap-horizontal" />{{ tile.options?.temp_entity ? entities.entityName(tile.options.temp_entity) : t('editor.tile.weather_temp.own') }}
+            </button>
+          </template>
+        </UiPicker>
+      </PropRow>
       <SwitchRow v-if="tile.entity.startsWith('weather.') && scr.currentScreen?.weather_emoji" class="weather-emoji-choice"
         :label="t('editor.tile.weather_emoji.label')" :description="t('editor.tile.weather_emoji.hint')"
         :model-value="tile.options?.weather_icons === 'emoji'" @update:model-value="(on: boolean) => setTileOption(tile, 'weather_icons', on ? 'emoji' : undefined)" />

@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.121: the weather in the top bar in Iris, and a temperature of your own.** A weather entity's item in a top bar
+  offers "Colour weather emoji": its Iris picture in the place of its icon, the night's while the sun is down (screens
+  need firmware 0.72.0; an older one keeps the icon). And a weather tile's Temperature: the weather's own, or a sensor
+  of yours in its place, such as a thermometer on the balcony, which reads truer than the weather service; it comes in
+  the weather's unit, and the weather's own stands while the sensor has no number. That part needs no firmware update.
+
 - **0.4.120: the night's weather pictures show.** The app told the screen that the sun was down as a number, where the
   screen reads a yes or no, so a weather tile with colour weather emoji kept its day's pictures at night. It says yes
   now: the moon, the night's clouds and rain show while the sun is down. No firmware update is needed (0.70.0 or newer).

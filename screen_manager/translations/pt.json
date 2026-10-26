@@ -2815,6 +2815,13 @@
       "weather_emoji": {
         "label": "Emoji do tempo a cores",
         "hint": "Imagens a cores do tempo (sol, nuvens, chuva) no lugar dos ícones, no mosaico, na previsão e na semana."
+      },
+      "weather_temp": {
+        "label": "Temperatura",
+        "hint": "A dele, ou um sensor seu no lugar: um termómetro em casa mede melhor do que o serviço do tempo.",
+        "own": "A do tempo",
+        "search": "Pesquisar sensores",
+        "none": "Nenhum sensor com um número"
       }
     },
     "precision": {
@@ -2945,6 +2952,10 @@
         "copy": "Copiar esta barra para outras páginas",
         "copy_hint": "Os seus itens, ou a barra inteira com o título",
         "page_settings": "Definições de {page}"
+      },
+      "weather_emoji": {
+        "label": "Emoji do tempo a cores",
+        "hint": "A imagem a cores do tempo no lugar do ícone, a da noite depois do pôr do sol."
       }
     },
     "screen_settings": {

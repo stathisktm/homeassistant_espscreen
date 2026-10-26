@@ -191,7 +191,10 @@ async def sync_pages(manager, inbox, record, screen, dirty=None, force=False, co
     full = (force or dirty is None or not cached or cached['revision'] != record['revision'] or cached['context'] != context
             or cached.get('lamps') != lamps or cached.get('features') != features or cached.get('bar') != bar)
     if full:
-        dependencies = [{item['entity'] for item in bar_items(page) if item['type'] == 'entity'} for page in record['layout']['pages']]
+        # A weather item's picture follows the sun too (app 0.4.121).
+        dependencies = [{item['entity'] for item in bar_items(page) if item['type'] == 'entity'}
+                        | ({'sun.sun'} if any(item.get('icon') == 'emoji' for item in bar_items(page)) else set())
+                        for page in record['layout']['pages']]
     else:
         dependencies = cached['dependencies']
     values = []

@@ -46,6 +46,10 @@ inline std::string item_text(const header_bar::Item &item, const esphome::ESPTim
   return item.text;
 }
 // An icon and its words, measured by their ink; `width` is 0 when neither draws.
+// A top bar item's weather picture over its icon (firmware 0.72.0): set by the module weather_emoji where the board has
+// it, and asked with every icon the bar draws, an empty condition giving the glyph back.
+inline void (*weather_picture)(lv_obj_t *label, const std::string &condition, bool night) = nullptr;
+
 struct Piece {
   uint32_t icon = 0;
   const lv_font_t *font = nullptr;
@@ -419,6 +423,7 @@ public:
         label(slot.icon, tile_icon::utf8(p.icon));
         lv_obj_set_pos(slot.icon, x - p.icon_left, icon_top(p.font, p.icon, middle2));
         const auto &item = bar.items[p.item];
+        if (weather_picture) weather_picture(slot.icon, item.weather, item.weather_night);
         // The words, icons and dial of the top bar take the slate paint; an item's own colour sits on top of it: an
         // entity's state colour, or the tone a plugin's item says now.
         const bool has_color = p.has_color || item.has_color;

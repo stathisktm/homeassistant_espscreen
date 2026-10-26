@@ -2815,6 +2815,13 @@
       "weather_emoji": {
         "label": "Kolorowe emoji pogody",
         "hint": "Kolorowe obrazki pogody (słońce, chmury, deszcz) zamiast ikon, na kafelku, w prognozie i w tygodniu."
+      },
+      "weather_temp": {
+        "label": "Temperatura",
+        "hint": "Jej własna albo twój czujnik w jej miejscu: termometr w domu mierzy wierniej niż serwis pogodowy.",
+        "own": "Z pogody",
+        "search": "Szukaj czujników",
+        "none": "Brak czujnika z liczbą"
       }
     },
     "precision": {
@@ -2945,6 +2952,10 @@
         "copy": "Kopiuj ten pasek na inne strony",
         "copy_hint": "Jego elementy albo cały pasek z tytułem",
         "page_settings": "Ustawienia: {page}"
+      },
+      "weather_emoji": {
+        "label": "Kolorowe emoji pogody",
+        "hint": "Kolorowy obrazek pogody zamiast ikony, nocny po zachodzie słońca."
       }
     },
     "screen_settings": {

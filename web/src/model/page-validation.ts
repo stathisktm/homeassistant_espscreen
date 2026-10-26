@@ -27,7 +27,7 @@ const CALENDAR_MORE = ['calendarWeekStart', 'calendarHours', 'calendarWeekNumber
 // A sensor's meter (firmware 0.56.0, meter.validate) and a card's colour by state (app 0.4.91, tint.validate), as the
 // page document names them.
 const METER_FIELDS = ['meterStyle', 'meterMin', 'meterMax', 'meterSegments', 'meterColors', 'meterThresholds'] as const;
-const TINT_FIELDS = ['tint', 'tintIcon', 'opacity', 'iconRules', 'iconPlain', 'weatherIcons'] as const;
+const TINT_FIELDS = ['tint', 'tintIcon', 'opacity', 'iconRules', 'iconPlain', 'weatherIcons', 'weatherTemperature'] as const;
 const entity = (value: any, domains: string[]) => typeof value === 'string' && value.length <= 120 &&
   matches(/^[a-z0-9_]+\.[a-z0-9_]+$/, value) && domains.includes(value.split('.')[0]);
 // Any icon of Material Design Icons by its name (app 0.4.115): the add-on checks the name against the font itself.
@@ -97,7 +97,8 @@ export function validatePageShape(layout: PageLayout, plugins = false) {
         if (['content', 'show', 'icon'].some(key => key in item && typeof (item as any)[key] !== 'string')) fail();
         if (item.type !== 'entity' || !entity(item.entity, rules.headerDomains) ||
             !rules.headerContents.includes(item.content ?? 'state') || !rules.headerShows.includes(item.show ?? 'always') ||
-            !icon(item.icon ?? 'auto', true) || (item.content === 'icon' && item.icon === 'none')) fail();
+            !(icon(item.icon ?? 'auto', true) || (item.icon === 'emoji' && String(item.entity).startsWith('weather.'))) ||
+            (item.content === 'icon' && item.icon === 'none')) fail();
         key = JSON.stringify([item.type, item.entity, item.content ?? 'state', item.icon ?? 'auto', item.show ?? 'always']);
       }
       if (seen.has(key)) throw new Error(t('addon.errors.top_bar.twice'));
@@ -225,6 +226,8 @@ export function validateCardOptions(tile: PageTile, entityId: string, size: stri
   if (a.iconPlain !== undefined && a.iconPlain !== true) fail('normalization');
   // A weather tile's colour pictures (app 0.4.116): "emoji" or nothing.
   if (a.weatherIcons !== undefined && a.weatherIcons !== 'emoji') fail('normalization');
+  // A weather tile's temperature from a sensor of one's own (app 0.4.121), as core.TEMP_ENTITY takes it.
+  if (a.weatherTemperature !== undefined && (typeof a.weatherTemperature !== 'string' || !/^sensor\.[a-z0-9_]{1,100}$/.test(a.weatherTemperature))) fail();
   // How much of the card covers a page's background (app 0.4.111), as core.validate_layout keeps it.
   if (a.opacity !== undefined && (![80, 60, 40, 20].includes(a.opacity) || a.background === 'none')) fail('normalization');
   // An icon by state (app 0.4.112), as tint.validate_icons keeps it.

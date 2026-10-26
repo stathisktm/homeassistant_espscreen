@@ -2567,8 +2567,12 @@ class Manager:
                     tuple(light_groups.lamp_ids(tile['entity'], self.ha.states)))
         # A weather tile's colour pictures are the night's while the sun is down (app 0.4.118): it follows the sun, so
         # the night's pictures come the moment it sets, not with the weather's next change.
-        if tile['entity'].startswith('weather.') and (tile.get('options') or {}).get('weather_icons') == 'emoji':
-            return ('sun.sun',)
+        # And its temperature from a sensor of one's own (app 0.4.121), sent again when that sensor changes.
+        if tile['entity'].startswith('weather.'):
+            options = tile.get('options') or {}
+            own = options.get('temp_entity')
+            return tuple(e for e in (('sun.sun' if options.get('weather_icons') == 'emoji' else None),
+                                     (own if isinstance(own, str) else None)) if e)
         return ()
 
     def device_name_of(self, entity):
@@ -2827,6 +2831,10 @@ class Manager:
             watched = {tile['entity'] for layout in self.layouts.values() for tile in layout['tiles']}
             watched |= {item['entity'] for record in self.store.records().values() if record['format'] == PAGE_FORMAT
                         for page in record['layout']['pages'] for item in bar_items(page) if item['type'] == 'entity'}
+            # A weather item's picture in a top bar follows the sun (app 0.4.121).
+            if any(item.get('icon') == 'emoji' for record in self.store.records().values() if record['format'] == PAGE_FORMAT
+                   for page in record['layout']['pages'] for item in bar_items(page)):
+                watched.add('sun.sun')
             watched |= {item['entity_id'] for item in self.screen_registry()}
             watched |= {eid for inbox, layout in self.layouts.items() for tile in layout['tiles'] for eid in self.related_entities(tile, inbox)}
             watched |= {eid for device in self.setting_index().values() for eid in device.values()}

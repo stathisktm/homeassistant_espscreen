@@ -22,6 +22,7 @@ import CopyPageBar from './CopyPageBar.vue';
 import Icon from './ui/Icon.vue';
 import InspectorHead from './ui/InspectorHead.vue';
 import PropRow from './ui/PropRow.vue';
+import SwitchRow from './ui/SwitchRow.vue';
 import UiMenu from './ui/UiMenu.vue';
 import UiMenuItem from './ui/UiMenuItem.vue';
 import PrecisionRow from './inspector/PrecisionRow.vue';
@@ -172,7 +173,10 @@ function move(step: number) { if (topbar.moveTopbarItem(props.index, props.index
             <Segmented :choices="(inv.inventory.header?.contents || []).map((c) => [c.key, c.label] as [string, string])" :value="item.content" @pick="(v) => update(v === 'icon' && item!.icon === 'none' ? { content: v, icon: 'auto' } : { content: v })" />
           </PropRow>
           <!-- An item that shows its icon alone (GitHub #144) needs one, so it offers no "No icon". -->
-          <IconPicker aside :selected="item.icon || 'auto'" :automatic="entities.topbarPreviews[itemKey(item)]?.auto_icon || entities.automaticIcon(item.entity!)" :auto-label="t('editor.topbar.auto_icon')" :allow-none="item.content !== 'icon'" @pick="(n) => update({ icon: n })" />
+          <!-- A weather entity's colour picture in the place of its icon (app 0.4.121, firmware 0.72.0). -->
+          <SwitchRow v-if="item.entity?.startsWith('weather.') && scr.currentScreen?.weather_emoji" :label="t('editor.topbar.weather_emoji.label')"
+            :description="t('editor.topbar.weather_emoji.hint')" :model-value="item.icon === 'emoji'" @update:model-value="(on: boolean) => update({ icon: on ? 'emoji' : 'auto' })" />
+          <IconPicker v-if="item.icon !== 'emoji'" aside :selected="item.icon || 'auto'" :automatic="entities.topbarPreviews[itemKey(item)]?.auto_icon || entities.automaticIcon(item.entity!)" :auto-label="t('editor.topbar.auto_icon')" :allow-none="item.content !== 'icon'" @pick="(n) => update({ icon: n })" />
           <PropRow :label="t('editor.topbar.show.label')" icon="eye-outline" :hint="t('editor.topbar.show.hint')" stack>
             <Segmented :choices="(inv.inventory.header?.shows || []).map((s) => [s.key, s.label] as [string, string])" :value="item.show" @pick="(v) => update({ show: v })" />
           </PropRow>

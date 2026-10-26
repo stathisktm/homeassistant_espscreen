@@ -32,7 +32,8 @@ const APPEARANCE = { display: "display", icon: "icon", background: "background",
   calendarStartView: "start_view", calendarWeekStart: "week_start", calendarHours: "hours", calendarWeekNumbers: "week_numbers",
   calendarBookOn: "book_on", calendarBookPlace: "book_place", calendarBookTitle: "book_title",
   meterStyle: "meter", meterMin: "min", meterMax: "max", meterSegments: "segments", meterColors: "colors", meterThresholds: "thresholds",
-  tint: "tint", tintIcon: "tint_icon", opacity: "opacity", iconRules: "icons", iconPlain: "icon_plain", weatherIcons: "weather_icons" } as const;
+  tint: "tint", tintIcon: "tint_icon", opacity: "opacity", iconRules: "icons", iconPlain: "icon_plain", weatherIcons: "weather_icons",
+  weatherTemperature: "temp_entity" } as const;
 const INTERACTION = ["tap", "inline", "controls", "action", "play", "speaker", "shuffle", "repeat", "hvac_modes", "fan_modes", "swing_modes"] as const;
 const PICTURE_OWN = ["refresh", ...Object.keys(rules.picture)];
 // A map card's own choices (app 0.4.33); its name on the picture is the live picture's `overlay`.
@@ -132,6 +133,8 @@ export function canonicalOptions(entity: string, options: TileOptions = {}, key 
   if (out.icon_plain !== true) delete out.icon_plain;
   // A weather tile's colour pictures (app 0.4.116): "emoji" on a weather tile, never stored otherwise.
   if (out.weather_icons !== "emoji" || !entity.startsWith("weather.")) delete out.weather_icons;
+  // A weather tile's temperature from a sensor of one's own (app 0.4.121), as core.TEMP_ENTITY takes it.
+  if (typeof out.temp_entity !== "string" || !/^sensor\.[a-z0-9_]{1,100}$/.test(out.temp_entity) || !entity.startsWith("weather.")) delete out.temp_entity;
   // How much of the card covers a page's background (app 0.4.111): 80 to 20 percent, never on a card without one.
   if (!(TILE_OPACITIES as readonly unknown[]).includes(out.opacity) || out.background === "none") delete out.opacity;
   // The modes a thermostat's tile shows (app 0.4.113): a list the add-on takes, on a climate tile alone.

@@ -8,7 +8,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'screen_manager/app'))
-from core import Grid, screen_options, validate_layout  # noqa: E402
+from core import Grid, screen_options, state_message, validate_header, validate_layout, weather_temperature  # noqa: E402
+import header_bar  # noqa: E402
 from page_layout import APPEARANCE  # noqa: E402
 import tile_icons  # noqa: E402
 
@@ -54,6 +55,58 @@ class TheNight(unittest.TestCase):
         self.assertIn("extra = {**(extra or {}), 'nt': True}", server)
         self.assertNotIn("'nt': 1}", server)
         self.assertIn('tile.weather_night = extra["nt"] | false;', receiver)
+
+
+class TheTopBar(unittest.TestCase):
+    """A weather entity's item in a top bar takes its colour picture too (app 0.4.121, firmware 0.72.0)."""
+
+    def test_emoji_is_an_icon_of_a_weather_item_only(self):
+        item = {'type': 'entity', 'entity': 'weather.home', 'content': 'state', 'icon': 'emoji', 'show': 'always'}
+        self.assertEqual(validate_header({'items': [item]})['items'][0]['icon'], 'emoji')
+        with self.assertRaises(ValueError):
+            validate_header({'items': [{**item, 'entity': 'sensor.outside'}]})
+
+    def test_the_item_says_its_condition_and_the_night(self):
+        item = {'type': 'entity', 'entity': 'weather.home', 'content': 'state', 'icon': 'emoji', 'show': 'always'}
+        states = {'weather.home': {'state': 'rainy', 'attributes': {'temperature': 12, 'temperature_unit': '°C'}}}
+        wire, shown = header_bar.entity_item(item, states)
+        self.assertEqual(wire['w'], 'rainy')
+        self.assertIn('i', wire, 'the icon stays for a screen without the pictures')
+        self.assertNotIn('n', wire)
+        wire, _ = header_bar.entity_item(item, {**states, 'sun.sun': {'state': 'below_horizon'}})
+        self.assertIs(wire['n'], True, 'a boolean, as the screen reads it')
+        # Its own icon, or none, says nothing of the weather.
+        self.assertNotIn('w', header_bar.entity_item({**item, 'icon': 'auto'}, states)[0])
+        receiver = (ROOT / 'components/smart_display/page_receiver.cpp').read_text(encoding='utf-8')
+        self.assertIn('item.weather = string(value["w"], 20);', receiver)
+        self.assertIn('item.weather_night = value["n"] | false;', receiver)
+
+
+class OwnTemperature(unittest.TestCase):
+    """A weather tile's temperature from a sensor of one's own (app 0.4.121)."""
+
+    def test_kept_on_a_weather_tile_and_left_with_the_app(self):
+        layout = lambda entity, value: validate_layout({'title': 'Hall', 'tiles': [{'entity': entity, 'name': '', 'slot': 0,
+                                                       'options': {'temp_entity': value}}]}, grid=Grid())
+        self.assertEqual(layout('weather.home', 'sensor.balcony')['tiles'][0]['options']['temp_entity'], 'sensor.balcony')
+        self.assertNotIn('temp_entity', layout('light.a', 'sensor.balcony')['tiles'][0].get('options', {}))
+        for bad in ('light.a', 'sensor.Bad', 'sensor.', 3):
+            with self.assertRaises(ValueError, msg=bad):
+                layout('weather.home', bad)
+        # The screen is sent the temperature, never the sensor.
+        self.assertNotIn('temp_entity', screen_options({'entity': 'weather.home', 'options': {'temp_entity': 'sensor.balcony'}}, {}, 'sunny') or {})
+
+    def test_the_sensor_s_number_in_the_weather_s_unit(self):
+        tile = {'entity': 'weather.home', 'name': '', 'options': {'temp_entity': 'sensor.balcony'}}
+        weather = {'state': 'sunny', 'attributes': {'temperature': 25, 'temperature_unit': '°C'}}
+        states = {'weather.home': weather, 'sensor.balcony': {'state': '21.46', 'attributes': {'unit_of_measurement': '°C'}}}
+        self.assertEqual(state_message(0, tile, states)['a']['temperature'], 21.5)
+        fahrenheit = {**states, 'sensor.balcony': {'state': '68', 'attributes': {'unit_of_measurement': '°F'}}}
+        self.assertEqual(weather_temperature(tile, weather['attributes'], fahrenheit)['temperature'], 20.0)
+        # A sensor without a number leaves the weather's own.
+        for state in ('unavailable', '', None):
+            gone = {**states, 'sensor.balcony': {'state': state}}
+            self.assertEqual(state_message(0, tile, gone)['a']['temperature'], 25)
 
 
 class TheChart(unittest.TestCase):

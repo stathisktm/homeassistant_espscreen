@@ -62,6 +62,8 @@ export type TileOptions = {
   icon_plain?: boolean;
   // A weather tile's colour pictures in the place of its icons (app 0.4.116, firmware 0.69.0, module weather_emoji).
   weather_icons?: "emoji";
+  // A weather tile's temperature from a sensor of one's own (app 0.4.121).
+  temp_entity?: string;
   // How much of the card covers what lies under it, in percent (app 0.4.111, firmware 0.67.0); left out, all of it.
   opacity?: number;
   // An icon by state (app 0.4.112, model/icon-rules.ts): the first rule that fits gives the tile's icon.
@@ -123,7 +125,7 @@ export type PageTile = {
     // A sensor's meter (firmware 0.56.0): TileOptions' meter, min, max, segments, colors and thresholds; and a card's
     // colour by state (app 0.4.91): TileOptions' tint.
     meterStyle?: string; meterMin?: number; meterMax?: number; meterSegments?: number; meterColors?: string[]; meterThresholds?: number[];
-    tint?: TileOptions["tint"]; tintIcon?: boolean; iconPlain?: boolean; weatherIcons?: "emoji"; opacity?: number; iconRules?: TileOptions["icons"] };
+    tint?: TileOptions["tint"]; tintIcon?: boolean; iconPlain?: boolean; weatherIcons?: "emoji"; weatherTemperature?: string; opacity?: number; iconRules?: TileOptions["icons"] };
   interaction: { tap?: string; inline?: string; controls?: string; action?: TileOptions["action"]; guard?: string; play?: FavoritePlay; speaker?: string; shuffle?: string; repeat?: string; tilt_open?: string;
     hvac_modes?: string[]; fan_modes?: string[]; swing_modes?: string[] };
   children?: ChildTile[];

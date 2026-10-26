@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { t } from "../i18n";
 import { handAngles } from "../model/clock";
 import { barLayout, dotted, inkOf, type BarMetrics, type BarPart } from "../model/topbar";
+import { weatherPicture } from "../model/weather-emoji";
 import TesseraMark from "./TesseraMark.vue";
 import { useUiStore } from "../stores/ui";
 import { useEntitiesStore } from "../stores/entities";
@@ -54,6 +55,9 @@ function hands(d: number) {
   });
 }
 const iconX = (p: BarPart) => p.x! - p.icon!.ink.left;
+// A weather item's picture (app 0.4.121): by its condition, the night's while the sun is down.
+const weatherOf = (p: BarPart) => p.item.type === "entity" && p.item.icon === "emoji"
+  ? weatherPicture(entities.liveOf(p.item.entity!)?.state, entities.liveOf("sun.sun")?.state === "below_horizon") : null;
 const textX = (p: BarPart) => (p.icon ? p.x! + (p.icon.ink.right - p.icon.ink.left) + lay.value.gaps.icon : p.x!) - p.text!.ink.left;
 // `font` goes through CSSOM: the add-on's CSP blocks style attributes, and Vue sets styles through the CSSOM.
 const singleWidth = computed(() => `${(Math.max(1, parts.value[0]?.width || 1) + 4) * (26 / m.value.icon)}px`);
@@ -72,7 +76,10 @@ defineExpose({ lay });
           <line v-for="(h, i) in hands(p.dial)" :key="i" :x1="p.x! + p.dial / 2" :y1="capMiddle" :x2="p.x! + p.dial / 2 + h.x2" :y2="capMiddle + h.y2" :stroke="p.view.color || '#46525e'" :stroke-width="Math.max(1, Math.round(p.dial * 0.075))" stroke-linecap="round" />
         </template>
         <template v-else>
-          <text v-if="p.icon" :x="iconX(p)" :y="capMiddle - (p.icon.ink.top + p.icon.ink.bottom) / 2" :fill="p.view.color || '#46525e'" :style="{ font: lay.fonts.icon }">{{ p.icon.glyph }}</text>
+          <!-- A weather item's colour picture (app 0.4.121), the size of the icon's ink, as the screen draws it. -->
+          <image v-if="p.icon && weatherOf(p)" :href="weatherOf(p)!" :x="p.x!" :y="capMiddle - (p.icon.ink.right - p.icon.ink.left) / 2"
+            :width="p.icon.ink.right - p.icon.ink.left" :height="p.icon.ink.right - p.icon.ink.left" />
+          <text v-else-if="p.icon" :x="iconX(p)" :y="capMiddle - (p.icon.ink.top + p.icon.ink.bottom) / 2" :fill="p.view.color || '#46525e'" :style="{ font: lay.fonts.icon }">{{ p.icon.glyph }}</text>
           <text v-if="p.text" :x="textX(p)" :y="baseline" fill="#46525e" :style="{ font: lay.fonts.text }">{{ p.text.value }}</text>
         </template>
       </template>

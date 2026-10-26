@@ -54,6 +54,8 @@ APPEARANCE = {
     "iconPlain": "icon_plain",
     # A weather tile's colour pictures in the place of its icons (app 0.4.116, module weather_emoji).
     "weatherIcons": "weather_icons",
+    # A weather tile's temperature from a sensor of one's own (app 0.4.121).
+    "weatherTemperature": "temp_entity",
     # An icon by state (app 0.4.112, tint.validate_icons): rules that give the tile another icon.
     "iconRules": "icons",
 }

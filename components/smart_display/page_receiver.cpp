@@ -17,6 +17,9 @@ static bool parse_bar_item(JsonVariant value, header_bar::Item &item) {
     // An icon these fonts lack takes the one of the set the app names beside it (firmware 0.68.0, `j`).
     if (icon && !has_icon_glyph(icon)) icon = tile_icon::codepoint(string(value["j"], 8));
     item.icon = icon && has_icon_glyph(icon) ? icon : 0;
+    // A weather entity's colour picture (firmware 0.72.0): its condition, and the night (a boolean, as `nt` is).
+    item.weather = string(value["w"], 20);
+    item.weather_night = value["n"] | false;
     item.text = string(value["t"], header_bar::TEXT_BYTES);
     item.epoch = value["e"].is<unsigned>() ? value["e"].as<uint32_t>() : 0;
     item.has_color = header_bar::color(string(value["c"], 8), item.color);

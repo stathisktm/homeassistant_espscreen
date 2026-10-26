@@ -5,6 +5,7 @@
 #ifdef SD_MOD_WEATHER_EMOJI
 #include <algorithm>
 #include "module_weather_emoji.h"
+#include "page_header.h"
 #include "weather_chart.h"
 #include "weather_pictures.h"
 
@@ -103,6 +104,10 @@ void dress(lv_obj_t *label, const std::string &condition, bool on, bool large_pi
   lv_obj_align(picture, LV_ALIGN_CENTER, 0, 0);
   lv_obj_remove_flag(picture, LV_OBJ_FLAG_HIDDEN);
 }
+// A top bar item's weather picture (firmware 0.72.0): still, the size of the bar's icons.
+static const bool bar_hooked = (page_header::weather_picture = [](lv_obj_t *label, const std::string &condition, bool night) {
+  dress(label, condition, !condition.empty(), false, night);
+}, true);
 #else
 // A profile without LVGL's image widget keeps the icons.
 void dress(lv_obj_t *, const std::string &, bool, bool, bool) {}

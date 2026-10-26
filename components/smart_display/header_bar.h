@@ -58,9 +58,14 @@ struct Item {
   // An entity's item (`d`, firmware 0.56.0+): the index of the tile whose card a tap on it opens
   // (runtime_tiles::open_card), NO_CARD for an item that opens nothing, DOORBELL_CARD for a missed ring.
   uint16_t card = NO_CARD;
+  // A weather entity's colour picture in the place of its icon (`w`, firmware 0.72.0, module weather_emoji): its
+  // condition, and whether the sun is down (`n`). Empty: the icon.
+  std::string weather;
+  bool weather_night = false;
   bool operator==(const Item &o) const {
     return kind == o.kind && icon == o.icon && text == o.text && epoch == o.epoch && color == o.color && has_color == o.has_color &&
-           only_weak == o.only_weak && icon_only == o.icon_only && card == o.card;
+           only_weak == o.only_weak && icon_only == o.icon_only && card == o.card && weather == o.weather &&
+           weather_night == o.weather_night;
   }
 };
 

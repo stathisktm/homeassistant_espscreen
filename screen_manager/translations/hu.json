@@ -2815,6 +2815,13 @@
       "weather_emoji": {
         "label": "Színes időjárás-emoji",
         "hint": "Az időjárás színes képei (nap, felhők, eső) az ikonok helyén, a csempén, az előrejelzésben és a héten."
+      },
+      "weather_temp": {
+        "label": "Hőmérséklet",
+        "hint": "A sajátja, vagy a helyén egy saját érzékelőd: egy otthoni hőmérő pontosabb, mint az időjárás-szolgáltatás.",
+        "own": "Az időjárásé",
+        "search": "Érzékelők keresése",
+        "none": "Nincs számot mutató érzékelő"
       }
     },
     "precision": {
@@ -2945,6 +2952,10 @@
         "copy": "Sáv másolása más oldalakra",
         "copy_hint": "Az elemei, vagy az egész sáv a címmel",
         "page_settings": "{page} beállításai"
+      },
+      "weather_emoji": {
+        "label": "Színes időjárás-emoji",
+        "hint": "Az időjárás színes képe az ikon helyén, napnyugta után az éjszakai."
       }
     },
     "screen_settings": {

@@ -2815,6 +2815,13 @@
       "weather_emoji": {
         "label": "Emoji meteo a colori",
         "hint": "Immagini a colori del meteo (sole, nuvole, pioggia) al posto delle icone, sul riquadro, nella previsione e nella settimana."
+      },
+      "weather_temp": {
+        "label": "Temperatura",
+        "hint": "La sua, o un tuo sensore al suo posto: un termometro in casa misura meglio del servizio meteo.",
+        "own": "Quella del meteo",
+        "search": "Cerca sensori",
+        "none": "Nessun sensore con un numero"
       }
     },
     "precision": {
@@ -2945,6 +2952,10 @@
         "copy": "Copia questa barra su altre pagine",
         "copy_hint": "I suoi elementi, o tutta la barra con il titolo",
         "page_settings": "Impostazioni di {page}"
+      },
+      "weather_emoji": {
+        "label": "Emoji meteo a colori",
+        "hint": "L'immagine a colori del meteo al posto della sua icona, quella notturna dopo il tramonto."
       }
     },
     "screen_settings": {
