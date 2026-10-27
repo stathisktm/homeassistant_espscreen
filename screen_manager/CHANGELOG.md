@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.133: the live camera on the ESP32-S3 screens no longer restarts the screen now and then.** The live view's
+  tasks and buffers took some 21 KB of the memory inside the chip, which the Wi-Fi and the rest of the screen need, and
+  the Guition 4848S040 now and then stopped and restarted while a camera streamed. The reader's and the copier's stacks
+  and the buffers go to PSRAM now. Screens need firmware 0.83.0.
+
 - **0.4.132: the live camera copied onto the glass while the next picture decodes.** On the Guition 4848S040 all 25
   pictures a second came in, but the screen decoded each, waited for the panel and copied it one after the other, and
   showed 19. A third task now copies each picture on the screen's other core while the next one decodes. Screens need

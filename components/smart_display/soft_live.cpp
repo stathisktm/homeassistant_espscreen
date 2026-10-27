@@ -76,6 +76,7 @@ extern "C" esp_err_t __wrap_esp_lcd_new_rgb_panel(const esp_lcd_rgb_panel_config
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <freertos/idf_additions.h>
 
 #include "esp32s3/rom/tjpgd.h"
 // Espressif's decoder with the S3's SIMD (smart_display/__init__.py adds it, firmware 0.76.0): three to four times the
@@ -474,7 +475,10 @@ static void stream(Stream &s) {
     s.failed = true;
     return;
   }
-  auto *chunk = static_cast<uint8_t *>(heap_caps_malloc(CHUNK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+  // In PSRAM, as the tasks' stacks and TJpgDec's pool (firmware 0.83.0): the memory inside the chip is what the Wi-Fi,
+  // the network and every small allocation take (this build's malloc never goes to PSRAM), and with three tasks of the
+  // live view in it some 13 KB were left and the screen now and then stopped with an abort on core 0.
+  auto *chunk = static_cast<uint8_t *>(heap_caps_malloc(CHUNK, MALLOC_CAP_SPIRAM));
   if (!chunk) {
     ::close(fd);
     s.failed = true;
@@ -526,7 +530,7 @@ static void task_main(void *arg) {
   s->read_done = true;
   xTaskNotifyGive(s->decoder);
   finish(s);
-  vTaskDelete(nullptr);
+  vTaskDeleteWithCaps(nullptr);
 }
 // ---- The decoding task: the newest picture that came, once the last one is on the glass ----
 static void decoder_main(void *arg) {
@@ -571,7 +575,7 @@ static void putter_main(void *arg) {
     ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
   }
   finish(s);
-  vTaskDelete(nullptr);
+  vTaskDeleteWithCaps(nullptr);
 }
 #endif
 
@@ -613,7 +617,7 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   s->area = area;
   s->frame_bytes = static_cast<size_t>(area.w) * area.h * 2;
   for (auto &input : s->inputs) input = static_cast<uint8_t *>(heap_caps_malloc(INPUT, MALLOC_CAP_SPIRAM));
-  s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+  s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_SPIRAM));
 #ifdef USE_SOFT_LIVE_PANEL
   s->direct = direct_ready();
 #if defined(LV_COLOR_16_SWAP) && LV_COLOR_16_SWAP
@@ -648,7 +652,10 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   // The copier, straight to the panel, on core 1 above the main loop: 14 ms a picture.
   s->running = s->direct ? 3 : 2;
 #ifdef USE_SOFT_LIVE_PANEL
-  if (s->direct && xTaskCreatePinnedToCore(putter_main, "soft_put", 3072, s, 2, &s->putter, 1) != pdPASS) {
+  // The reader's and the copier's stacks in PSRAM (firmware 0.83.0), with room to spare; the decoder's stays inside the
+  // chip, where esp_new_jpeg's working rows are fastest.
+  if (s->direct &&
+      xTaskCreatePinnedToCoreWithCaps(putter_main, "soft_put", 4096, s, 2, &s->putter, 1, MALLOC_CAP_SPIRAM) != pdPASS) {
     streams[slot] = nullptr;
     free_stream(s);
     return -1;
@@ -668,7 +675,7 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
     finish(s);  // the decoder's and the reader's turns, neither started
     finish(s);
     xTaskNotifyGive(s->putter);
-  } else if (xTaskCreatePinnedToCore(task_main, "soft_live", 4096, s, 3, nullptr, 0) != pdPASS) {
+  } else if (xTaskCreatePinnedToCoreWithCaps(task_main, "soft_live", 8192, s, 3, nullptr, 0, MALLOC_CAP_SPIRAM) != pdPASS) {
     // The decoder (and the copier) end by themselves, and tick() tells the view the stream failed.
     s->failed = true;
     s->stopping = true;
