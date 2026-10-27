@@ -426,9 +426,11 @@ std::string receive(const std::string &payload) {
       // "psaver" (plugin API 0.14): the pictures of a plugin's screensaver; `e` names it (plugin:<p>.<saver>).
       // "plive" (plugin API 0.17, a question only): the stream of a plugin tile's live place; `e` names its camera.
       // "backdrop" (firmware 0.65.0, a question only): a page's own background; `e` is the page's index, not an entity.
+      // "alive" (firmware 0.84.1, a question only): the stream of an alert's camera, on a screen that streams straight
+      // to its panel (runtime_tiles::alert_live_ask). 0.84.0 asked but dropped the answer here, so the alert kept its still.
       const bool backdrop = view == "backdrop";
       if (backdrop ? !backdrop_answerable(entity)
-                   : view == "live" ? !valid_entity_list(entity) : (!valid_entity(entity) && entity != SAVER_PHOTOS) || (view != "full" && view != "alert" && view != "cover" && view != "lib" && view != "saver" && view != "vmap" && view != "pcard" && view != "psaver" && view != "plive")) return false;
+                   : view == "live" ? !valid_entity_list(entity) : (!valid_entity(entity) && entity != SAVER_PHOTOS) || (view != "full" && view != "alert" && view != "cover" && view != "lib" && view != "saver" && view != "vmap" && view != "pcard" && view != "psaver" && view != "plive" && view != "alive")) return false;
       if (!url.empty() && url.rfind("http://", 0) != 0) return false;
       // Every answer but an alert's carries the number of its question; one to an older question is dropped. A tile's
       // picture is the answer to that tile's last question (tile_picture::Questions).
@@ -436,6 +438,7 @@ std::string receive(const std::string &payload) {
                            : view == "pcard" ? plugin_host::card_question(number)
                            : view == "psaver" ? plugin_host::saver_question(number)
                            : view == "plive" ? live_place_question(number)
+                           : view == "alive" ? number == alert_live_view_id
                            : backdrop ? backdrop_question(entity, number)
                            : number == (view == "cover" ? cover_view_id : view == "lib" ? library_art_view_id : view == "vmap" ? vacuum_map_view_id : camera_view_id);
       if (view != "alert" && (!numbered || !current)) {

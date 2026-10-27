@@ -702,6 +702,11 @@ class Service(unittest.IsolatedAsyncioTestCase):
         found = await self.service.answer('text.hall', self.manager.player, question)
         self.assertTrue(found.stream and found.url.endswith('.mjpeg'), found)
         self.assertEqual(self.stream.calls[-1], ('camera.drive', (392, 220), {'sound': False, 'screen': 'text.hall', 'exact': True}))
+        # And the screen takes the answer (firmware 0.84.1: 0.84.0 asked, but its receiver did not know the view "alive"
+        # and dropped the answer, so the alert kept its still).
+        receiver = (ROOT / 'components/smart_display/page_receiver.cpp').read_text()
+        self.assertIn('view != "plive" && view != "alive")) return false;', receiver)
+        self.assertIn(': view == "alive" ? number == alert_live_view_id', receiver)
 
     async def test_a_camera_that_streams(self):
         found = await self.service.answer('text.hall', self.manager.player, self.read({'entity': 'camera.porch', 'live': '1280x744', 'sound': '1'}))

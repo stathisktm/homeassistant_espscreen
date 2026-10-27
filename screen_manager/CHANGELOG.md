@@ -1,5 +1,8 @@
 ## Unreleased
 
+- **0.4.135: an alert's camera plays live, as 0.4.134 meant.** The screen asked for the alert camera's stream, but
+  dropped the app's answer, so the alert kept its still. Screens need firmware 0.84.1.
+
 - **0.4.134: alerts fade in and out, and an alert's camera plays live.** An alert came and went at once; it now fades
   in and, when its button is pressed or its time is up, fades out. And on a screen that shows a live camera straight on
   its panel (the Guition 4848S040), the camera of an alert plays live in its card, where it was one still: the still
