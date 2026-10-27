@@ -142,15 +142,27 @@ async def _s3(config):
         # Straight to the panel (firmware 0.79.0): where the glass is an RGB panel of ESPHome's st7701s (the Guition
         # 4848S040), LVGL took 98 ms to draw each picture; the decoded picture goes into the panel's frame buffer past
         # LVGL instead, as on a P4. The panel's handle is picked up as ESP-IDF makes it.
-        displays = CORE.config.get("display") or []
-        if any(display.get("platform") == "st7701s" for display in displays):
-            from esphome.const import CONF_ID
+        # And over QSPI (firmware 0.85.0): the 3.5-inch Guition JC3248W535 (ESPHome's mipi_spi model), where the picture
+        # goes to the panel through the display's draw_pixels_at, turned as LVGL turns the glass. Its model alone, as no
+        # other mipi_spi board was tried.
+        from esphome.const import CONF_ID
 
+        displays = CORE.config.get("display") or []
+        rgb = any(display.get("platform") == "st7701s" for display in displays)
+        spi = next((display for display in displays
+                    if display.get("platform") == "mipi_spi" and str(display.get("model", "")).upper() == "JC3248W535"), None)
+        if rgb or spi:
             cg.add_define("USE_SOFT_LIVE_PANEL")
-            cg.add_build_flag("-Wl,--wrap=esp_lcd_new_rgb_panel")
             first = lvgl[0] if isinstance(lvgl, list) else lvgl
             component = await cg.get_variable(first[CONF_ID])
             cg.add(cg.RawExpression(f"live_view::soft_bind({component})"))
+        if rgb:
+            cg.add_define("USE_SOFT_LIVE_RGB")
+            cg.add_build_flag("-Wl,--wrap=esp_lcd_new_rgb_panel")
+        elif spi:
+            cg.add_define("USE_SOFT_LIVE_SPI")
+            display = await cg.get_variable(spi[CONF_ID])
+            cg.add(cg.RawExpression(f"live_view::soft_display({display})"))
 
 
 def p4_network_options(own):

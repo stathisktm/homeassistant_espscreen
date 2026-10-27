@@ -461,6 +461,16 @@ namespace live_view {
 void soft_bind(esphome::lvgl::LvglComponent *lvgl);
 }
 #endif
+// And a QSPI panel's display (USE_SOFT_LIVE_SPI, firmware 0.85.0, the Guition JC3248W535), which the picture goes to
+// past LVGL, turned as LVGL turns the glass.
+#ifdef USE_SOFT_LIVE_SPI
+namespace esphome::display {
+class Display;
+}
+namespace live_view {
+void soft_display(esphome::display::Display *display);
+}
+#endif
 
 // The speaker a live camera's sound plays on (features/audio.yaml binds the board's ts_speaker at boot); a board
 // without the live view takes it and does nothing with it.

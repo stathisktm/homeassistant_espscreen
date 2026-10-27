@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.137: the live camera straight to the glass on the 3.5-inch Guition JC3248W535 too.** As on the 4-inch Guition
+  since 0.4.128, each picture of a live camera, and an alert's, goes to the panel past LVGL, turned as the glass lies,
+  where LVGL drew each one and held the glass to a few pictures a second. Screens need firmware 0.85.0.
+
 - **0.4.136: an alert's live camera without the still around it.** The stream of an alert's camera is a few pixels
   smaller than its still, which showed in a thin band around it. Once the stream is on the glass the frame takes its
   size and the still goes; it comes back if the stream stops. Screens need firmware 0.84.2.

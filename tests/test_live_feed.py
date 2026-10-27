@@ -402,6 +402,10 @@ class SoftLive(unittest.TestCase):
         self.assertRegex(init, r'elif _esp32_s3\(\):\n\s+await _s3\(config\)')
         # Straight to the panel on an st7701s (firmware 0.79.0): its handle picked up as ESP-IDF makes it.
         self.assertIn('cg.add_build_flag("-Wl,--wrap=esp_lcd_new_rgb_panel")', init)
+        # And a QSPI panel (firmware 0.85.0, the JC3248W535): the picture turned as it decodes, sent through the display.
+        self.assertIn('cg.add_define("USE_SOFT_LIVE_SPI")', init)
+        self.assertIn('config.rotate = static_cast<jpeg_rotate_t>(s.quarter);', (component / 'soft_live.cpp').read_text())
+        self.assertIn('case 1: px = pw - y - f.lh; py = x; break;', (component / 'soft_live.cpp').read_text())
         self.assertIn('cg.add_define("USE_SOFT_LIVE")', init)
         soft = (component / 'soft_live.cpp').read_text()
         self.assertIn('#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)', soft)

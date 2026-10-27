@@ -271,6 +271,11 @@ it (`-Wl,--wrap=esp_lcd_new_rgb_panel`), the copy starts as the panel starts a f
 refreshes and keeps out of the picture's spot, and once the stream closes LVGL draws there again. The log then says how
 long each copy took.
 
+On the 3.5-inch Guition JC3248W535 (ESPHome's `mipi_spi` model, a QSPI panel with no frame buffer of its own) the
+picture goes the same way past LVGL (firmware 0.85.0): esp_new_jpeg turns it a quarter as it decodes, as the panel
+stands upright while the glass lies down, and the copier sends it to its place through the display's
+`draw_pixels_at`, held against LVGL's refresh. Other `mipi_spi` boards keep the LVGL image until one is tried.
+
 ## Live on the P4 boards
 
 A camera opened full screen on a board with an ESP32-P4 (the reTerminal D1001, the M5Stack Tab5, the Waveshare
