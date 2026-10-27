@@ -418,6 +418,10 @@ class SoftLive(unittest.TestCase):
         self.assertIn('if (!pacer && !s->direct) pacer = lv_timer_create(pace, 5, nullptr);', soft)
         self.assertIn('const bool waits = s.ready >= 0, skip = waits && !still;', soft)
         self.assertIn('if (!skip && s.ready == target) s.ready = -1;', soft)
+        # Two tasks (firmware 0.81.0): one reads the next picture while the other decodes the last.
+        self.assertIn('xTaskCreatePinnedToCore(decoder_main, "soft_decode", 6144, s, 2, &s->decoder, 0)', soft)
+        self.assertIn('xTaskCreatePinnedToCore(task_main, "soft_live", 4096, s, 3, nullptr, 0)', soft)
+        self.assertIn('while (i == s.pending || i == s.decoding) ++i;', soft)
         self.assertIn('LV_EVENT_RENDER_READY', soft)
         # Straight to the panel: one writer on the glass, LVGL out of the picture's spot, nothing written after close.
         self.assertIn('extern "C" esp_err_t __wrap_esp_lcd_new_rgb_panel(', soft)

@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.131: the sharper live camera at full pace on the ESP32-S3 screens.** With 0.4.130's sharper pictures the screen
+  showed 18 a second where it showed 24: it read the next picture only after it had decoded and shown the last. It now
+  reads and decodes at the same time, in two tasks. Screens need firmware 0.81.0.
+
 - **0.4.130: a sharper live camera on the ESP32-S3 screens.** The app compressed each picture of an S3 screen's live
   camera to 6 or 7 KB, which showed blocks in the details. Now that the screen keeps up with the camera, the pictures go
   out at the best quality, about two to three times the bytes. No firmware update is needed.

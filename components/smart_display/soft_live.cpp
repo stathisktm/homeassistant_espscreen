@@ -98,9 +98,11 @@ extern "C" void lv_image_cache_drop(const void *src);
 namespace live_view {
 
 static const char *const TAG = "live";
-// A picture's JPEG at most: a room of 480 x 430 at the app's quality is 8 to 40 KB. Its share of the pictures' budget
-// (held_bytes) is this, so no more than needed (firmware 0.77.0, 256 KB before).
-constexpr size_t INPUT = 96 * 1024;
+// A picture's JPEG at most: a room of 480 x 430 at the app's best quality is 10 to 40 KB. Three of them (INPUTS): one
+// being read, one waiting, one being decoded. Their share of the pictures' budget (held_bytes) is this, so no more than
+// needed (firmware 0.81.0; one of 96 KB before, 256 KB before 0.77.0).
+constexpr size_t INPUT = 64 * 1024;
+constexpr int INPUTS = 3;
 constexpr size_t CHUNK = 4096;
 constexpr size_t WORK = 4096;          // TJpgDec's pool (3100 bytes for its tables and a 16 x 16 MCU, with room)
 constexpr uint32_t WAIT_MS = 4000;
@@ -121,7 +123,18 @@ struct Stream {
   std::string url;
   Rect area;
   std::atomic<bool> stopping{false}, done{false}, failed{false};
-  uint8_t *input = nullptr, *work = nullptr;
+  uint8_t *work = nullptr;
+  // Two tasks (firmware 0.81.0): one reads the stream, one decodes, so the next picture comes in while the last is decoded
+  // and copied. With one task the network waited some 40 ms a picture, and pictures of 11 KB came 18 a second where the
+  // screen showed 24 of 7 KB. Under `lock`: the input being read (`filling`), the one waiting (`pending`, the newest: one
+  // that waited is read past) and the one being decoded.
+  uint8_t *inputs[INPUTS] = {};
+  size_t lengths[INPUTS] = {};
+  bool stills[INPUTS] = {};
+  int filling = 0, pending = -1, decoding = -1;
+  TaskHandle_t decoder = nullptr;
+  std::atomic<int> running{0};    // the tasks still running; `done` once neither is
+  std::atomic<bool> read_done{false};
   Frame frames[2];
   size_t frame_bytes = 0;
   // The hand-over between the task and the main loop, under `lock`: the task decodes into the frame that is not on the
@@ -327,13 +340,13 @@ static UINT write_block(JDEC *jd, void *bitmap, JRECT *r) {
 #ifdef SOFT_LIVE_NEW_JPEG
 // Espressif's decoder, straight into the frame as RGB565 in LVGL's order. 0 when it decoded, 1 when this picture is
 // one for TJpgDec (a whole-picture output of another size than w x h), -1 when it is no picture to show.
-static int decode_fast(Stream &s, size_t length, Frame &f) {
+static int decode_fast(Stream &s, const uint8_t *data, size_t length, Frame &f) {
   jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
   config.output_type = f.swap ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;
   jpeg_dec_handle_t dec = nullptr;
   if (jpeg_dec_open(&config, &dec) != JPEG_ERR_OK || !dec) return 1;
   jpeg_dec_io_t io{};
-  io.inbuf = s.input;
+  io.inbuf = const_cast<uint8_t *>(data);
   io.inbuf_len = static_cast<int>(length);
   jpeg_dec_header_info_t info{};
   int result = -1, out = 0;
@@ -352,18 +365,18 @@ static int decode_fast(Stream &s, size_t length, Frame &f) {
 }
 #endif
 // A JPEG into frame `index`; false for one that cannot be read or larger than the room (the app sends neither).
-static bool decode(Stream &s, size_t length, int index, bool still) {
+static bool decode(Stream &s, const uint8_t *data, size_t length, int index, bool still) {
   Frame &f = s.frames[index];
   f.still = still;
   const int64_t began = esp_timer_get_time();
   bool done = false;
 #ifdef SOFT_LIVE_NEW_JPEG
-  const int fast = decode_fast(s, length, f);
+  const int fast = decode_fast(s, data, length, f);
   if (fast < 0) return false;
   done = fast == 0;
 #endif
   if (!done) {
-    Source source{s.input, length, 0, &f};
+    Source source{data, length, 0, &f};
     JDEC jd;
     if (jd_prepare(&jd, read_jpeg, s.work, WORK, &source) != JDR_OK) return false;
     if (static_cast<int>(jd.width) > s.area.w || static_cast<int>(jd.height) > s.area.h) return false;
@@ -384,11 +397,11 @@ static bool decode(Stream &s, size_t length, int index, bool still) {
 // A picture of the stream came whole: into the frame that is not on the glass, then ready for the main loop. One that
 // comes while the last decoded one still waits for the glass is read past (firmware 0.77.0): the Guition decoded 25 a
 // second and showed 6, and every picture decoded for nothing took the memory bus the panel and LVGL share with it.
-static void arrived(Stream &s, size_t length, bool still) {
+static void arrived(Stream &s, const uint8_t *data, size_t length, bool still) {
 #ifdef USE_SOFT_LIVE_PANEL
   // Straight to the panel: decoded into the one frame and copied at once; the app sends the next once this left.
   if (s.direct) {
-    if (!decode(s, length, 0, still)) {
+    if (!decode(s, data, length, 0, still)) {
       s.broken++;
       return;
     }
@@ -410,7 +423,7 @@ static void arrived(Stream &s, size_t length, bool still) {
     s.passed++;
     return;
   }
-  if (!decode(s, length, target, still)) {
+  if (!decode(s, data, length, target, still)) {
     s.broken++;
     return;
   }
@@ -421,7 +434,27 @@ static void arrived(Stream &s, size_t length, bool still) {
   if (!still) s.live = true;
 }
 
-// ---- The task: the stream as live_view.cpp reads it ----
+// ---- The reading task: the stream as live_view.cpp reads it, each picture handed to the decoding task ----
+// The input a picture is read into: one neither waiting nor being decoded.
+static uint8_t *take_input(Stream &s) {
+  portENTER_CRITICAL(&s.lock);
+  int i = 0;
+  while (i == s.pending || i == s.decoding) ++i;
+  s.filling = i;
+  portEXIT_CRITICAL(&s.lock);
+  return s.inputs[i];
+}
+// A picture came whole: it waits for the decoder, in the place of one that still waited.
+static void received(Stream &s, size_t length, bool still) {
+  portENTER_CRITICAL(&s.lock);
+  const bool dropped = s.pending >= 0;
+  s.lengths[s.filling] = length;
+  s.stills[s.filling] = still;
+  s.pending = s.filling;
+  portEXIT_CRITICAL(&s.lock);
+  if (dropped) s.passed++;
+  xTaskNotifyGive(s.decoder);
+}
 static void stream(Stream &s) {
   const auto address = picture_fetch::split(s.url);
   const int fd = address.ok ? picture_fetch::connect_to(address, WAIT_MS) : -1;
@@ -465,9 +498,9 @@ static void stream(Stream &s) {
     s.bytes += n;
     // Sound has no speaker here: its parts are read past (no room), as the app sends none without `sound`.
     const bool ok = reader.feed(
-        chunk, n, [&s](size_t length, bool audio) -> uint8_t * { return !audio && length <= INPUT ? s.input : nullptr; },
+        chunk, n, [&s](size_t length, bool audio) -> uint8_t * { return !audio && length <= INPUT ? take_input(s) : nullptr; },
         [&s, &reader](size_t length, bool audio) {
-          if (!audio && !s.stopping) arrived(s, length, reader.still());
+          if (!audio && !s.stopping) received(s, length, reader.still());
         });
     if (!ok) {
       ESP_LOGW(TAG, "not a stream of pictures (answer %d)", reader.status());
@@ -478,10 +511,38 @@ static void stream(Stream &s) {
   ::close(fd);
   free(chunk);
 }
+static void finish(Stream *s) {
+  if (--s->running == 0) s->done.store(true, std::memory_order_release);
+}
 static void task_main(void *arg) {
   auto *s = static_cast<Stream *>(arg);
   stream(*s);
-  s->done.store(true, std::memory_order_release);
+  // The decoder runs until the reader is done, so this, its last word to it, never reaches a task that has gone.
+  s->read_done = true;
+  xTaskNotifyGive(s->decoder);
+  finish(s);
+  vTaskDelete(nullptr);
+}
+// ---- The decoding task: the newest picture that came, once the last one is on the glass ----
+static void decoder_main(void *arg) {
+  auto *s = static_cast<Stream *>(arg);
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
+    portENTER_CRITICAL(&s->lock);
+    const int i = s->stopping ? -1 : s->pending;
+    s->pending = -1;
+    s->decoding = i;
+    portEXIT_CRITICAL(&s->lock);
+    if (i >= 0) {
+      arrived(*s, s->inputs[i], s->lengths[i], s->stills[i]);
+      portENTER_CRITICAL(&s->lock);
+      s->decoding = -1;
+      portEXIT_CRITICAL(&s->lock);
+    } else if (s->read_done) {
+      break;
+    }
+  }
+  finish(s);
   vTaskDelete(nullptr);
 }
 
@@ -498,7 +559,7 @@ static void free_stream(Stream *s) {
     if (f.px) lv_image_cache_drop(&f.dsc);
     heap_caps_free(f.px);
   }
-  heap_caps_free(s->input);
+  for (auto *input : s->inputs) heap_caps_free(input);
   heap_caps_free(s->work);
   delete s;
 }
@@ -506,7 +567,7 @@ static void free_stream(Stream *s) {
 size_t held_bytes() {
   size_t held = 0;
   for (auto *s : streams)
-    if (s) held += INPUT + (s->direct ? 1 : 2) * s->frame_bytes;
+    if (s) held += INPUTS * INPUT + (s->direct ? 1 : 2) * s->frame_bytes;
   return held;
 }
 
@@ -522,7 +583,7 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   s->url = url;
   s->area = area;
   s->frame_bytes = static_cast<size_t>(area.w) * area.h * 2;
-  s->input = static_cast<uint8_t *>(heap_caps_malloc(INPUT, MALLOC_CAP_SPIRAM));
+  for (auto &input : s->inputs) input = static_cast<uint8_t *>(heap_caps_malloc(INPUT, MALLOC_CAP_SPIRAM));
   s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
 #ifdef USE_SOFT_LIVE_PANEL
   s->direct = direct_ready();
@@ -530,7 +591,8 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   s->frames[0].swap = s->direct;
 #endif
 #endif
-  bool ok = s->input && s->work;
+  bool ok = s->work != nullptr;
+  for (auto *input : s->inputs) ok = ok && input;
   for (int i = 0; i < (s->direct ? 1 : 2); ++i) {
     Frame &f = s->frames[i];
     f.px = static_cast<uint16_t *>(heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM));
@@ -553,11 +615,21 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   }
   reported_renders = renders;
   reported_render_us = render_us;
-  // Core 0, below the Wi-Fi and the network's own tasks: the main loop on core 1 keeps touch and LVGL as they were.
-  if (xTaskCreatePinnedToCore(task_main, "soft_live", 6144, s, 2, nullptr, 0) != pdPASS) {
+  // Core 0, below the Wi-Fi and the network's own tasks: the main loop on core 1 keeps touch and LVGL as they were. The
+  // reader a step above the decoder, so a picture comes in while the last is decoded.
+  s->running = 2;
+  if (xTaskCreatePinnedToCore(decoder_main, "soft_decode", 6144, s, 2, &s->decoder, 0) != pdPASS) {
     streams[slot] = nullptr;
     free_stream(s);
     return -1;
+  }
+  if (xTaskCreatePinnedToCore(task_main, "soft_live", 4096, s, 3, nullptr, 0) != pdPASS) {
+    // The decoder ends by itself, and tick() tells the view the stream failed.
+    s->failed = true;
+    s->stopping = true;
+    finish(s);
+    s->read_done = true;
+    xTaskNotifyGive(s->decoder);
   }
   ESP_LOGI(TAG, "stream %d into %dx%d at %d,%d, decoded in software%s", slot, area.w, area.h, area.x, area.y,
            s->direct ? ", straight to the panel" : "");
@@ -657,13 +729,14 @@ void tick(const std::function<void(Handle, Event)> &tell) {
       if (s->direct) {
         const uint32_t copy = s->copy_us - s->reported_copy;
         ESP_LOGI(TAG,
-                 "stream %d: %.1f pictures/s decoded, %.1f on the glass, %u KB each, decoded in %u ms (%s), copied to the "
-                 "panel in %u ms, LVGL drew %.1f/s in %u ms each, %u unreadable",
-                 slot, decoded * 1000.0f / span, shown * 1000.0f / span,
+                 "stream %d: %.1f pictures/s decoded, %.1f on the glass, %.1f read past, %u KB each, decoded in %u ms (%s), "
+                 "copied to the panel in %u ms, LVGL drew %.1f/s in %u ms each, %u unreadable",
+                 slot, decoded * 1000.0f / span, shown * 1000.0f / span, passed * 1000.0f / span,
                  decoded ? (unsigned) (bytes / decoded / 1024) : 0u, decoded ? (unsigned) (decode / decoded / 1000) : 0u,
                  decoder, shown ? (unsigned) (copy / shown / 1000) : 0u, drawn * 1000.0f / span,
                  drawn ? (unsigned) (drawing / drawn / 1000) : 0u, (unsigned) s->broken.load());
         s->reported_copy = s->copy_us;
+        s->reported_passed = s->passed;
       } else
       ESP_LOGI(TAG,
                "stream %d: %.1f pictures/s decoded, %.1f on the glass, %.1f read past, %u KB each, decoded in %u ms (%s), "
