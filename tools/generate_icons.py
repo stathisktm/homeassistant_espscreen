@@ -204,7 +204,13 @@ def main():
         if not WEB_FONT.exists() or set(TTFont(WEB_FONT).getBestCmap()) != wanted:
             raise SystemExit(f'Outdated: {WEB_FONT.name}')
         if not MDI_TABLE.exists() or MDI_TABLE.read_text() != mdi_table(): raise SystemExit(f'Outdated: {MDI_TABLE.name}')
-        if not ALL_WEB_FONT.exists() or set(TTFont(ALL_WEB_FONT).getBestCmap()) != set(TTFont(TTF).getBestCmap()):
+        # fontTools reads WOFF2 with brotli; where it is not installed, the font's being there is what is checked.
+        try:
+            import brotli  # noqa: F401
+            readable = True
+        except ImportError:
+            readable = False
+        if not ALL_WEB_FONT.exists() or (readable and set(TTFont(ALL_WEB_FONT).getBestCmap()) != set(TTFont(TTF).getBestCmap())):
             raise SystemExit(f'Outdated: {ALL_WEB_FONT.name}')
         for weight, path in BAR_FONTS.items():
             if not path.exists() or set(TTFont(path).getBestCmap()) != bar_codepoints(weight):

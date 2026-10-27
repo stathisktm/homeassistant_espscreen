@@ -92,8 +92,9 @@ static void keys_on_every_glass() {
     assert(width - all.next.right() == margin && all.next.right() + 0 <= width && all.play.right() + gap == all.next.x);
     assert(all.previous.right() + gap == all.play.x && all.left == all.previous.x);
     assert(all.previous.cy() == all.play.cy() && all.next.cy() == all.play.cy() && all.minus.cx() == all.play.cx());
-    for (const Rect &a : {all.play, all.minus, all.plus, all.previous, all.next})
-      for (const Rect &b : {all.play, all.minus, all.plus, all.previous, all.next}) assert(&a == &b || apart(a, b));
+    const Rect five[] = {all.play, all.minus, all.plus, all.previous, all.next};
+    for (int i = 0; i < 5; ++i)
+      for (int j = i + 1; j < 5; ++j) assert(apart(five[i], five[j]));
     Words beside = words(shape(width, height), width, height, margin, 32, 25, 6);
     before_keys(beside, all, margin);
     for (const Rect &r : {beside.first, beside.second})

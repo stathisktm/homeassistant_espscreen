@@ -1,0 +1,344 @@
+// A camera live, full screen, on an ESP32-S3 (firmware 0.74.0, docs/CAMERA.md "Live on the ESP32-S3 boards").
+//
+// The P4 decodes a stream's pictures in hardware and copies them past LVGL (live_view.cpp). An S3 has neither, so its
+// camera full screen showed stills: a 16-bit BMP of the whole room, some 260 KB that its Wi-Fi brings in over a second,
+// asked again 0.8 s after the last, one picture about every two seconds. Here the same stream the P4 reads comes in
+// (live_feed.py, `exact`: each picture already the size of the room, so nothing is scaled on the screen), each a JPEG of
+// some 25 to 40 KB, decoded in a task of its own by the TJpgDec the S3 has in its ROM into one of two RGB565 pictures in
+// PSRAM; the main loop shows the newest through an LVGL image in the camera view, the other being written meanwhile.
+// The app makes the next picture once the last one has left its host, so a slow decode gets fewer pictures, never older
+// ones, and nothing queues up.
+//
+// The same API as the P4's (live_view.h): the camera view asks, opens, closes and ticks it as it does there, and goes
+// back to its stills after TRIES failures. Live tiles stay stills on an S3 (tiles_stream).
+#include "esphome/core/defines.h"
+#include "live_view.h"
+#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)
+#include <algorithm>
+#include <atomic>
+#include <cerrno>
+#include <cstring>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include <esp_heap_caps.h>
+#include <esp_timer.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+#include "esp32s3/rom/tjpgd.h"
+#include "esphome/core/hal.h"
+#include "esphome/core/log.h"
+#include "lvgl.h"
+
+// LVGL's own (misc/cache/instance/lv_image_cache.h), which lvgl.h leaves out of this build: what LVGL kept of an image
+// descriptor whose pixels changed is let go.
+extern "C" void lv_image_cache_drop(const void *src);
+
+namespace live_view {
+
+static const char *const TAG = "live";
+constexpr size_t INPUT = 256 * 1024;   // a picture's JPEG at most (a room of 480 x 430 at the app's quality is 25-40 KB)
+constexpr size_t CHUNK = 4096;
+constexpr size_t WORK = 4096;          // TJpgDec's pool (3100 bytes for its tables and a 16 x 16 MCU, with room)
+constexpr uint32_t WAIT_MS = 4000;
+constexpr int SOFT_STREAMS = 1;        // the full view alone
+
+// One decoded picture: RGB565 as LVGL draws it, `w` x `h` (the JPEG's size, at most the room's).
+struct Frame {
+  uint16_t *px = nullptr;
+  lv_image_dsc_t dsc{};
+  int w = 0, h = 0;
+  bool still = false;
+};
+struct Stream {
+  std::string url;
+  Rect area;
+  std::atomic<bool> stopping{false}, done{false}, failed{false};
+  uint8_t *input = nullptr, *work = nullptr;
+  Frame frames[2];
+  size_t frame_bytes = 0;
+  // The hand-over between the task and the main loop, under `lock`: the task decodes into the frame that is not on the
+  // glass, and says it is `ready`; the main loop puts it on the glass (`showing`). A frame decoded while the last one
+  // still waited takes its place: the newest wins.
+  portMUX_TYPE lock = portMUX_INITIALIZER_UNLOCKED;
+  int ready = -1, showing = -1;
+  std::atomic<uint32_t> decoded{0}, bytes{0}, decode_us{0}, broken{0};
+  std::atomic<bool> live{false};
+  // The main loop's own.
+  lv_obj_t *image = nullptr;
+  uint32_t shown = 0, started_at = 0, reported_at = 0, reported_decoded = 0, reported_bytes = 0, reported_decode = 0;
+  bool told_first = false, told_live = false;
+};
+static Stream *streams[SOFT_STREAMS] = {};
+
+bool available() { return soft_parent != nullptr; }
+
+// ---- Decoding: TJpgDec reads the JPEG from memory and hands back blocks of RGB888, written here as RGB565 ----
+struct Source {
+  const uint8_t *data;
+  size_t size, at;
+  Frame *frame;
+};
+static UINT read_jpeg(JDEC *jd, BYTE *buffer, UINT wanted) {
+  auto *s = static_cast<Source *>(jd->device);
+  const size_t take = std::min<size_t>(wanted, s->size - s->at);
+  if (buffer) memcpy(buffer, s->data + s->at, take);
+  s->at += take;
+  return static_cast<UINT>(take);
+}
+static UINT write_block(JDEC *jd, void *bitmap, JRECT *r) {
+  auto *s = static_cast<Source *>(jd->device);
+  Frame &f = *s->frame;
+  const auto *rgb = static_cast<const uint8_t *>(bitmap);
+  const int w = r->right - r->left + 1;
+  for (int y = r->top; y <= r->bottom; ++y) {
+    if (y >= f.h) { rgb += 3 * w; continue; }
+    uint16_t *row = f.px + static_cast<size_t>(y) * f.w;
+    for (int x = r->left; x <= r->right; ++x, rgb += 3) {
+      if (x >= f.w) continue;
+      row[x] = static_cast<uint16_t>(((rgb[0] & 0xF8) << 8) | ((rgb[1] & 0xFC) << 3) | (rgb[2] >> 3));
+    }
+  }
+  return 1;
+}
+// A JPEG into frame `index`; false for one TJpgDec cannot read or larger than the room (the app sends neither).
+static bool decode(Stream &s, size_t length, int index, bool still) {
+  Frame &f = s.frames[index];
+  Source source{s.input, length, 0, &f};
+  JDEC jd;
+  if (jd_prepare(&jd, read_jpeg, s.work, WORK, &source) != JDR_OK) return false;
+  if (static_cast<int>(jd.width) > s.area.w || static_cast<int>(jd.height) > s.area.h) return false;
+  f.w = static_cast<int>(jd.width);
+  f.h = static_cast<int>(jd.height);
+  f.still = still;
+  const int64_t began = esp_timer_get_time();
+  if (jd_decomp(&jd, write_block, 0) != JDR_OK) return false;
+  s.decode_us += static_cast<uint32_t>(esp_timer_get_time() - began);
+  f.dsc.header.magic = LV_IMAGE_HEADER_MAGIC;
+  f.dsc.header.cf = LV_COLOR_FORMAT_RGB565;
+  f.dsc.header.w = f.w;
+  f.dsc.header.h = f.h;
+  f.dsc.header.stride = f.w * 2;
+  f.dsc.data_size = static_cast<uint32_t>(f.w) * f.h * 2;
+  f.dsc.data = reinterpret_cast<const uint8_t *>(f.px);
+  return true;
+}
+// A picture of the stream came whole: into the frame that is not on the glass, then ready for the main loop.
+static void arrived(Stream &s, size_t length, bool still) {
+  int target;
+  portENTER_CRITICAL(&s.lock);
+  target = s.showing == 0 ? 1 : 0;
+  if (s.ready == target) s.ready = -1;  // the one that waited is older than this
+  portEXIT_CRITICAL(&s.lock);
+  if (!decode(s, length, target, still)) {
+    s.broken++;
+    return;
+  }
+  portENTER_CRITICAL(&s.lock);
+  s.ready = target;
+  portEXIT_CRITICAL(&s.lock);
+  s.decoded++;
+  if (!still) s.live = true;
+}
+
+// ---- The task: the stream as live_view.cpp reads it ----
+static void stream(Stream &s) {
+  const auto address = picture_fetch::split(s.url);
+  const int fd = address.ok ? picture_fetch::connect_to(address, WAIT_MS) : -1;
+  if (fd < 0) {
+    ESP_LOGW(TAG, "no connection to %s:%u", address.host.c_str(), address.port);
+    s.failed = true;
+    return;
+  }
+  // HTTP/1.0: the app answers without chunks, and ends the stream by closing it.
+  if (!picture_fetch::send_all(fd, "GET " + address.path + " HTTP/1.0\r\nHost: " + address.host + "\r\n\r\n")) {
+    ::close(fd);
+    s.failed = true;
+    return;
+  }
+  auto *chunk = static_cast<uint8_t *>(heap_caps_malloc(CHUNK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+  if (!chunk) {
+    ::close(fd);
+    s.failed = true;
+    return;
+  }
+  // Short waits, so a close is seen soon even while the app sends nothing.
+  timeval step{0, 200 * 1000};
+  setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &step, sizeof(step));
+  Reader reader;
+  uint32_t heard = esphome::millis();
+  while (!s.stopping) {
+    const int n = recv(fd, chunk, CHUNK, 0);
+    const int error = errno;
+    if (n < 0 && (error == EAGAIN || error == EWOULDBLOCK)) {
+      if (esphome::millis() - heard < QUIET_MS) continue;
+      ESP_LOGW(TAG, "the stream went quiet");
+      s.failed = true;
+      break;
+    }
+    if (n <= 0) {
+      ESP_LOGW(TAG, "the stream ended (%d, errno %d)", n, error);
+      s.failed = true;
+      break;
+    }
+    heard = esphome::millis();
+    s.bytes += n;
+    // Sound has no speaker here: its parts are read past (no room), as the app sends none without `sound`.
+    const bool ok = reader.feed(
+        chunk, n, [&s](size_t length, bool audio) -> uint8_t * { return !audio && length <= INPUT ? s.input : nullptr; },
+        [&s, &reader](size_t length, bool audio) {
+          if (!audio && !s.stopping) arrived(s, length, reader.still());
+        });
+    if (!ok) {
+      ESP_LOGW(TAG, "not a stream of pictures (answer %d)", reader.status());
+      s.failed = true;
+      break;
+    }
+  }
+  ::close(fd);
+  free(chunk);
+}
+static void task_main(void *arg) {
+  auto *s = static_cast<Stream *>(arg);
+  stream(*s);
+  s->done.store(true, std::memory_order_release);
+  vTaskDelete(nullptr);
+}
+
+static void free_stream(Stream *s) {
+  if (!s) return;
+  if (s->image) lv_obj_delete(s->image);
+  for (auto &f : s->frames) {
+    if (f.px) lv_image_cache_drop(&f.dsc);
+    heap_caps_free(f.px);
+  }
+  heap_caps_free(s->input);
+  heap_caps_free(s->work);
+  delete s;
+}
+
+size_t held_bytes() {
+  size_t held = 0;
+  for (auto *s : streams)
+    if (s) held += INPUT + 2 * s->frame_bytes;
+  return held;
+}
+
+Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
+  // The full view alone: a tile keeps its stills.
+  if (look.tile || !available() || area.w <= 0 || area.h <= 0) return -1;
+  int slot = -1;
+  for (int i = 0; i < SOFT_STREAMS; ++i)
+    if (!streams[i]) { slot = i; break; }
+  if (slot < 0) return -1;
+  auto *s = new (std::nothrow) Stream();
+  if (!s) return -1;
+  s->url = url;
+  s->area = area;
+  s->frame_bytes = static_cast<size_t>(area.w) * area.h * 2;
+  s->input = static_cast<uint8_t *>(heap_caps_malloc(INPUT, MALLOC_CAP_SPIRAM));
+  s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+  bool ok = s->input && s->work;
+  for (auto &f : s->frames) {
+    f.px = static_cast<uint16_t *>(heap_caps_malloc(s->frame_bytes, MALLOC_CAP_SPIRAM));
+    ok = ok && f.px;
+  }
+  if (!ok) {
+    ESP_LOGW(TAG, "no memory for the live picture");
+    free_stream(s);
+    return -1;
+  }
+  s->started_at = s->reported_at = esphome::millis();
+  streams[slot] = s;
+  // Core 0, below the Wi-Fi and the network's own tasks: the main loop on core 1 keeps touch and LVGL as they were.
+  if (xTaskCreatePinnedToCore(task_main, "soft_live", 6144, s, 2, nullptr, 0) != pdPASS) {
+    streams[slot] = nullptr;
+    free_stream(s);
+    return -1;
+  }
+  ESP_LOGI(TAG, "stream %d into %dx%d at %d,%d, decoded in software", slot, area.w, area.h, area.x, area.y);
+  return slot;
+}
+
+void close(Handle handle) {
+  if (handle < 0 || handle >= SOFT_STREAMS || !streams[handle]) return;
+  streams[handle]->stopping = true;
+  // Off the glass at once: the camera view takes over its room again.
+  if (streams[handle]->image) lv_obj_add_flag(streams[handle]->image, LV_OBJ_FLAG_HIDDEN);
+}
+
+// The frame that is ready onto the glass, centred in the room, in the camera view (soft_parent).
+static void show(Stream &s) {
+  int index;
+  portENTER_CRITICAL(&s.lock);
+  index = s.ready;
+  s.ready = -1;
+  if (index >= 0) s.showing = index;
+  portEXIT_CRITICAL(&s.lock);
+  if (index < 0 || s.stopping) return;
+  auto *parent = static_cast<lv_obj_t *>(soft_parent ? soft_parent() : nullptr);
+  if (!parent) return;
+  Frame &f = s.frames[index];
+  if (!s.image) {
+    s.image = lv_image_create(parent);
+    lv_obj_remove_flag(s.image, LV_OBJ_FLAG_CLICKABLE);
+    // Its parent, the camera view, goes when the view closes: then so does this, and nothing points at it any more.
+    lv_obj_add_event_cb(s.image, [](lv_event_t *e) {
+      auto *gone = static_cast<lv_obj_t *>(lv_event_get_target(e));
+      for (auto *st : streams)
+        if (st && st->image == gone) st->image = nullptr;
+    }, LV_EVENT_DELETE, nullptr);
+  }
+  lv_area_t at;
+  lv_obj_get_coords(parent, &at);
+  lv_obj_set_pos(s.image, s.area.x - at.x1 + (s.area.w - f.w) / 2, s.area.y - at.y1 + (s.area.h - f.h) / 2);
+  lv_obj_set_size(s.image, f.w, f.h);
+  // The same descriptor carries other pixels now: LVGL forgets what it kept of it.
+  lv_image_cache_drop(&f.dsc);
+  lv_image_set_src(s.image, &f.dsc);
+  lv_obj_invalidate(s.image);
+  s.shown++;
+}
+
+void tick(const std::function<void(Handle, Event)> &tell) {
+  const uint32_t now = esphome::millis();
+  for (int slot = 0; slot < SOFT_STREAMS; ++slot) {
+    Stream *s = streams[slot];
+    if (!s) continue;
+    if (s->done.load(std::memory_order_acquire)) {
+      const bool ended = s->stopping && !s->failed;
+      ESP_LOGI(TAG, "stream %d %s: %u pictures shown in %u s", slot, ended ? "ended" : "failed", (unsigned) s->shown,
+               (unsigned) ((now - s->started_at) / 1000));
+      streams[slot] = nullptr;
+      free_stream(s);
+      tell(slot, ended ? Event::ENDED : Event::FAILED);
+      continue;
+    }
+    show(*s);
+    if (!s->told_first && s->shown > 0) {
+      s->told_first = true;
+      ESP_LOGI(TAG, "stream %d: first picture on the glass %u ms after it started", slot, (unsigned) (now - s->started_at));
+      tell(slot, Event::FIRST);
+    }
+    if (s->told_first && !s->told_live && s->live.load()) {
+      s->told_live = true;
+      tell(slot, Event::LIVE);
+    }
+    // What a tester reads in the log: pictures a second, their bytes and how long each took to decode.
+    if (now - s->reported_at >= REPORT_MS) {
+      const uint32_t decoded = s->decoded - s->reported_decoded, bytes = s->bytes - s->reported_bytes;
+      const uint32_t decode = s->decode_us - s->reported_decode, span = now - s->reported_at;
+      ESP_LOGI(TAG, "stream %d: %.1f pictures/s, %u KB each, decoded in %u ms, %u unreadable", slot,
+               decoded * 1000.0f / span, decoded ? (unsigned) (bytes / decoded / 1024) : 0u,
+               decoded ? (unsigned) (decode / decoded / 1000) : 0u, (unsigned) s->broken.load());
+      s->reported_at = now;
+      s->reported_decoded = s->decoded;
+      s->reported_bytes = s->bytes;
+      s->reported_decode = s->decode_us;
+    }
+  }
+}
+
+}  // namespace live_view
+#endif

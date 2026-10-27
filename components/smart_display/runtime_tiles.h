@@ -11454,7 +11454,7 @@ inline bool live_tile_active(size_t index) {
   return l && (l->asked || l->handle >= 0);
 }
 inline bool page_clear() {
-  return live_view::available() && tiles_seen() && !camera_visible() && !card_open() && !settings_screen::visible() &&
+  return live_view::tiles_stream() && tiles_seen() && !camera_visible() && !card_open() && !settings_screen::visible() &&
          !(alert_parts.card && lv_obj_is_visible(alert_parts.card)) && camera_view::settled(esphome::millis(), last_turn_ms);
 }
 inline live_view::Rect card_room(const Widgets &w);
@@ -11775,6 +11775,10 @@ inline void live_stop_covered() {
 }
 inline void live_tick() {
   static bool hooked = false;
+#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)
+  // An S3's live picture goes into the camera view itself (soft_live.cpp, firmware 0.74.0).
+  if (!live_view::soft_parent) live_view::soft_parent = []() -> void * { return camera_root; };
+#endif
   if (!hooked && live_view::available()) {
     hooked = true;
     lv_display_add_event_cb(lv_display_get_default(), [](lv_event_t *) { live_stop_covered(); }, LV_EVENT_REFR_START, nullptr);
@@ -11906,6 +11910,10 @@ inline void camera_request(const std::string &entity, int size, uint32_t backgro
       q.live_w = room.w;
       q.live_h = room.h;
       q.sound = live_view::has_speaker();
+#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)
+      // Each picture at the room's size: an S3 shows it as it comes, scaling nothing (firmware 0.74.0).
+      q.exact = true;
+#endif
     }
   }
   q.places = {place};

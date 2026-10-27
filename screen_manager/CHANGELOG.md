@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.123: a live camera on the ESP32-S3 screens.** A camera opened full screen on an S3 screen with pictures (the
+  Guition 4848S040, the Waveshare S3 boards) now streams, as the P4 screens do, where it showed a still about every two
+  seconds: the app sends small JPEGs at the screen's exact size from the camera's live stream, and the screen decodes
+  them in software, several a second depending on the Wi-Fi. Camera tiles keep their stills. Screens need firmware
+  0.74.0; the screen's log says how many pictures a second it shows.
+
 - **0.4.122: the screensaver's player, whole and with its keys.** A player's picture that is not square (a TV channel's
   logo, a film's poster) stands whole on the screensaver, on its own colour, where it was cut to the glass and lost its
   sides; that needs no firmware update. And the screensaver's player has the previous and the next track beside play

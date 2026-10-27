@@ -408,6 +408,26 @@ size_t held_bytes();
 bool prepare_stills();
 uint8_t *still_input(size_t bytes, size_t *got);
 uint8_t *decode_still(const uint8_t *jpeg, size_t length, Still &out);
+// Live tiles stream on a P4.
+inline bool tiles_stream() { return available(); }
+#elif defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)
+// An ESP32-S3 (USE_SOFT_LIVE, smart_display/__init__.py, firmware 0.74.0): its camera full screen streams too, each
+// picture decoded in software (soft_live.cpp); its stills stay BMP and its live tiles stills.
+constexpr bool STILLS_JPEG = false;
+inline bool prepare_stills() { return false; }
+inline uint8_t *still_input(size_t, size_t *got) { if (got) *got = 0; return nullptr; }
+inline uint8_t *decode_still(const uint8_t *, size_t, Still &) { return nullptr; }
+// The object the view's picture goes into: the camera view (runtime_tiles binds it). Until then nothing streams.
+inline void *(*soft_parent)() = nullptr;
+bool available();
+inline bool tiles_stream() { return false; }
+Handle open(const std::string &url, const Rect &area, const Look &look = Look{}, bool sound = false);
+inline bool has_speaker() { return false; }
+inline void mute(Handle, bool) {}
+void close(Handle handle);
+void tick(const std::function<void(Handle, Event)> &tell);
+inline uint32_t misses() { return 0; }
+size_t held_bytes();
 #else
 constexpr bool STILLS_JPEG = false;
 inline bool prepare_stills() { return false; }
@@ -415,6 +435,7 @@ inline uint8_t *still_input(size_t, size_t *got) { if (got) *got = 0; return nul
 inline uint8_t *decode_still(const uint8_t *, size_t, Still &) { return nullptr; }
 inline size_t held_bytes() { return 0; }
 inline bool available() { return false; }
+inline bool tiles_stream() { return false; }
 inline Handle open(const std::string &, const Rect &, const Look & = Look{}, bool = false) { return -1; }
 inline bool has_speaker() { return false; }
 inline void mute(Handle, bool) {}

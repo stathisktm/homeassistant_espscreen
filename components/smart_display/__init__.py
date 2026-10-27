@@ -57,6 +57,8 @@ async def to_code(config):
         ota.request_ota_state_listeners()
     if _esp32_p4():
         await _p4(config)
+    elif _esp32_s3():
+        _s3(config)
     _tier(config)
 
 
@@ -114,6 +116,23 @@ def _esp32_p4():
     from esphome.components.esp32.const import VARIANT_ESP32P4
 
     return get_esp32_variant() == VARIANT_ESP32P4
+
+
+def _esp32_s3():
+    if not CORE.is_esp32:
+        return False
+    from esphome.components.esp32 import get_esp32_variant
+    from esphome.components.esp32.const import VARIANT_ESP32S3
+
+    return get_esp32_variant() == VARIANT_ESP32S3
+
+
+def _s3(config):
+    """An ESP32-S3 with LVGL streams its camera full screen too, each picture decoded in software (soft_live.cpp,
+    firmware 0.74.0); soft_live.cpp builds only where the board shows pictures (SCREEN_PICTURES)."""
+    lvgl = CORE.config.get("lvgl")
+    if lvgl:
+        cg.add_define("USE_SOFT_LIVE")
 
 
 def p4_network_options(own):

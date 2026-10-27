@@ -210,7 +210,8 @@ LINT_KEEP = {
     'its card moved', 'nothing over it',
     # The picture loader's log of a picture's steps (picture_loader.h, note()).
     'not wanted now', 'asks again', 'breaks off for the glass', 'load failed',
-    'history range', 'card button ', 'header navigation', 'header item', 'media key ', 'screensaver play', 'screensaver mute', 'let go', 'too short (', 'already handled in this contact',
+    'history range', 'card button ', 'header navigation', 'header item', 'media key ', 'screensaver play', 'screensaver mute', 'screensaver previous', 'screensaver next', 'header doorbell', 'it is gone',
+    'it moved', 'Home Assistant', 'let go', 'too short (', 'already handled in this contact',
     'same button within the debounce window', 'no runtime tiles', 'setting off', 'screen dimmed', 'card open',
     'detail card open', 'camera open', 'a slider is being dragged', 'settings page open', 'alert showing', 'USB calibration ready; no tile actions',
     'GT911 touch test ready; no tile actions', 'ST7121 touch test ready; no tile actions',

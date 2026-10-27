@@ -29,7 +29,8 @@ class OffLook(unittest.TestCase):
         self.assertIn('if (d == "light" && tile.state == "off") return "\\U000F0E4F";', TILES)
         # Since firmware 0.2.71 every tile follows Home Assistant's stateActive() (Tile::active), not a list of domains.
         self.assertIn('bool on = t.builtin() || (fresh() && t.active());', TILES)
-        self.assertIn('uint32_t state_color=on?accent:theme::STATE_OFF;', TILES)
+        # A colour by state on the icon alone while off (firmware 0.64.0, option tint_icon) takes the rule's colour.
+        self.assertIn('uint32_t state_color=icon_tint?t.background:on?accent:theme::STATE_OFF;', TILES)
         self.assertIn('constexpr uint32_t STATE_OFF = ha::GREY;', THEME)
         self.assertIn('constexpr uint32_t GREY = 0x9E9E9E;', THEME)
 

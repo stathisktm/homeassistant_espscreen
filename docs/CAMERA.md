@@ -243,6 +243,21 @@ loop since firmware 0.2.73, 4 KB before). A JPEG of the full screen took 0.6 s i
 Guition, during which the screen missed taps. A full-screen BMP is about 390 KB; on the bench
 Guition it comes in about 1.8 s (2.8 s with 4 KB).
 
+## Live on the ESP32-S3 boards
+
+A camera opened full screen on a board with an ESP32-S3 and pictures (the Guition 4848S040, the Waveshare S3 boards and
+the others with PSRAM) streams too, since firmware 0.74.0, slower than a P4 but far faster than its stills (one about
+every two seconds). The screen asks as a P4 does (`live`, the room below its top bar) and adds `exact`: it scales
+nothing, so the app makes every picture the room's size, larger or smaller than the camera's (`live_feed.size_exact`).
+The stream is the P4's, from the same sources (WebRTC for a camera with a stream, else its snapshots), each picture a
+baseline JPEG of some 25 to 40 KB for a 4-inch screen's room, where its still was a BMP of 260 KB.
+
+On the screen (`components/smart_display/soft_live.cpp`) a task of its own on the second core reads the stream with the
+P4's reader and decodes each picture with the TJpgDec in the S3's ROM into one of two RGB565 pictures in PSRAM; the main
+loop shows the newest through an LVGL image in the camera view, while the task writes the other. A slow decode gets
+fewer pictures, never older ones: the app sends the next once the last has left its host. Every ten seconds the screen's
+log says how many pictures a second came, their size and how long one took to decode. Live tiles stay stills on an S3.
+
 ## Live on the P4 boards
 
 A camera opened full screen on a board with an ESP32-P4 (the reTerminal D1001, the M5Stack Tab5, the Waveshare

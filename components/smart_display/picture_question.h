@@ -80,6 +80,7 @@ struct Question {
   std::vector<std::string> formats{"bmp24"};  // what this screen's decoder takes, best first
   uint32_t pace = 0;                  // ms until the next picture of a source that changes by itself; 0 once
   int live_w = 0, live_h = 0;         // the rectangle this screen can stream into; 0 when it cannot
+  bool exact = false;                 // its pictures at that rectangle's size, scaled by the app (an S3, firmware 0.74.0)
   bool sound = false;                 // with the camera's sound
   int circle = 0;                     // for an older app only: a tile's icon circle (camera_feed.LIVE_SIZES)
 };
@@ -177,6 +178,7 @@ inline std::string json(const Question &q) {
   if (q.pace) out += ",\"pace\":" + std::to_string(q.pace);
   if (q.live_w > 0 && q.live_h > 0) {
     out += ",\"live\":[" + std::to_string(q.live_w) + "," + std::to_string(q.live_h) + "]";
+    if (q.exact) out += ",\"exact\":1";
     if (q.sound) out += ",\"sound\":1";
   }
   return out + "}";

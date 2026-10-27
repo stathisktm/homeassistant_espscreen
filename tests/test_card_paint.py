@@ -14,11 +14,15 @@ class CardPaintTests(unittest.TestCase):
     def test_the_colour_cache_counts_the_card_paint(self):
         source = runtime_source()
         self.assertIn('uint32_t cached_paint=UINT32_MAX;', source)
-        paint = re.search(r'const uint32_t paint=t\.background\|\(t\.transparent\?1u<<24:0\);\n(.*)\n(.*)\n', source)
+        paint = re.search(r'const uint32_t paint=t\.background\|\(t\.transparent\?1u<<24:0\)([^;\n]*);\n(.*)\n(.*)\n', source)
         self.assertIsNotNone(paint)
-        self.assertIn('w.cached_paint == paint', paint.group(1))
-        self.assertIn('return;', paint.group(1))
-        self.assertIn('w.cached_paint=paint;', paint.group(2))
+        # What else changes the card's look without a new state: the colour on the icon alone (firmware 0.64.0), the
+        # card's opacity (0.67.0) and the icon without its circle (0.68.0), each its own bits.
+        for part in ('(icon_tint?1u<<25:0)', '(static_cast<uint32_t>(t.card_opa>>4)<<26)', '(t.icon_plain?1u<<30:0)'):
+            self.assertIn(part, paint.group(1))
+        self.assertIn('w.cached_paint == paint', paint.group(2))
+        self.assertIn('return;', paint.group(2))
+        self.assertIn('w.cached_paint=paint;', paint.group(3))
 
     def test_the_appearance_message_repaints_through_the_card(self):
         # The message only stores the paint and asks for the card again; the cache above decides the rest.

@@ -136,7 +136,7 @@ class Held(unittest.TestCase):
 class Stream(unittest.TestCase):
     """A snapshot camera through LiveFeed on a real socket, read like the screen reads it: HTTP/1.0, then parts."""
 
-    def run_stream(self, entity='camera.door', parts=3, token=None, streams_open=0, rtc=None):
+    def run_stream(self, entity='camera.door', parts=3, token=None, streams_open=0, rtc=None, box=(1280, 728), exact=False):
         """`rtc`: the camera has a stream, and this stands in for its WebRTC session (Source.rtc)."""
         from aiohttp import web
         picture = jpeg(512, 288)
@@ -164,7 +164,7 @@ class Stream(unittest.TestCase):
             site = web.TCPSite(runner, '127.0.0.1', 0)
             await site.start()
             port = site._server.sockets[0].getsockname()[1]
-            link = token or live.link(entity, (1280, 728))
+            link = token or live.link(entity, box, exact=exact)
             for _ in range(streams_open):
                 live.links[live.link(entity, (1280, 728))].streaming = 1
             reader, writer = await asyncio.open_connection('127.0.0.1', port)
@@ -325,6 +325,72 @@ class Encoder(unittest.TestCase):
         made, ms = encoder.encode(frame)
         self.assertEqual(live_feed.jpeg_size(made), (1280, 720))
         self.assertGreaterEqual(ms, 0)
+
+
+class SoftLive(unittest.TestCase):
+    """An ESP32-S3 streams its camera full screen too (app 0.4.123, firmware 0.74.0, soft_live.cpp): it scales nothing,
+    so each picture comes at its room's size exactly (`exact`), a baseline JPEG its ROM's TJpgDec reads."""
+
+    def test_a_frame_is_made_the_room_s_size(self):
+        self.assertEqual(live_feed.size_exact(512, 288, (480, 418)), (480, 270))      # smaller
+        self.assertEqual(live_feed.size_exact(1920, 1080, (480, 418)), (480, 270))    # larger
+        self.assertEqual(live_feed.size_exact(320, 240, (480, 418)), (480, 360))      # scaled up, as the S3 cannot
+        self.assertEqual(live_feed.size_exact(480, 270, (480, 418)), (480, 270))
+        self.assertIs(live_feed.sizing_of(exact=True), live_feed.size_exact)
+        self.assertIs(live_feed.sizing_of(cover=True), live_feed.size_to_cover)
+        self.assertIs(live_feed.sizing_of(), live_feed.size_for)
+
+    def test_the_stream_of_an_s3_comes_at_its_room_s_size(self):
+        (head, got), picture, asked = Stream().run_stream(box=(480, 418), exact=True)
+        self.assertEqual(len(got), 3)
+        for part in got:
+            image = Image.open(io.BytesIO(part))
+            self.assertEqual((image.format, image.size), ('JPEG', (480, 270)))
+            self.assertFalse(image.info.get('progressive'), 'baseline, as TJpgDec reads it')
+        # A P4's stream of the same camera keeps the camera's own JPEG.
+        (head, got), picture, asked = Stream().run_stream()
+        self.assertTrue(all(part == picture for part in got))
+
+    def test_a_small_camera_s_frames_are_scaled_up_for_it(self):
+        try:
+            import av
+        except ImportError:
+            self.skipTest('PyAV is not installed here (the add-on image has it)')
+        # A substream of 320 x 180 for a room of 480 x 418: the app scales it up, as the S3 scales nothing.
+        frame = av.VideoFrame.from_image(Image.new('RGB', (320, 180), (200, 80, 30)))
+        made, ms = live_feed.Encoder(*live_feed.size_exact(320, 180, (480, 418))).encode(frame)
+        image = Image.open(io.BytesIO(made))
+        self.assertEqual(image.size, (480, 270))
+        self.assertFalse(image.info.get('progressive'))
+
+    def test_the_question_says_it_and_the_link_keeps_it(self):
+        import json
+        import picture_question as pq
+        box = {'box': [480, 480], 'at': [[0, 0, 480, 480, 0, 0]], 'fit': ['shrink'], 'fmt': ['bmp16', 'bmp24']}
+        asked = lambda **more: pq.parse(json.dumps({'o': 'view', 'src': ['camera:camera.door'], **box, **more}), 3, (480, 480))
+        self.assertTrue(asked(live=[480, 418], exact=1).exact)
+        self.assertFalse(asked(live=[480, 418]).exact, 'a P4 scales its pictures itself')
+        self.assertFalse(asked(exact=1).exact, 'no stream, nothing exact')
+        live = live_feed.LiveFeed(None, None, lambda name: False)
+        self.assertTrue(live.links[live.link('camera.door', (480, 418), exact=True)].exact)
+        self.assertFalse(live.links[live.link('camera.door', (1280, 728))].exact)
+
+    def test_the_s3_builds_it_and_only_its_view_streams(self):
+        component = ROOT / 'components/smart_display'
+        init = (component / '__init__.py').read_text()
+        self.assertIn('return get_esp32_variant() == VARIANT_ESP32S3', init)
+        self.assertRegex(init, r'elif _esp32_s3\(\):\n\s+_s3\(config\)')
+        self.assertIn('cg.add_define("USE_SOFT_LIVE")', init)
+        soft = (component / 'soft_live.cpp').read_text()
+        self.assertIn('#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)', soft)
+        self.assertIn('jd_prepare(&jd, read_jpeg', soft)
+        self.assertIn('if (look.tile || !available()', soft, 'a live tile keeps its stills')
+        header = (component / 'live_view.h').read_text()
+        self.assertIn('inline bool tiles_stream() { return false; }', header)
+        tiles = (component / 'runtime_tiles.h').read_text()
+        self.assertIn('return live_view::tiles_stream() && tiles_seen()', tiles)
+        self.assertIn('q.exact = true;', tiles)
+        self.assertIn('if (q.exact) out += ",\\"exact\\":1";', (component / 'picture_question.h').read_text())
 
 
 class P4Build(unittest.TestCase):

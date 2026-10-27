@@ -82,6 +82,19 @@ def size_for(width, height, box):
     return max(16, int(width * scale) // 16 * 16), max(16, int(height * scale) // 16 * 16)
 
 
+def size_exact(width, height, box):
+    """The size a frame of width x height goes out at for a screen that scales nothing (an ESP32-S3, `exact`, app
+    0.4.123): as large as fits the room, larger or smaller than the frame, its proportions kept, even sides."""
+    bw, bh = box
+    scale = min(bw / width, bh / height)
+    return max(16, min(bw, int(width * scale)) // 2 * 2), max(16, min(bh, int(height * scale)) // 2 * 2)
+
+
+def sizing_of(cover=False, exact=False):
+    """How a frame is sized for a link: to fill a live tile's card, to the room exactly, or as large as fits."""
+    return size_exact if exact else size_to_cover if cover else size_for
+
+
 def size_to_cover(width, height, box):
     """The size a frame of width x height goes out at for a live tile that fills its card: as small as still covers the
     card, its proportions kept (the screen cuts the middle of it), and never larger than the frame: a smaller one the
@@ -147,13 +160,13 @@ def jpeg_size(raw):
     return None
 
 
-def remake(raw, box, cover=False):
+def remake(raw, box, cover=False, exact=False):
     """A picture the P4 does not take as it is (a progressive JPEG, a PNG, one too large) as a baseline JPEG that fits,
-    or that covers a live tile's card: (JPEG, CPU ms this thread spent on it)."""
+    that covers a live tile's card, or that is the room's size exactly (an S3): (JPEG, CPU ms this thread spent on it)."""
     from PIL import Image
     started = time.thread_time()
     image = Image.open(io.BytesIO(raw))
-    width, height = (size_to_cover if cover else size_for)(image.width, image.height, box)
+    width, height = sizing_of(cover, exact)(image.width, image.height, box)
     if image.format == 'JPEG':
         image.draft('RGB', (width, height))  # decoded at a fraction of its size where that is enough
     image = image.convert('RGB')
@@ -236,26 +249,26 @@ class Source:
             return None
         return self.frame
 
-    async def picture(self, frame, box, cover=False):
-        """The JPEG of `frame` for a screen with room `box` (a live tile that fills its card: `cover`), made once per
-        frame and room."""
+    async def picture(self, frame, box, cover=False, exact=False):
+        """The JPEG of `frame` for a screen with room `box` (a live tile that fills its card: `cover`; a screen that
+        scales nothing: `exact`), made once per frame, room and sizing."""
         async with self.making:
-            made = self.pictures.get((box, cover))
+            made = self.pictures.get((box, cover, exact))
             if made and made[0] == frame.number:
                 return made[1]
-            jpeg = await self.make(frame, box, cover)
-            self.pictures[(box, cover)] = (frame.number, jpeg)
+            jpeg = await self.make(frame, box, cover, exact)
+            self.pictures[(box, cover, exact)] = (frame.number, jpeg)
             return jpeg
 
-    async def make(self, frame, box, cover=False):
+    async def make(self, frame, box, cover=False, exact=False):
         loop = asyncio.get_running_loop()
-        sizing = size_to_cover if cover else size_for
+        sizing = sizing_of(cover, exact)
         if frame.jpeg is not None:
             size = jpeg_size(frame.jpeg)
             # A JPEG the P4 takes as it is goes out untouched, when it is no larger than it needs to be: the screen
             # scales and cuts it itself.
             jpeg, ms = (frame.jpeg, 0.0) if size and size == sizing(*size, box) else \
-                await loop.run_in_executor(None, remake, frame.jpeg, box, cover)
+                await loop.run_in_executor(None, remake, frame.jpeg, box, cover, exact)
         else:
             size = sizing(frame.video.width, frame.video.height, box)
             encoder = self.encoders.get(size)
@@ -486,11 +499,12 @@ def ended(task):
 
 
 class Link:
-    __slots__ = ('entity', 'box', 'used', 'streaming', 'made', 'cover', 'sound', 'warm', 'screen', 'tile')
+    __slots__ = ('entity', 'box', 'used', 'streaming', 'made', 'cover', 'sound', 'warm', 'screen', 'tile', 'exact')
 
-    def __init__(self, entity, box, now, cover=False, sound=False, warm=False, screen=None, tile=False):
+    def __init__(self, entity, box, now, cover=False, sound=False, warm=False, screen=None, tile=False, exact=False):
         self.entity, self.box, self.used, self.streaming, self.made = entity, box, now, 0, now
         self.cover, self.sound, self.warm, self.screen, self.tile = cover, sound, warm, screen, tile
+        self.exact = exact
 
 
 class LiveFeed:
@@ -507,14 +521,15 @@ class LiveFeed:
         for token in [t for t, link in self.links.items() if not link.streaming and now - link.used > LINK_SECONDS]:
             del self.links[token]
 
-    def link(self, entity, box, cover=False, sound=False, warm=False, screen=None, tile=False):
+    def link(self, entity, box, cover=False, sound=False, warm=False, screen=None, tile=False, exact=False):
         """A new link's token: the full view's (`box` its room, `sound` with the camera's sound for a screen with a
         speaker), or a live `tile`'s (`box` its card, `cover` when its picture fills the card rather than showing whole,
         `warm` when its screen has a speaker: the camera's sound comes along in the source, for the full view). `screen`
-        is the inbox of the screen that asked."""
+        is the inbox of the screen that asked. `exact`: each picture at the room's size (a screen that scales nothing,
+        an ESP32-S3, app 0.4.123)."""
         self.prune()
         token = secrets.token_urlsafe(18)
-        self.links[token] = Link(entity, box, self.clock(), cover, sound, warm, screen, tile)
+        self.links[token] = Link(entity, box, self.clock(), cover, sound, warm, screen, tile, exact)
         return token
 
     def hold(self, link):
@@ -601,7 +616,7 @@ class LiveFeed:
                 if frame is None or request.transport is None:
                     return
                 last = frame.number
-                jpeg = await source.picture(frame, link.box, link.cover)
+                jpeg = await source.picture(frame, link.box, link.cover, link.exact)
                 if not jpeg:
                     continue
                 await write(b'--frame\r\nContent-Type: image/jpeg\r\n%sContent-Length: %d\r\n\r\n'

@@ -102,7 +102,7 @@ class Service:
         to Live, on a screen that names the rectangle it streams into. '' when the source is no camera that streams."""
         source, owner = question.sources[0], question.owner
         if source.kind == 'camera' and owner.kind == 'view' and source.ref.startswith('camera.'):
-            token = self.stream.link(source.ref, question.live, sound=question.sound, screen=inbox)
+            token = self.stream.link(source.ref, question.live, sound=question.sound, screen=inbox, exact=question.exact)
             return url_of(token, 'mjpeg')
         if source.kind == 'tile' and owner.kind == 'tile':
             tile = self.sources._tile(inbox, source)

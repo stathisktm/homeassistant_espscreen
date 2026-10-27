@@ -75,7 +75,10 @@ inline Alert make(const std::string &title, const std::string &subtitle, const s
   alert.button_color = theme::key_swatch(lowercase(trimmed(button_color)));
   alert.button2_color = alert.button2.empty() ? 0 : theme::key_swatch(lowercase(trimmed(button2_color)));
   alert.icon = tile_icon::utf8(icon_codepoint(icon));
-  const uint32_t card = tile_palette::color(lowercase(trimmed(color)));
+  // One of the palette's names (core.ALERT_FIELDS): a hex colour, which a tile takes (tile_palette::color), keeps the
+  // normal card here, as the alert's field says.
+  const std::string named = lowercase(trimmed(color));
+  const uint32_t card = !named.empty() && named[0] == '#' ? 0 : tile_palette::color(named);
   alert.color = card ? card : DEFAULT_CARD_COLOR;
   alert.timeout_seconds = clamp_timeout(timeout);
   alert.flash = flash;

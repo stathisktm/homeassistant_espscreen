@@ -174,6 +174,7 @@ class Question:
     live: tuple = ()          # (w, h) of a rectangle the screen can stream into; () when it cannot
     sound: bool = False
     number: int = 0           # the question's number, which its answer carries
+    exact: bool = False       # its stream's pictures at `live`'s size exactly (an ESP32-S3, app 0.4.123)
     extra: dict = field(default_factory=dict, compare=False, hash=False)  # what an owner adds (a map's sheet)
 
     @property
@@ -370,7 +371,7 @@ def parse(text, number, canvas):
         return Question(owner, sources, (box_w, box_h), tuple(places),
                         look='d' if q.get('look') == 'd' else 'l', cap=cap, formats=tuple(named) or ('bmp24',),
                         pace=_int(q.get('pace', 0), 0, 3600000), live=live, sound=q.get('sound') == 1,
-                        number=number)
+                        number=number, exact=bool(live) and q.get('exact') == 1)
     except (ValueError, TypeError, KeyError):
         return None
 
