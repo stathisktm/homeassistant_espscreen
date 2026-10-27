@@ -394,7 +394,8 @@ class SoftLive(unittest.TestCase):
         # The glass sets the pace (firmware 0.77.0): LVGL's own timer shows each picture, and one that comes while the
         # last still waits is read past, not decoded for nothing.
         self.assertIn('if (!pacer) pacer = lv_timer_create(pace, 5, nullptr);', soft)
-        self.assertIn('if (waits && !still) {', soft)
+        self.assertIn('const bool waits = s.ready >= 0, skip = waits && !still;', soft)
+        self.assertIn('if (!skip && s.ready == target) s.ready = -1;', soft)
         self.assertIn('LV_EVENT_RENDER_READY', soft)
         # A page's picture fetched ahead only where it fits beside what the store holds: one that does not was let go
         # and fetched again every half second.

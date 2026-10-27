@@ -195,11 +195,13 @@ static bool decode(Stream &s, size_t length, int index, bool still) {
 static void arrived(Stream &s, size_t length, bool still) {
   int target;
   portENTER_CRITICAL(&s.lock);
-  const bool waits = s.ready >= 0;
+  const bool waits = s.ready >= 0, skip = waits && !still;
   target = s.showing == 0 ? 1 : 0;
-  if (s.ready == target) s.ready = -1;  // a still that comes takes the place of the one that waited
+  // A still that comes takes the place of the one that waited; a picture read past leaves it waiting (0.77.0 took it
+  // back there too, so both were lost: 15 decoded a second, 6 on the glass).
+  if (!skip && s.ready == target) s.ready = -1;
   portEXIT_CRITICAL(&s.lock);
-  if (waits && !still) {
+  if (skip) {
     s.passed++;
     return;
   }

@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.127: the live camera on the ESP32-S3 screens keeps the pictures it decoded.** 0.4.126 skipped a picture that
+  came while the last one still waited for the glass, as it should, but took the waiting one back too, so both were
+  lost: the Guition decoded 15 pictures a second and showed 6. The waiting picture now stays. Screens need firmware
+  0.78.0.
+
 - **0.4.126: a smoother live camera on the ESP32-S3 screens, and pages' backgrounds no longer load over and over.** The
   screen put a decoded picture on the glass only every 50 ms and decoded every picture that came, also the ones it
   never showed, which took the memory the panel draws from. LVGL now takes each picture the moment it draws, and a
