@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.129: the live camera's colours on the Guition 4848S040.** 0.4.128 showed the camera at 25 pictures a second,
+  but in the colours of a film's negative: the panel's memory holds each pixel's two bytes the other way round, as LVGL
+  writes them there for this display. The pictures are now decoded that way. Screens need firmware 0.80.0.
+
 - **0.4.128: the live camera straight to the glass on the Guition 4848S040.** LVGL took about 98 ms to draw each
   picture of a live camera, which held the glass to 8 pictures a second while a picture decoded in 21 ms. On an S3
   screen whose display is an RGB panel of ESPHome's st7701s (the Guition 4848S040), each picture now goes straight into

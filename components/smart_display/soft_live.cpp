@@ -112,6 +112,10 @@ struct Frame {
   lv_image_dsc_t dsc{};
   int w = 0, h = 0;
   bool still = false;
+  // Its two bytes a pixel the other way round: a picture for the panel's frame buffer, where LVGL's own pixels lie
+  // swapped (ESPHome's byte_order big_endian, LV_COLOR_16_SWAP, which LVGL applies before each flush). Without it the
+  // first build straight to the panel showed the camera in the colours of a film's negative (firmware 0.79.0).
+  bool swap = false;
 };
 struct Stream {
   std::string url;
@@ -314,7 +318,8 @@ static UINT write_block(JDEC *jd, void *bitmap, JRECT *r) {
     uint16_t *row = f.px + static_cast<size_t>(y) * f.w;
     for (int x = r->left; x <= r->right; ++x, rgb += 3) {
       if (x >= f.w) continue;
-      row[x] = static_cast<uint16_t>(((rgb[0] & 0xF8) << 8) | ((rgb[1] & 0xFC) << 3) | (rgb[2] >> 3));
+      const uint16_t px = static_cast<uint16_t>(((rgb[0] & 0xF8) << 8) | ((rgb[1] & 0xFC) << 3) | (rgb[2] >> 3));
+      row[x] = f.swap ? static_cast<uint16_t>((px << 8) | (px >> 8)) : px;
     }
   }
   return 1;
@@ -324,7 +329,7 @@ static UINT write_block(JDEC *jd, void *bitmap, JRECT *r) {
 // one for TJpgDec (a whole-picture output of another size than w x h), -1 when it is no picture to show.
 static int decode_fast(Stream &s, size_t length, Frame &f) {
   jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
-  config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;
+  config.output_type = f.swap ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;
   jpeg_dec_handle_t dec = nullptr;
   if (jpeg_dec_open(&config, &dec) != JPEG_ERR_OK || !dec) return 1;
   jpeg_dec_io_t io{};
@@ -521,6 +526,9 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
 #ifdef USE_SOFT_LIVE_PANEL
   s->direct = direct_ready();
+#if defined(LV_COLOR_16_SWAP) && LV_COLOR_16_SWAP
+  s->frames[0].swap = s->direct;
+#endif
 #endif
   bool ok = s->input && s->work;
   for (int i = 0; i < (s->direct ? 1 : 2); ++i) {

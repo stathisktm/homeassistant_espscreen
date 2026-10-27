@@ -391,7 +391,9 @@ class SoftLive(unittest.TestCase):
         # Espressif's decoder first (firmware 0.76.0), straight into a 16-byte aligned frame, TJpgDec where it is not.
         self.assertIn('add_idf_component(name="espressif/esp_new_jpeg", ref="1.0.2")', init)
         self.assertIn('#if __has_include("esp_jpeg_dec.h")', soft)
-        self.assertIn('config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;', soft)
+        # The panel's frame buffer holds LVGL's pixels byte-swapped (LV_COLOR_16_SWAP): a picture for it is decoded so.
+        self.assertIn('config.output_type = f.swap ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;', soft)
+        self.assertIn('s->frames[0].swap = s->direct;', soft)
         self.assertIn('heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM)', soft)
         # The glass sets the pace (firmware 0.77.0): LVGL's own timer shows each picture, and one that comes while the
         # last still waits is read past, not decoded for nothing.
