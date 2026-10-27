@@ -697,7 +697,8 @@ class Service(unittest.IsolatedAsyncioTestCase):
     async def test_a_camera_that_streams(self):
         found = await self.service.answer('text.hall', self.manager.player, self.read({'entity': 'camera.porch', 'live': '1280x744', 'sound': '1'}))
         self.assertEqual((found.url, found.stream, found.shown), (f'http://192.168.1.57:8098/camera/{"S" * 24}.mjpeg', True, ('camera.porch',)))
-        self.assertEqual(self.stream.calls, [('camera.porch', (1280, 744), {'sound': True, 'screen': 'text.hall'})])
+        # `exact` (app 0.4.123): False for a screen that scales its pictures itself, as this P4 does.
+        self.assertEqual(self.stream.calls, [('camera.porch', (1280, 744), {'sound': True, 'screen': 'text.hall', 'exact': False})])
         self.assertEqual(self.fetched, [], 'a stream needs no still')
         # A camera tile set to Live streams into its card's size, filled or whole as the tile says.
         found = await self.service.answer('text.hall', self.manager.player, self.read(

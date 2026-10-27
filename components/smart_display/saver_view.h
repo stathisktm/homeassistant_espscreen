@@ -48,26 +48,35 @@ inline Words words(Shape s, int width, int height, int margin, int first_h, int 
 // A player's keys (firmware 0.33.0+): play or pause in the bottom right corner, a margin from the right edge and from
 // the bottom, and over it volume down and volume up, one column going up. A player without a volume has the play key
 // alone, and one that can do neither has none (`left` is then the glass's width). The previous and the next track
-// (firmware 0.73.0) stand in one row with the play key, the next at the right margin and the previous left of play, each
-// in the middle of the play key's height; the volume stays over the play key.
+// (firmware 0.73.0): where the words stand at the bottom of the glass (a cover that fills it, or one at the top) they
+// stand in one row with the play key, the next at the right margin and the previous left of play, each in the middle of
+// the play key's height, the volume over the play key. Beside a cover (Shape::side) the words have only the column
+// right of it, which a row would take: there the two go into the column, over play and under the volume (firmware
+// 0.75.0), and the words keep the width they had.
 struct Keys { Rect play, minus, plus, previous, next; int left = 0; };
 inline Keys keys(int width, int height, int margin, int key, int play, int gap, bool with_play, bool with_volume,
                  bool with_previous = false, bool with_next = false) {
   Keys k;
   k.left = width;
   if (!with_play && !with_volume && !with_previous && !with_next) return k;
-  const int bottom = height - margin, row = bottom - play + (play - key) / 2;
+  const bool row = shape(width, height) != Shape::side;
+  const int bottom = height - margin, middle = bottom - play + (play - key) / 2;
   int x = width - margin - play;
-  if (with_next) { k.next = {width - margin - key, row, key, key}; x = k.next.x - gap - play; }
+  if (row && with_next) { k.next = {width - margin - key, middle, key, key}; x = k.next.x - gap - play; }
   int y = bottom;
   if (with_play) { y -= play; k.play = {x, y, play, play}; y -= gap; }
-  else if (with_previous || with_next) y -= play + gap;
+  else if (row && (with_previous || with_next)) y -= play + gap;
+  const int cx = x + (play - key) / 2;
+  if (!row) {
+    if (with_next) { k.next = {cx, y - key, key, key}; y = k.next.y - gap; }
+    if (with_previous) { k.previous = {cx, y - key, key, key}; y = k.previous.y - gap; }
+  }
   if (with_volume) {
-    k.minus = {x + (play - key) / 2, y - key, key, key};
+    k.minus = {cx, y - key, key, key};
     k.plus = {k.minus.x, k.minus.y - gap - key, key, key};
   }
   k.left = x;
-  if (with_previous) { k.previous = {x - gap - key, row, key, key}; k.left = k.previous.x; }
+  if (row && with_previous) { k.previous = {x - gap - key, middle, key, key}; k.left = k.previous.x; }
   return k;
 }
 // The words end before the keys, half a margin from them, however long a title is: it takes its second line and then

@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.124: the screensaver's title keeps its width on the wide screens.** On a screen much wider than tall (the 5, 7
+  and 10-inch boards), where the title stands beside the cover, the previous and next keys of 0.4.122 took most of its
+  room. They stand in the keys' column there now, over play and under the volume. Screens need firmware 0.75.0.
+
 - **0.4.123: a live camera on the ESP32-S3 screens.** A camera opened full screen on an S3 screen with pictures (the
   Guition 4848S040, the Waveshare S3 boards) now streams, as the P4 screens do, where it showed a still about every two
   seconds: the app sends small JPEGs at the screen's exact size from the camera's live stream, and the screen decodes

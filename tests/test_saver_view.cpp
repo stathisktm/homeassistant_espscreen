@@ -85,13 +85,21 @@ static void keys_on_every_glass() {
     assert(alone.minus.w == 0 && alone.plus.w == 0 && alone.play.x == k.play.x && alone.play.y == k.play.y);
     const Keys volume = keys(width, height, margin, key, play, gap, false, true);
     assert(volume.play.w == 0 && height - volume.minus.bottom() == margin && inside(volume.plus, width, height));
-    // The previous and the next track (firmware 0.73.0): one row with the play key, the next at the right margin, the
-    // previous left of play, the volume over play; the words end before the previous.
+    // The previous and the next track (firmware 0.73.0): one row with the play key where the words stand at the bottom
+    // (the next at the right margin, the previous left of play, the volume over play), and over play in its column
+    // beside a cover (firmware 0.75.0), where a row would take the words' room; the words end before them either way.
     const Keys all = keys(width, height, margin, key, play, gap, true, true, true, true);
     for (const Rect &r : {all.play, all.minus, all.plus, all.previous, all.next}) assert(inside(r, width, height) && r.w == r.h);
-    assert(width - all.next.right() == margin && all.next.right() + 0 <= width && all.play.right() + gap == all.next.x);
-    assert(all.previous.right() + gap == all.play.x && all.left == all.previous.x);
-    assert(all.previous.cy() == all.play.cy() && all.next.cy() == all.play.cy() && all.minus.cx() == all.play.cx());
+    if (shape(width, height) == Shape::side) {
+      assert(all.next.cx() == all.play.cx() && all.previous.cx() == all.play.cx() && all.minus.cx() == all.play.cx());
+      assert(all.next.bottom() + gap == all.play.y && all.previous.bottom() + gap == all.next.y);
+      assert(all.minus.bottom() + gap == all.previous.y && all.plus.bottom() + gap == all.minus.y);
+      assert(all.left == k.left && width - all.play.right() == margin);
+    } else {
+      assert(width - all.next.right() == margin && all.play.right() + gap == all.next.x);
+      assert(all.previous.right() + gap == all.play.x && all.left == all.previous.x);
+      assert(all.previous.cy() == all.play.cy() && all.next.cy() == all.play.cy() && all.minus.cx() == all.play.cx());
+    }
     const Rect five[] = {all.play, all.minus, all.plus, all.previous, all.next};
     for (int i = 0; i < 5; ++i)
       for (int j = i + 1; j < 5; ++j) assert(apart(five[i], five[j]));
@@ -100,6 +108,8 @@ static void keys_on_every_glass() {
     for (const Rect &r : {beside.first, beside.second})
       for (const Rect &round : {all.play, all.minus, all.plus, all.previous, all.next}) assert(apart(r, round));
     if (large) std::printf("%4dx%-4d words %d wide beside five keys\n", width, height, beside.first.w);
+    // Every glass that draws pictures keeps a title's width to read beside five keys, as beside three.
+    if (large) assert(beside.first.w >= 180);
     const Keys none = keys(width, height, margin, key, play, gap, false, false);
     Words w = words(s, width, height, margin, 32, 25, 6);
     const Words whole = w;

@@ -40,7 +40,9 @@ play or pause at the bottom, volume down over it and volume up at the top. A tap
 the player on the glass, and the screen stays in standby with its screensaver. A tap anywhere else wakes the screen.
 A player without a volume in Home Assistant (many televisions) has the play key alone.
 A player that can go to the previous and the next track (firmware 0.73.0) has those keys too, in one row with the play
-key: the next at the right edge, the previous left of play, the volume over play.
+key: the next at the right edge, the previous left of play, the volume over play. Where the words stand beside the cover
+(the wide boards) the two go into the keys' column instead, over play and under the volume (firmware 0.75.0), so the
+title keeps its width.
 
 Hold volume down for a second and a half to mute the player. The key then shows a muted speaker. The next tap on either
 volume key takes the mute off and changes nothing else, and after that the two keys are the volume again.
