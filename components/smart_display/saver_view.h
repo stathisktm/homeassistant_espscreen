@@ -47,20 +47,27 @@ inline Words words(Shape s, int width, int height, int margin, int first_h, int 
 
 // A player's keys (firmware 0.33.0+): play or pause in the bottom right corner, a margin from the right edge and from
 // the bottom, and over it volume down and volume up, one column going up. A player without a volume has the play key
-// alone, and one that can do neither has none (`left` is then the glass's width).
-struct Keys { Rect play, minus, plus; int left = 0; };
-inline Keys keys(int width, int height, int margin, int key, int play, int gap, bool with_play, bool with_volume) {
+// alone, and one that can do neither has none (`left` is then the glass's width). The previous and the next track
+// (firmware 0.73.0) stand in one row with the play key, the next at the right margin and the previous left of play, each
+// in the middle of the play key's height; the volume stays over the play key.
+struct Keys { Rect play, minus, plus, previous, next; int left = 0; };
+inline Keys keys(int width, int height, int margin, int key, int play, int gap, bool with_play, bool with_volume,
+                 bool with_previous = false, bool with_next = false) {
   Keys k;
   k.left = width;
-  if (!with_play && !with_volume) return k;
-  const int x = width - margin - play;
-  int y = height - margin;
+  if (!with_play && !with_volume && !with_previous && !with_next) return k;
+  const int bottom = height - margin, row = bottom - play + (play - key) / 2;
+  int x = width - margin - play;
+  if (with_next) { k.next = {width - margin - key, row, key, key}; x = k.next.x - gap - play; }
+  int y = bottom;
   if (with_play) { y -= play; k.play = {x, y, play, play}; y -= gap; }
+  else if (with_previous || with_next) y -= play + gap;
   if (with_volume) {
     k.minus = {x + (play - key) / 2, y - key, key, key};
     k.plus = {k.minus.x, k.minus.y - gap - key, key, key};
   }
   k.left = x;
+  if (with_previous) { k.previous = {x - gap - key, row, key, key}; k.left = k.previous.x; }
   return k;
 }
 // The words end before the keys, half a margin from them, however long a title is: it takes its second line and then

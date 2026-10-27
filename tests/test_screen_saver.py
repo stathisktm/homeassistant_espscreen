@@ -331,6 +331,20 @@ class Picture(unittest.TestCase):
         self.assertGreater(tall.getpixel((300, 300))[0], 140, 'the cover at the top, the full width')
         self.assertLess(tall.getpixel((300, 900))[0], 40)
 
+    def test_a_cover_that_is_not_square_stands_whole(self):
+        # A channel's logo, wide, on square glass (app 0.4.122): all of it, on the cover's colour above and below, where
+        # cutting it to the square lost its sides.
+        logo = self.picture((640, 240), (240, 240, 240))
+        square = self.open(self.saver(logo, (480, 480), 'media', 0x204060))
+        self.assertGreater(square.getpixel((4, 240))[0], 140, 'its left edge is on the glass')
+        self.assertGreater(square.getpixel((475, 240))[0], 140, 'and its right edge')
+        top = square.getpixel((240, 20))
+        self.assertTrue(abs(top[2] - 0x60 * 0.7) < 12 and top[0] < 40, top)
+        # A poster, tall, beside its colour on lying glass: the whole height in the cover's square, centred in it.
+        poster = self.open(self.saver(self.picture((300, 600), (240, 240, 240)), (1024, 600), 'media', 0x204060))
+        self.assertGreater(poster.getpixel((300, 300))[0], 140)
+        self.assertLess(poster.getpixel((20, 300))[0], 40, 'its colour beside the narrow poster')
+
     def test_the_firmware_lays_its_words_by_the_same_rule(self):
         import picture_paint
         header = (ROOT / 'components/smart_display/saver_view.h').read_text()

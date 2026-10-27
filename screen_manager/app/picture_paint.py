@@ -212,10 +212,16 @@ def _flat(place, raw):
         colour = tuple(int(c * (1 - PHOTO_GROUND_DIM)) for c in ImageStat.Stat(inner.resize((16, 16))).mean[:3])
         picture = Image.new('RGBA', (w, h), colour + (255,))
         picture.paste(inner, centre(inner))
-    elif place.fit == 'saver' and not fills((w, h), (1, 1)):
-        side = min(w, h)
+    elif place.fit == 'saver' and (not fills((w, h), (1, 1)) or not fills(image.size, (1, 1))):
+        # Its square: the whole glass where the glass is about square, else the glass's height at the left or its width
+        # at the top. A cover that is not about square itself (a channel's logo, a film's poster) stands whole in it on
+        # its own colour (app 0.4.122), where cutting it to the square lost its sides.
+        square = (w, h) if fills((w, h), (1, 1)) else (min(w, h), min(w, h))
+        flat = opaque(image, place.ground)
+        inner = (ImageOps.fit(flat, square, Image.Resampling.LANCZOS) if fills(image.size, (1, 1))
+                 else ImageOps.contain(flat, square, method=Image.Resampling.LANCZOS))
         picture = Image.new('RGBA', (w, h), rgb(place.ground) + (255,))
-        picture.paste(ImageOps.fit(opaque(image, place.ground), (side, side), Image.Resampling.LANCZOS), (0, 0))
+        picture.paste(inner, ((square[0] - inner.width) // 2, (square[1] - inner.height) // 2))
     elif place.fit == 'exact':
         picture = image if image.size == (w, h) else image.resize((w, h), Image.Resampling.LANCZOS)
     else:

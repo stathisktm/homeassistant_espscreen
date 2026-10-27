@@ -85,6 +85,20 @@ static void keys_on_every_glass() {
     assert(alone.minus.w == 0 && alone.plus.w == 0 && alone.play.x == k.play.x && alone.play.y == k.play.y);
     const Keys volume = keys(width, height, margin, key, play, gap, false, true);
     assert(volume.play.w == 0 && height - volume.minus.bottom() == margin && inside(volume.plus, width, height));
+    // The previous and the next track (firmware 0.73.0): one row with the play key, the next at the right margin, the
+    // previous left of play, the volume over play; the words end before the previous.
+    const Keys all = keys(width, height, margin, key, play, gap, true, true, true, true);
+    for (const Rect &r : {all.play, all.minus, all.plus, all.previous, all.next}) assert(inside(r, width, height) && r.w == r.h);
+    assert(width - all.next.right() == margin && all.next.right() + 0 <= width && all.play.right() + gap == all.next.x);
+    assert(all.previous.right() + gap == all.play.x && all.left == all.previous.x);
+    assert(all.previous.cy() == all.play.cy() && all.next.cy() == all.play.cy() && all.minus.cx() == all.play.cx());
+    for (const Rect &a : {all.play, all.minus, all.plus, all.previous, all.next})
+      for (const Rect &b : {all.play, all.minus, all.plus, all.previous, all.next}) assert(&a == &b || apart(a, b));
+    Words beside = words(shape(width, height), width, height, margin, 32, 25, 6);
+    before_keys(beside, all, margin);
+    for (const Rect &r : {beside.first, beside.second})
+      for (const Rect &round : {all.play, all.minus, all.plus, all.previous, all.next}) assert(apart(r, round));
+    if (large) std::printf("%4dx%-4d words %d wide beside five keys\n", width, height, beside.first.w);
     const Keys none = keys(width, height, margin, key, play, gap, false, false);
     Words w = words(s, width, height, margin, 32, 25, 6);
     const Words whole = w;

@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.122: the screensaver's player, whole and with its keys.** A player's picture that is not square (a TV channel's
+  logo, a film's poster) stands whole on the screensaver, on its own colour, where it was cut to the glass and lost its
+  sides; that needs no firmware update. And the screensaver's player has the previous and the next track beside play
+  and pause, where the player can skip; screens need firmware 0.73.0.
+
 - **0.4.121: the weather in the top bar in Iris, and a temperature of your own.** A weather entity's item in a top bar
   offers "Colour weather emoji": its Iris picture in the place of its icon, the night's while the sun is down (screens
   need firmware 0.72.0; an older one keeps the icon). And a weather tile's Temperature: the weather's own, or a sensor

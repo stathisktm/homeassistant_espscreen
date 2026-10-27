@@ -286,7 +286,7 @@ inline bool saver_words_due = false;
 // A player's keys over its cover (firmware 0.33.0+): volume up, volume down, play or pause. They take their own tap, so
 // the screen stays in standby; a touch anywhere else wakes it. What a key changes shows at once and is squared with Home
 // Assistant's word as every control's (saver_wish, docs/OPTIMISTIC.md).
-inline std::array<lv_obj_t *, 3> saver_keys{};
+inline std::array<lv_obj_t *, 5> saver_keys{};
 inline void saver_keys_draw();
 // A next track that came while a picture was on its way (firmware 0.32.0+): followed once that load has ended, so the
 // online_image never gets a second link in the middle of a download and the one that lands is the one asked for.
@@ -12982,7 +12982,9 @@ inline saver_view::Keys saver_key_layout() {
   m.large = large;
   return saver_view::keys(width, height, ui::px(large ? 28 : 12), m.key_h(), m.play_h(), ui::px(large ? 14 : 8),
                           media && (saver_now.features & (feature::MEDIA_PLAY | feature::MEDIA_PAUSE)),
-                          media && (saver_now.features & (feature::MEDIA_VOLUME_SET | feature::ha::media_player::VOLUME_STEP)));
+                          media && (saver_now.features & (feature::MEDIA_VOLUME_SET | feature::ha::media_player::VOLUME_STEP)),
+                          // The previous and the next track (firmware 0.73.0), where the player has them.
+                          media && (saver_now.features & feature::MEDIA_PREVIOUS), media && (saver_now.features & feature::MEDIA_NEXT));
 }
 // The words over the picture, once it is there: a cover's title with its artist and album, a camera's name alone, in
 // white over the darkened picture or the cover's colour.
@@ -13136,6 +13138,12 @@ inline void saver_key_event(lv_event_t *e) {
     saver_wish(optimistic::Field::PLAYING, saver_now.state == "playing" ? "0" : "1", "media_player.media_play_pause");
     return;
   }
+  // The previous and the next track (firmware 0.73.0): the screen shows what Home Assistant then says it plays.
+  if (n == 3 || n == 4) {
+    if (!allowed(now, 701 + n, n == 3 ? "screensaver previous" : "screensaver next")) return;
+    saver_send(n == 3 ? "media_player.media_previous_track" : "media_player.media_next_track");
+    return;
+  }
   // A volume key, on the release: the hold that muted used this contact up, so it does not also step.
   if (!screen_input::touch_guard.accept_repeat(now, 701 + n)) return;
   if (saver_now.muted) { saver_mute(false); return; }
@@ -13169,7 +13177,7 @@ inline void saver_keys_draw() {
     lv_obj_center(icon);
     // The play key takes a short tap, as every play key; a volume key its release, so a slow press still steps, and
     // volume down also the hold that mutes.
-    lv_obj_add_event_cb(o, saver_key_event, n == 2 ? LV_EVENT_SHORT_CLICKED : LV_EVENT_CLICKED, (void *) (intptr_t) n);
+    lv_obj_add_event_cb(o, saver_key_event, n >= 2 ? LV_EVENT_SHORT_CLICKED : LV_EVENT_CLICKED, (void *) (intptr_t) n);
     if (n == 1) {
       lv_obj_add_event_cb(o, saver_key_event, LV_EVENT_PRESSED, (void *) (intptr_t) n);
       lv_obj_add_event_cb(o, saver_key_event, LV_EVENT_PRESSING, (void *) (intptr_t) n);
@@ -13179,6 +13187,8 @@ inline void saver_keys_draw() {
   key(0, l.plus, tile_controls::glyph::PLUS, small, false);
   key(1, l.minus, saver_now.muted ? tile_controls::glyph::MUTED : tile_controls::glyph::MINUS, small, false);
   key(2, l.play, saver_now.state == "playing" ? tile_controls::glyph::PAUSE : tile_controls::glyph::PLAY, tile_icon_font(), true);
+  key(3, l.previous, tile_controls::glyph::PREVIOUS, small, false);
+  key(4, l.next, tile_controls::glyph::NEXT, small, false);
 }
 
 inline void saver_hide() {

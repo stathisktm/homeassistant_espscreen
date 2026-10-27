@@ -39,6 +39,8 @@ under the screensaver. The one exception is a player's keys.
 play or pause at the bottom, volume down over it and volume up at the top. A tap on one of them does what it says for
 the player on the glass, and the screen stays in standby with its screensaver. A tap anywhere else wakes the screen.
 A player without a volume in Home Assistant (many televisions) has the play key alone.
+A player that can go to the previous and the next track (firmware 0.73.0) has those keys too, in one row with the play
+key: the next at the right edge, the previous left of play, the volume over play.
 
 Hold volume down for a second and a half to mute the player. The key then shows a muted speaker. The next tap on either
 volume key takes the mute off and changes nothing else, and after that the two keys are the volume again.
@@ -54,6 +56,8 @@ the camera or the clock, since a speaker stays paused in Home Assistant for days
   that is much wider or taller than square (the 7 and 10-inch boards) a cover cut to the glass would lose too much, so
   there it takes the full height at the left, or the full width at the top, and the rest is the cover's own colour with
   the words in it.
+  A cover that is not about square itself, such as a channel's logo or a film's poster, stands whole in its square on
+  its own colour (app 0.4.122), where cutting it to the square lost its sides.
   A title too long for one line takes two, above the artist (firmware 0.30.0); one longer still ends in dots.
   When the next track plays, the last cover and its title stay until the new cover has loaded (firmware 0.32.0).
   The words end before the keys, so a long title takes its second line and then its dots in the room left of them.
