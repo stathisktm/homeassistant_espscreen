@@ -391,6 +391,15 @@ class SoftLive(unittest.TestCase):
         self.assertIn('#if __has_include("esp_jpeg_dec.h")', soft)
         self.assertIn('config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;', soft)
         self.assertIn('heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM)', soft)
+        # The glass sets the pace (firmware 0.77.0): LVGL's own timer shows each picture, and one that comes while the
+        # last still waits is read past, not decoded for nothing.
+        self.assertIn('if (!pacer) pacer = lv_timer_create(pace, 5, nullptr);', soft)
+        self.assertIn('if (waits && !still) {', soft)
+        self.assertIn('LV_EVENT_RENDER_READY', soft)
+        # A page's picture fetched ahead only where it fits beside what the store holds: one that does not was let go
+        # and fetched again every half second.
+        tiles = (component / 'runtime_tiles.h').read_text()
+        self.assertIn('pictures.size() + bytes <= pictures.budget / 4 * 3', tiles.split('inline void backdrop_wants() {', 1)[1])
         self.assertIn('if (look.tile || !available()', soft, 'a live tile keeps its stills')
         header = (component / 'live_view.h').read_text()
         self.assertIn('inline bool tiles_stream() { return false; }', header)

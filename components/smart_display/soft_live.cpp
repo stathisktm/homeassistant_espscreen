@@ -44,7 +44,9 @@ extern "C" void lv_image_cache_drop(const void *src);
 namespace live_view {
 
 static const char *const TAG = "live";
-constexpr size_t INPUT = 256 * 1024;   // a picture's JPEG at most (a room of 480 x 430 at the app's quality is 25-40 KB)
+// A picture's JPEG at most: a room of 480 x 430 at the app's quality is 8 to 40 KB. Its share of the pictures' budget
+// (held_bytes) is this, so no more than needed (firmware 0.77.0, 256 KB before).
+constexpr size_t INPUT = 96 * 1024;
 constexpr size_t CHUNK = 4096;
 constexpr size_t WORK = 4096;          // TJpgDec's pool (3100 bytes for its tables and a 16 x 16 MCU, with room)
 constexpr uint32_t WAIT_MS = 4000;
@@ -69,15 +71,36 @@ struct Stream {
   // still waited takes its place: the newest wins.
   portMUX_TYPE lock = portMUX_INITIALIZER_UNLOCKED;
   int ready = -1, showing = -1;
-  std::atomic<uint32_t> decoded{0}, bytes{0}, decode_us{0}, broken{0};
+  std::atomic<uint32_t> decoded{0}, bytes{0}, decode_us{0}, broken{0}, passed{0};
   std::atomic<bool> live{false};
   // The main loop's own.
   lv_obj_t *image = nullptr;
   uint32_t shown = 0, started_at = 0, reported_at = 0, reported_decoded = 0, reported_bytes = 0, reported_decode = 0,
-           reported_shown = 0;
+           reported_shown = 0, reported_passed = 0;
   bool told_first = false, told_live = false;
 };
 static Stream *streams[SOFT_STREAMS] = {};
+static void show(Stream &s);
+// LVGL's timer that puts each picture on the glass (firmware 0.77.0): it runs in LVGL's own loop, right before LVGL
+// draws, every few ms, where the camera's 50 ms interval (tick) held a picture up to 50 ms and the glass to 20 a second.
+static lv_timer_t *pacer = nullptr;
+static void pace(lv_timer_t *) {
+  for (auto *s : streams)
+    if (s) show(*s);
+}
+// How long LVGL takes to draw onto the glass, from its display's own events: in the log beside the decode.
+static uint32_t render_began = 0, render_us = 0, renders = 0, reported_render_us = 0, reported_renders = 0;
+static bool render_watched = false;
+static void render_event(lv_event_t *e) {
+  const uint32_t now = static_cast<uint32_t>(esp_timer_get_time());
+  if (lv_event_get_code(e) == LV_EVENT_RENDER_START) {
+    render_began = now;
+  } else if (render_began) {
+    render_us += now - render_began;
+    ++renders;
+    render_began = 0;
+  }
+}
 
 bool available() { return soft_parent != nullptr; }
 
@@ -166,13 +189,20 @@ static bool decode(Stream &s, size_t length, int index, bool still) {
   f.dsc.data = reinterpret_cast<const uint8_t *>(f.px);
   return true;
 }
-// A picture of the stream came whole: into the frame that is not on the glass, then ready for the main loop.
+// A picture of the stream came whole: into the frame that is not on the glass, then ready for the main loop. One that
+// comes while the last decoded one still waits for the glass is read past (firmware 0.77.0): the Guition decoded 25 a
+// second and showed 6, and every picture decoded for nothing took the memory bus the panel and LVGL share with it.
 static void arrived(Stream &s, size_t length, bool still) {
   int target;
   portENTER_CRITICAL(&s.lock);
+  const bool waits = s.ready >= 0;
   target = s.showing == 0 ? 1 : 0;
-  if (s.ready == target) s.ready = -1;  // the one that waited is older than this
+  if (s.ready == target) s.ready = -1;  // a still that comes takes the place of the one that waited
   portEXIT_CRITICAL(&s.lock);
+  if (waits && !still) {
+    s.passed++;
+    return;
+  }
   if (!decode(s, length, target, still)) {
     s.broken++;
     return;
@@ -250,6 +280,12 @@ static void task_main(void *arg) {
 
 static void free_stream(Stream *s) {
   if (!s) return;
+  bool others = false;
+  for (auto *st : streams) others = others || (st && st != s);
+  if (!others && pacer) {
+    lv_timer_delete(pacer);
+    pacer = nullptr;
+  }
   if (s->image) lv_obj_delete(s->image);
   for (auto &f : s->frames) {
     if (f.px) lv_image_cache_drop(&f.dsc);
@@ -293,6 +329,16 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   }
   s->started_at = s->reported_at = esphome::millis();
   streams[slot] = s;
+  if (!pacer) pacer = lv_timer_create(pace, 5, nullptr);
+  if (!render_watched) {
+    if (auto *display = lv_display_get_default()) {
+      lv_display_add_event_cb(display, render_event, LV_EVENT_RENDER_START, nullptr);
+      lv_display_add_event_cb(display, render_event, LV_EVENT_RENDER_READY, nullptr);
+      render_watched = true;
+    }
+  }
+  reported_renders = renders;
+  reported_render_us = render_us;
   // Core 0, below the Wi-Fi and the network's own tasks: the main loop on core 1 keeps touch and LVGL as they were.
   if (xTaskCreatePinnedToCore(task_main, "soft_live", 6144, s, 2, nullptr, 0) != pdPASS) {
     streams[slot] = nullptr;
@@ -357,7 +403,7 @@ void tick(const std::function<void(Handle, Event)> &tell) {
       tell(slot, ended ? Event::ENDED : Event::FAILED);
       continue;
     }
-    show(*s);
+    if (!pacer) show(*s);
     if (!s->told_first && s->shown > 0) {
       s->told_first = true;
       ESP_LOGI(TAG, "stream %d: first picture on the glass %u ms after it started", slot, (unsigned) (now - s->started_at));
@@ -377,9 +423,18 @@ void tick(const std::function<void(Handle, Event)> &tell) {
 #else
       const char *decoder = "TJpgDec";
 #endif
-      ESP_LOGI(TAG, "stream %d: %.1f pictures/s decoded, %.1f on the glass, %u KB each, decoded in %u ms (%s), %u unreadable",
-               slot, decoded * 1000.0f / span, shown * 1000.0f / span, decoded ? (unsigned) (bytes / decoded / 1024) : 0u,
-               decoded ? (unsigned) (decode / decoded / 1000) : 0u, decoder, (unsigned) s->broken.load());
+      const uint32_t passed = s->passed - s->reported_passed, drawn = renders - reported_renders;
+      const uint32_t drawing = render_us - reported_render_us;
+      ESP_LOGI(TAG,
+               "stream %d: %.1f pictures/s decoded, %.1f on the glass, %.1f read past, %u KB each, decoded in %u ms (%s), "
+               "LVGL drew %.1f/s in %u ms each, %u unreadable",
+               slot, decoded * 1000.0f / span, shown * 1000.0f / span, passed * 1000.0f / span,
+               decoded ? (unsigned) (bytes / decoded / 1024) : 0u, decoded ? (unsigned) (decode / decoded / 1000) : 0u,
+               decoder, drawn * 1000.0f / span, drawn ? (unsigned) (drawing / drawn / 1000) : 0u,
+               (unsigned) s->broken.load());
+      s->reported_passed = s->passed;
+      reported_renders = renders;
+      reported_render_us = render_us;
       s->reported_shown = s->shown;
       s->reported_at = now;
       s->reported_decoded = s->decoded;

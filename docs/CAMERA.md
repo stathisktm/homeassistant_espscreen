@@ -256,10 +256,13 @@ On the screen (`components/smart_display/soft_live.cpp`) a task of its own on th
 P4's reader and decodes each picture into one of two RGB565 pictures in PSRAM: with Espressif's `esp_new_jpeg`, which
 uses the S3's SIMD (firmware 0.76.0, about 24 ms for 480 x 272), or with the TJpgDec in the S3's ROM (86 ms on the
 Guition 4848S040, which held the stream to 11 pictures a second) where the build lacks it. The app makes each picture's
-sides whole blocks of 16 pixels for it. The main
-loop shows the newest through an LVGL image in the camera view, while the task writes the other. A slow decode gets
-fewer pictures, never older ones: the app sends the next once the last has left its host. Every ten seconds the screen's
-log says how many pictures a second came, their size and how long one took to decode. Live tiles stay stills on an S3.
+sides whole blocks of 16 pixels for it. A timer
+of LVGL's own puts each decoded picture into an LVGL image in the camera view right before LVGL draws (firmware 0.77.0),
+while the task writes the other. A picture that comes while the last decoded one still waits for the glass is skipped,
+so the decoder follows what the glass shows and leaves the memory bus to the panel. A slow decode gets fewer pictures,
+never older ones: the app sends the next once the last has left its host. Every ten seconds the screen's log says how
+many pictures a second were decoded, shown and skipped, their size, how long one took to decode and how long LVGL took
+to draw. Live tiles stay stills on an S3.
 
 ## Live on the P4 boards
 

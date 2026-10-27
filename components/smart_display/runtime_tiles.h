@@ -12765,6 +12765,12 @@ inline void backdrop_show(int page) {
   (void) page;
 #endif
 }
+// The size a page's picture is asked at: the glass's, within the board's cap.
+inline std::pair<int, int> backdrop_size() {
+  const int glass_w = overlay_card::screen_width(), glass_h = overlay_card::screen_height();
+  const int scale = picture_store::fit_scale(glass_w, glass_h, picture_cap());
+  return {std::max(1, picture_store::scaled(glass_w, scale)), std::max(1, picture_store::scaled(glass_h, scale))};
+}
 inline void backdrop_request(size_t page) {
   if (!backdrop_of(static_cast<int>(page))) return;
   using picture_question::Fit;
@@ -12773,12 +12779,10 @@ inline void backdrop_request(size_t page) {
   q.owner = picture_question::Owner::PAGE;
   q.index = static_cast<int>(page);
   q.dark = theme::dark;
-  const auto cap = picture_cap();
-  q.cap = cap.bytes;
-  const int glass_w = overlay_card::screen_width(), glass_h = overlay_card::screen_height();
-  const int scale = picture_store::fit_scale(glass_w, glass_h, cap);
-  q.w = place.w = std::max(1, picture_store::scaled(glass_w, scale));
-  q.h = place.h = std::max(1, picture_store::scaled(glass_h, scale));
+  q.cap = picture_cap().bytes;
+  const auto size = backdrop_size();
+  q.w = place.w = size.first;
+  q.h = place.h = size.second;
   q.sources = {"page:" + std::to_string(page)};
   place.fit = Fit::COVER;
   place.ground = theme::hex(theme::PAGE);
@@ -12795,10 +12799,16 @@ inline void backdrop_wants() {
   if (!model.configured || !app_reads_questions || !tile_grid) return;
   const bool seen = tiles_seen();
   const bool ahead = awake() && pictures_kept() && !prepare_busy() && pictures.size() < pictures.budget / 4 * 3;
+  // A page's picture is fetched ahead only where it fits beside what the store holds (firmware 0.77.0): one that does
+  // not was let go by the next collect, as no card draws it, and fetched again at once, a picture of some 450 KB every
+  // half second on a 4-inch screen with two pages that have one, for as long as the screen was in use.
+  const auto size = backdrop_size();
+  const size_t bytes = static_cast<size_t>(size.first) * size.second * 2;
   for (size_t page = 0; page < model.page_data.records.size(); ++page) {
     if (!backdrop_of(static_cast<int>(page))) continue;
     const bool glass = static_cast<int>(page) == applied_page && seen;
-    if (!glass && !ahead) continue;
+    const bool fits = pictures.entry(backdrop_key(page)) || pictures.size() + bytes <= pictures.budget / 4 * 3;
+    if (!glass && !(ahead && fits)) continue;
     picture_loader::Want w;
     w.key = backdrop_key(page);
     w.tag = "backdrop|" + std::to_string(page);

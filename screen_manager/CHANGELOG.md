@@ -1,5 +1,13 @@
 ## Unreleased
 
+- **0.4.126: a smoother live camera on the ESP32-S3 screens, and pages' backgrounds no longer load over and over.** The
+  screen put a decoded picture on the glass only every 50 ms and decoded every picture that came, also the ones it
+  never showed, which took the memory the panel draws from. LVGL now takes each picture the moment it draws, and a
+  picture that comes while the last one still waits is skipped. The log says how fast LVGL draws, to see what still
+  holds the picture up. And on a screen with a background on two pages, the other page's background, which did not fit
+  beside the one shown, was fetched again about every half second for as long as the screen was in use; it is now
+  fetched ahead only where it fits. Screens need firmware 0.77.0.
+
 - **0.4.125: a faster live camera on the ESP32-S3 screens.** The screen decoded each picture of a live camera in 86 ms
   (on the Guition 4848S040), which held it to about 11 pictures a second; Espressif's own JPEG decoder, which uses the
   S3's vector instructions, takes about a quarter of that, so the picture follows the camera far more closely. The
