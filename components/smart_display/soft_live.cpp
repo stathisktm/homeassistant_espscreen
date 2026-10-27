@@ -21,8 +21,10 @@
 //
 // And over QSPI (firmware 0.85.0, USE_SOFT_LIVE_SPI): the 3.5-inch Guition JC3248W535 (ESPHome's mipi_spi) keeps no
 // frame of its own; LVGL sends each part it drew to the panel through the display's draw_pixels_at, turned a quarter
-// in software, as the panel stands upright. A decoded picture goes the same way, past LVGL: esp_new_jpeg turns it as it
-// decodes (`quarter`), and the copier sends it to its place on the panel, held against LVGL's refresh as above.
+// in software, as the panel stands upright. A decoded picture goes the same way, past LVGL: the copier turns it
+// (`quarter`) a strip of STRIP rows of the panel at a time and sends each to its place, held against LVGL's refresh as
+// above. esp_new_jpeg can turn a picture as it decodes, but it needs memory inside the chip for that, which this
+// screen does not have: in firmware 0.85.0 every picture failed so (firmware 0.85.1).
 #include "esphome/core/defines.h"
 #include "live_view.h"
 #ifdef USE_SOFT_LIVE_PANEL
@@ -130,7 +132,7 @@ struct Frame {
   uint16_t *px = nullptr;
   lv_image_dsc_t dsc{};
   int w = 0, h = 0;
-  int lw = 0, lh = 0;  // its size as LVGL lays the glass out: w x h turned back by the stream's `quarter`
+  int lw = 0, lh = 0;  // its size as LVGL lays the glass out (w x h: the picture is decoded as it comes)
   bool still = false;
   // Its two bytes a pixel the other way round: a picture for the panel's frame buffer, where LVGL's own pixels lie
   // swapped (ESPHome's byte_order big_endian, LV_COLOR_16_SWAP, which LVGL applies before each flush). Without it the
@@ -169,7 +171,8 @@ struct Stream {
   // pictures copied there with the time it took.
   bool direct = false;
   int radius = 0;  // the corners the picture keeps clear of (an alert's card, firmware 0.84.0)
-  int quarter = 0;  // quarters the glass is turned (straight to a QSPI panel, firmware 0.85.0): decoded so
+  int quarter = 0;  // quarters the glass is turned (straight to a QSPI panel, firmware 0.85.0): sent turned so
+  uint16_t *strip = nullptr;  // STRIP rows of the panel, turned from the picture (PSRAM), while `quarter` is not 0
   portMUX_TYPE spot_lock = portMUX_INITIALIZER_UNLOCKED;
   Rect spot;
   bool armed = false;
@@ -297,6 +300,79 @@ static int corner_inset(int row, int h, int r) {
   const float d = row < r ? r - row - 0.5f : row - (h - r) + 0.5f;
   return r - static_cast<int>(sqrtf(static_cast<float>(r * r) - d * d) + 0.5f);
 }
+#ifdef USE_SOFT_LIVE_SPI
+constexpr int STRIP = 16;
+// `rows` rows of the panel from `top` down, turned from the picture as ESPHome's LVGL turns each part it sends
+// (lvgl_esphome.cpp, draw_buffer_): a quarter clockwise puts the picture's column x in the panel's row x and its row y
+// in the panel's column lh - 1 - y. Read a short run of each of the picture's rows at a time, so PSRAM is read in lines.
+static void turn_strip(const Stream &s, const Frame &f, uint16_t *out, int top, int rows) {
+  const int lw = f.lw, lh = f.lh, pw = s.quarter & 1 ? lh : lw;
+  switch (s.quarter) {
+    case 1:
+      for (int sy = 0; sy < lh; ++sy) {
+        const uint16_t *src = f.px + static_cast<size_t>(sy) * lw + top;
+        uint16_t *dst = out + (lh - 1 - sy);
+        for (int k = 0; k < rows; ++k) dst[k * pw] = src[k];
+      }
+      break;
+    case 3:
+      for (int sy = 0; sy < lh; ++sy) {
+        const uint16_t *src = f.px + static_cast<size_t>(sy) * lw + (lw - 1 - top);
+        uint16_t *dst = out + sy;
+        for (int k = 0; k < rows; ++k) dst[k * pw] = src[-k];
+      }
+      break;
+    default:  // 2: upside down
+      for (int k = 0; k < rows; ++k) {
+        const uint16_t *src = f.px + static_cast<size_t>(lh - 1 - top - k) * lw + (lw - 1);
+        uint16_t *dst = out + k * pw;
+        for (int i = 0; i < pw; ++i) dst[i] = src[-i];
+      }
+      break;
+  }
+}
+// A picture at x, y of the glass as LVGL lays it out, to its place on the panel, turned as the glass is; corners of
+// radius `r` left out, a row at a time.
+static void send_to_panel(Stream &s, const Frame &f, int x, int y, int r) {
+  const int nw = spi_display->get_native_width(), nh = spi_display->get_native_height();
+  int px = x, py = y;
+  switch (s.quarter) {
+    case 1: px = nw - y - f.lh; py = x; break;
+    case 2: px = nw - x - f.lw; py = nh - y - f.lh; break;
+    case 3: px = y; py = nh - x - f.lw; break;
+    default: break;
+  }
+  const int pw = s.quarter & 1 ? f.lh : f.lw, ph = s.quarter & 1 ? f.lw : f.lh;
+  const auto send = [&](int at_x, int at_y, int w, int h, const uint16_t *from, int skip) {
+    spi_display->draw_pixels_at(at_x, at_y, w, h, reinterpret_cast<const uint8_t *>(from),
+                                esphome::display::COLOR_ORDER_RGB, esphome::display::COLOR_BITNESS_565,
+                                LV_COLOR_16_SWAP != 0, skip, 0, skip);
+  };
+  // Rows `top` to `top + rows` of the panel from `from` (pw a row): the corners' rows one by one, the rest in one go.
+  const auto rows_out = [&](const uint16_t *from, int top, int rows) {
+    int run = -1;
+    for (int k = 0; k <= rows; ++k) {
+      const int inset = k < rows ? corner_inset(top + k, ph, r) : -1;
+      if (inset == 0) {
+        if (run < 0) run = k;
+        continue;
+      }
+      if (run >= 0) send(px, py + top + run, pw, k - run, from + static_cast<size_t>(run) * pw, 0);
+      run = -1;
+      if (inset > 0) send(px + inset, py + top + k, pw - 2 * inset, 1, from + static_cast<size_t>(k) * pw, inset);
+    }
+  };
+  if (s.quarter == 0 || !s.strip) {
+    rows_out(f.px, 0, ph);
+    return;
+  }
+  for (int top = 0; top < ph; top += STRIP) {
+    const int rows = std::min(STRIP, ph - top);
+    turn_strip(s, f, s.strip, top, rows);
+    rows_out(s.strip, top, rows);
+  }
+}
+#endif
 static void put(Stream &s, const Frame &f) {
   // Its place on the glass as LVGL lays it out, in the middle of the room, on even pixels (a QSPI panel's windows).
   const int x = (s.area.x + (s.area.w - f.lw) / 2) & ~1, y = (s.area.y + (s.area.h - f.lh) / 2) & ~1;
@@ -333,32 +409,7 @@ static void put(Stream &s, const Frame &f) {
     }
 #endif
 #ifdef USE_SOFT_LIVE_SPI
-    if (spi_display) {
-      // Where it lies on the panel, as ESPHome's LVGL turns each part it sends (lvgl_esphome.cpp, draw_buffer_).
-      const int pw = spi_display->get_native_width(), ph = spi_display->get_native_height();
-      int px = x, py = y;
-      switch (s.quarter) {
-        case 1: px = pw - y - f.lh; py = x; break;
-        case 2: px = pw - x - f.lw; py = ph - y - f.lh; break;
-        case 3: px = y; py = ph - x - f.lw; break;
-        default: break;
-      }
-      const auto send = [&](int at_x, int at_y, int w, int h, const uint16_t *from, int skip) {
-        spi_display->draw_pixels_at(at_x, at_y, w, h, reinterpret_cast<const uint8_t *>(from),
-                                    esphome::display::COLOR_ORDER_RGB, esphome::display::COLOR_BITNESS_565,
-                                    LV_COLOR_16_SWAP != 0, skip, 0, skip);
-      };
-      // The rows of the corners one by one, the rest in one go.
-      for (int row = 0; row < r; ++row) {
-        const int inset = corner_inset(row, f.h, r);
-        send(px + inset, py + row, f.w - 2 * inset, 1, f.px + static_cast<size_t>(row) * f.w, inset);
-      }
-      if (f.h > 2 * r) send(px, py + r, f.w, f.h - 2 * r, f.px + static_cast<size_t>(r) * f.w, 0);
-      for (int row = std::max(r, f.h - r); row < f.h; ++row) {
-        const int inset = corner_inset(row, f.h, r);
-        send(px + inset, py + row, f.w - 2 * inset, 1, f.px + static_cast<size_t>(row) * f.w, inset);
-      }
-    }
+    if (spi_display) send_to_panel(s, f, x, y, r);
 #endif
     s.copy_us += static_cast<uint32_t>(esp_timer_get_time() - began);
     s.copied++;
@@ -431,7 +482,6 @@ static UINT write_block(JDEC *jd, void *bitmap, JRECT *r) {
 static int decode_fast(Stream &s, const uint8_t *data, size_t length, Frame &f) {
   jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
   config.output_type = f.swap ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;
-  config.rotate = static_cast<jpeg_rotate_t>(s.quarter);  // turned for a QSPI panel that stands the other way
   jpeg_dec_handle_t dec = nullptr;
   if (jpeg_dec_open(&config, &dec) != JPEG_ERR_OK || !dec) return 1;
   jpeg_dec_io_t io{};
@@ -445,8 +495,8 @@ static int decode_fast(Stream &s, const uint8_t *data, size_t length, Frame &f) 
     if (out == static_cast<int>(info.width) * info.height * 2 && static_cast<size_t>(out) <= s.frame_bytes) {
       f.lw = info.width;
       f.lh = info.height;
-      f.w = s.quarter & 1 ? info.height : info.width;
-      f.h = s.quarter & 1 ? info.width : info.height;
+      f.w = info.width;
+      f.h = info.height;
       io.outbuf = reinterpret_cast<uint8_t *>(f.px);
       result = jpeg_dec_process(dec, &io) == JPEG_ERR_OK ? 0 : -1;
     }
@@ -467,7 +517,6 @@ static bool decode(Stream &s, const uint8_t *data, size_t length, int index, boo
   done = fast == 0;
 #endif
   if (!done) {
-    if (s.quarter) return false;  // TJpgDec turns nothing
     Source source{data, length, 0, &f};
     JDEC jd;
     if (jd_prepare(&jd, read_jpeg, s.work, WORK, &source) != JDR_OK) return false;
@@ -680,6 +729,7 @@ static void free_stream(Stream *s) {
     heap_caps_free(f.px);
   }
   for (auto *input : s->inputs) heap_caps_free(input);
+  heap_caps_free(s->strip);
   heap_caps_free(s->work);
   delete s;
 }
@@ -728,6 +778,12 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
 #ifdef USE_SOFT_LIVE_PANEL
   s->direct = direct_ready();
   if (s->direct) s->quarter = quarter();
+#ifdef USE_SOFT_LIVE_SPI
+  if (s->direct && s->quarter) {
+    s->strip = static_cast<uint16_t *>(heap_caps_malloc(STRIP * std::max(area.w, area.h) * 2, MALLOC_CAP_SPIRAM));
+    if (!s->strip) s->direct = false;  // the LVGL image then, as on any other board
+  }
+#endif
 #if defined(LV_COLOR_16_SWAP) && LV_COLOR_16_SWAP
   s->frames[0].swap = s->frames[1].swap = s->direct;
 #endif

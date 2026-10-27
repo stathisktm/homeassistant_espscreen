@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.138: the live camera on the JC3248W535 shows again.** 0.4.137 had the JPEG decoder turn each picture for the
+  upright panel, which needs memory the screen does not have, so no picture could be read and the camera stayed
+  empty. The screen now turns the picture itself as it sends it. Screens need firmware 0.85.1.
+
 - **0.4.137: the live camera straight to the glass on the 3.5-inch Guition JC3248W535 too.** As on the 4-inch Guition
   since 0.4.128, each picture of a live camera, and an alert's, goes to the panel past LVGL, turned as the glass lies,
   where LVGL drew each one and held the glass to a few pictures a second. Screens need firmware 0.85.0.

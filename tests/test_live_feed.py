@@ -404,8 +404,12 @@ class SoftLive(unittest.TestCase):
         self.assertIn('cg.add_build_flag("-Wl,--wrap=esp_lcd_new_rgb_panel")', init)
         # And a QSPI panel (firmware 0.85.0, the JC3248W535): the picture turned as it decodes, sent through the display.
         self.assertIn('cg.add_define("USE_SOFT_LIVE_SPI")', init)
-        self.assertIn('config.rotate = static_cast<jpeg_rotate_t>(s.quarter);', (component / 'soft_live.cpp').read_text())
-        self.assertIn('case 1: px = pw - y - f.lh; py = x; break;', (component / 'soft_live.cpp').read_text())
+        soft = (component / 'soft_live.cpp').read_text()
+        # Turned by the copier a strip at a time (firmware 0.85.1): esp_new_jpeg's own turn needs memory inside the chip,
+        # and with it every picture failed on the JC3248W535.
+        self.assertNotIn('config.rotate', soft)
+        self.assertIn('turn_strip(s, f, s.strip, top, rows);', soft)
+        self.assertIn('case 1: px = nw - y - f.lh; py = x; break;', soft)
         self.assertIn('cg.add_define("USE_SOFT_LIVE")', init)
         soft = (component / 'soft_live.cpp').read_text()
         self.assertIn('#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)', soft)

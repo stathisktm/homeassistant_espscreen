@@ -272,9 +272,10 @@ refreshes and keeps out of the picture's spot, and once the stream closes LVGL d
 long each copy took.
 
 On the 3.5-inch Guition JC3248W535 (ESPHome's `mipi_spi` model, a QSPI panel with no frame buffer of its own) the
-picture goes the same way past LVGL (firmware 0.85.0): esp_new_jpeg turns it a quarter as it decodes, as the panel
-stands upright while the glass lies down, and the copier sends it to its place through the display's
-`draw_pixels_at`, held against LVGL's refresh. Other `mipi_spi` boards keep the LVGL image until one is tried.
+picture goes the same way past LVGL (firmware 0.85.1): the copier turns it a quarter, as the panel stands upright
+while the glass lies down, sixteen rows of the panel at a time, and sends each to its place through the display's
+`draw_pixels_at`, held against LVGL's refresh. esp_new_jpeg can turn a picture as it decodes, but needs memory inside
+the chip for that, which this screen lacks. Other `mipi_spi` boards keep the LVGL image until one is tried.
 
 ## Live on the P4 boards
 
