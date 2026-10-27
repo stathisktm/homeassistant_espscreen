@@ -619,6 +619,16 @@ bool straight() {
 #endif
 }
 
+bool spot(Handle handle, Rect &out) {
+  if (handle < 0 || handle >= SOFT_STREAMS || !streams[handle]) return false;
+  Stream &s = *streams[handle];
+  portENTER_CRITICAL(&s.spot_lock);
+  const bool armed = s.armed;
+  out = s.spot;
+  portEXIT_CRITICAL(&s.spot_lock);
+  return armed;
+}
+
 size_t held_bytes() {
   size_t held = 0;
   for (auto *s : streams)

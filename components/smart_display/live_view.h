@@ -423,6 +423,8 @@ bool available();
 // Whether a stream opened now goes straight to the panel (soft_live.cpp): only then may one lie outside the camera
 // view, as an alert's picture does (firmware 0.84.0).
 bool straight();
+// Where a stream's last picture lies on the glass, once one is there (firmware 0.84.2): false before.
+bool spot(Handle handle, Rect &out);
 inline bool tiles_stream() { return false; }
 Handle open(const std::string &url, const Rect &area, const Look &look = Look{}, bool sound = false);
 inline bool has_speaker() { return false; }

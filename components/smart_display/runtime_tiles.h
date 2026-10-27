@@ -10679,6 +10679,8 @@ inline bool alert_live_asked = false;
 inline uint32_t alert_live_view_id = 0;
 inline void alert_live_stop();
 inline void alert_live_ask();
+inline void alert_live_fit();
+inline void alert_still_back();
 // The parts of the alert card the shared tree draws (packages/core.yaml binds them at boot); alert_place puts them.
 struct AlertParts {
   lv_obj_t *card = nullptr, *icon = nullptr, *title = nullptr, *subtitle = nullptr, *button = nullptr;
@@ -11830,9 +11832,12 @@ inline void live_tick() {
       return;
     }
     if (handle == alert_live) {
-      if (event == live_view::Event::FAILED || event == live_view::Event::TURNED || event == live_view::Event::ENDED) {
-        ESP_LOGI("camera", "alert live ended; the still stays");
+      if (event == live_view::Event::FIRST) {
+        alert_live_fit();
+      } else if (event == live_view::Event::FAILED || event == live_view::Event::TURNED || event == live_view::Event::ENDED) {
+        ESP_LOGI("camera", "alert live ended; the still comes back");
         alert_live = -1;  // asked once per alert: the still stays
+        alert_still_back();
       }
       return;
     }
@@ -12286,9 +12291,31 @@ inline live_view::Rect alert_live_room() {
   lv_obj_get_coords(alert_frame, &at);
   return live_view::Rect{at.x1, at.y1, lv_area_get_width(&at), lv_area_get_height(&at)};
 }
+// The stream's first picture is on the glass (firmware 0.84.2): the frame takes the stream's own size and place, which
+// the app makes in whole blocks of 16 and so a few pixels smaller than the still, and the still goes, so none of it
+// shows around the stream. The still comes back when the stream ends (alert_still_back).
+inline void alert_live_fit() {
+#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)
+  live_view::Rect spot;
+  if (!alert_frame || !live_view::spot(alert_live, spot)) return;
+  lv_area_t content;
+  lv_obj_get_content_coords(lv_obj_get_parent(alert_frame), &content);
+  lv_obj_set_pos(alert_frame, spot.x - content.x1, spot.y - content.y1);
+  lv_obj_set_size(alert_frame, spot.w, spot.h);
+  if (alert_picture) lv_obj_add_flag(alert_picture, LV_OBJ_FLAG_HIDDEN);
+#endif
+}
+inline void alert_done(picture_loader::Outcome outcome);
+// The still in its frame again, laid out as it came (alert_done), once the stream stopped.
+inline void alert_still_back() {
+  if (!alert_picture || !lv_obj_has_flag(alert_picture, LV_OBJ_FLAG_HIDDEN)) return;
+  lv_obj_remove_flag(alert_picture, LV_OBJ_FLAG_HIDDEN);
+  alert_done(picture_loader::Outcome::UNCHANGED);
+}
 inline void alert_live_stop() {
   if (alert_live >= 0) live_view::close(alert_live);
   alert_live = -1;
+  alert_still_back();  // before the flag below, so it asks for no stream again (alert_done ends in alert_live_ask)
   alert_live_asked = false;
 }
 inline void alert_live_ask() {

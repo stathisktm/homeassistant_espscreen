@@ -707,6 +707,11 @@ class Service(unittest.IsolatedAsyncioTestCase):
         receiver = (ROOT / 'components/smart_display/page_receiver.cpp').read_text()
         self.assertIn('view != "plive" && view != "alive")) return false;', receiver)
         self.assertIn(': view == "alive" ? number == alert_live_view_id', receiver)
+        # Once the stream's first picture is there the frame takes its size and the still goes, and comes back when the
+        # stream ends (firmware 0.84.2).
+        tiles = (ROOT / 'components/smart_display/runtime_tiles.h').read_text()
+        self.assertIn('if (alert_picture) lv_obj_add_flag(alert_picture, LV_OBJ_FLAG_HIDDEN);', tiles)
+        self.assertIn('alert_still_back();  // before the flag below', tiles)
 
     async def test_a_camera_that_streams(self):
         found = await self.service.answer('text.hall', self.manager.player, self.read({'entity': 'camera.porch', 'live': '1280x744', 'sound': '1'}))

@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.136: an alert's live camera without the still around it.** The stream of an alert's camera is a few pixels
+  smaller than its still, which showed in a thin band around it. Once the stream is on the glass the frame takes its
+  size and the still goes; it comes back if the stream stops. Screens need firmware 0.84.2.
+
 - **0.4.135: an alert's camera plays live, as 0.4.134 meant.** The screen asked for the alert camera's stream, but
   dropped the app's answer, so the alert kept its still. Screens need firmware 0.84.1.
 
