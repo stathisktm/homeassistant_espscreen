@@ -365,6 +365,24 @@ class SoftLive(unittest.TestCase):
         self.assertEqual(image.size, (480, 272))
         self.assertFalse(image.info.get('progressive'))
 
+    def test_its_pictures_are_made_at_the_best_quality(self):
+        """App 0.4.130: an S3's pictures are small and it keeps up with the camera, so they go out at the best quality,
+        where 6 to 7 KB at the P4's QSCALE showed blocks in the details."""
+        try:
+            import av
+        except ImportError:
+            self.skipTest('PyAV is not installed here (the add-on image has it)')
+        import random
+        rng = random.Random(7)
+        detail = Image.new('RGB', (480, 272))
+        detail.putdata([(rng.randrange(256), rng.randrange(256), rng.randrange(256)) for _ in range(480 * 272)])
+        frame = av.VideoFrame.from_image(detail.resize((1920, 1080)))
+        source = live_feed.Source(None, 'camera.door', None)
+        exact = asyncio.run(source.make(live_feed.Frame(1, video=frame), (480, 404), exact=True))
+        plain = asyncio.run(source.make(live_feed.Frame(1, video=frame), (480, 404)))
+        self.assertGreater(len(exact), len(plain) * 1.3)
+        self.assertEqual(sorted(q for _, q in source.encoders), [live_feed.QSCALE_EXACT, live_feed.QSCALE])
+
     def test_the_question_says_it_and_the_link_keeps_it(self):
         import json
         import picture_question as pq

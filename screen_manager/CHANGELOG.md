@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.130: a sharper live camera on the ESP32-S3 screens.** The app compressed each picture of an S3 screen's live
+  camera to 6 or 7 KB, which showed blocks in the details. Now that the screen keeps up with the camera, the pictures go
+  out at the best quality, about two to three times the bytes. No firmware update is needed.
+
 - **0.4.129: the live camera's colours on the Guition 4848S040.** 0.4.128 showed the camera at 25 pictures a second,
   but in the colours of a film's negative: the panel's memory holds each pixel's two bytes the other way round, as LVGL
   writes them there for this display. The pictures are now decoded that way. Screens need firmware 0.80.0.

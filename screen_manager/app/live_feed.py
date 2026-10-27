@@ -52,6 +52,11 @@ STILL_SECONDS = 2          # the camera's still, again this often, until WebRTC'
                            # live_view::QUIET_MS closes a stream silent for 6 s)
 DEFAULT_PACE = 15         # picture_sources.TILE_PACE: the pace of a camera tile on a screen that does not stream
 QSCALE = 5                # ffmpeg's mjpeg quality (2 best, 31 worst): about 80 KB a 1280 x 720 camera picture
+# The best quality for a screen that scales nothing (an S3, `exact`, app 0.4.130): its pictures are small (480 x 272 on
+# a 4-inch screen), 6 to 7 KB at QSCALE showed blocks in the details, and the screen kept up with the camera's 24 a
+# second with time to spare (firmware 0.80.0: 18 ms to decode, 12 to copy).
+QSCALE_EXACT = 2
+EXACT_QUALITY = 92         # the same for a picture made again with Pillow (remake), where it is 80 otherwise
 SOUND_RATE = 16000        # a full view's sound: 16-bit mono at this rate (the board's resampler makes it its bus's)
 SOUND_QUEUE = 50          # parts of sound that may wait for a screen (about a second); older ones go
 SEND_BUFFER = 65536       # what may wait in this host's socket for a screen: a picture, not a queue of them
@@ -176,21 +181,21 @@ def remake(raw, box, cover=False, exact=False):
     if image.size != (width, height):
         image = image.resize((width, height), Image.BILINEAR)
     out = io.BytesIO()
-    image.save(out, 'JPEG', quality=80, subsampling='4:2:0')
+    image.save(out, 'JPEG', quality=EXACT_QUALITY if exact else 80, subsampling='4:2:0')
     return out.getvalue(), (time.thread_time() - started) * 1000
 
 
 class Encoder:
     """JPEGs of decoded video frames at one size, made straight from the decoder's YUV (ffmpeg's mjpeg)."""
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, qscale=QSCALE):
         import av
         self.size = (width, height)
         self.codec = av.CodecContext.create('mjpeg', 'w')
         self.codec.width, self.codec.height, self.codec.pix_fmt = width, height, 'yuvj420p'
         self.codec.time_base = fractions.Fraction(1, 90000)
         # A fixed quality: the encoder's quantiser held at QSCALE (PyAV leaves -q:v's global_quality alone for mjpeg).
-        self.codec.qmin = self.codec.qmax = QSCALE
+        self.codec.qmin = self.codec.qmax = qscale
         self.count = 0
 
     def encode(self, frame):
@@ -274,9 +279,10 @@ class Source:
                 await loop.run_in_executor(None, remake, frame.jpeg, box, cover, exact)
         else:
             size = sizing(frame.video.width, frame.video.height, box)
-            encoder = self.encoders.get(size)
+            qscale = QSCALE_EXACT if exact else QSCALE
+            encoder = self.encoders.get((size, qscale))
             if encoder is None:
-                encoder = self.encoders[size] = Encoder(*size)
+                encoder = self.encoders[(size, qscale)] = Encoder(*size, qscale)
             jpeg, ms = await loop.run_in_executor(None, encoder.encode, frame.video)
         self.made += 1
         self.made_ms += ms
