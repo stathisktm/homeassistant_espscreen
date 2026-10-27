@@ -10673,6 +10673,12 @@ inline lv_obj_t *camera_spinner = nullptr;
 // The alert's image: the frame across the top of the card (features/camera.yaml), the camera the app announced for the
 // next alert and the one the card on screen shows.
 inline lv_obj_t *alert_frame = nullptr, *alert_picture = nullptr, *alert_frame_icon = nullptr;
+// The alert's picture live (firmware 0.84.0, alert_live_ask): its stream, and whether this alert asked for one.
+inline live_view::Handle alert_live = -1;
+inline bool alert_live_asked = false;
+inline uint32_t alert_live_view_id = 0;
+inline void alert_live_stop();
+inline void alert_live_ask();
 // The parts of the alert card the shared tree draws (packages/core.yaml binds them at boot); alert_place puts them.
 struct AlertParts {
   lv_obj_t *card = nullptr, *icon = nullptr, *title = nullptr, *subtitle = nullptr, *button = nullptr;
@@ -11823,6 +11829,13 @@ inline void live_tick() {
       }
       return;
     }
+    if (handle == alert_live) {
+      if (event == live_view::Event::FAILED || event == live_view::Event::TURNED || event == live_view::Event::ENDED) {
+        ESP_LOGI("camera", "alert live ended; the still stays");
+        alert_live = -1;  // asked once per alert: the still stays
+      }
+      return;
+    }
     // A live place of a plugin tile (0.17): a stream that ended or failed is asked for again, TRIES times.
     for (auto &l : live_places) {
       if (l.handle != handle) continue;
@@ -11958,6 +11971,7 @@ inline void camera_close() {
   loader.release(owners::VIEW);
   ESP_LOGI("camera", "closed %s", camera.entity.c_str());
   camera = ViewPicture{};
+  alert_live_ask();  // an alert under the view plays live again
 }
 
 // The map's card at the bottom of its full view: the name, the state since when, and the day's changes with their
@@ -12145,6 +12159,7 @@ inline void camera_open(const std::string &entity, const std::string &name, int 
   // The screensaver's photos (app 0.4.89) open the full view as a camera does, under the step's own name.
   if (!camera_supported() || (!valid_entity(entity) && entity != SAVER_PHOTOS)) return;
   camera_close();
+  alert_live_stop();  // the alert's live picture stops under the view, and starts again once it closes (camera_close)
   camera_map_index = map_index;
   // Opened on someone (a person tile tapped): focused from the start, and Back closes the map at once.
   map_focus = focus;
@@ -12260,7 +12275,65 @@ inline void camera_tick() {
   saver_tick(esphome::millis());
 }
 
+// ---- The alert's picture live (firmware 0.84.0, app 0.4.134) ----
+// On a screen that streams straight to its panel (an S3's soft_live.cpp), an alert's camera plays live in its card:
+// once the alert's still is placed, the screen asks for a stream of the camera at the frame's size exactly (owner
+// alert), and the stream goes into the frame, its corners kept round; the still stays under it, and shows again when
+// the stream ends or the alert closes. Elsewhere the alert keeps its still.
+inline live_view::Rect alert_live_room() {
+  lv_area_t at;
+  lv_obj_update_layout(alert_frame);
+  lv_obj_get_coords(alert_frame, &at);
+  return live_view::Rect{at.x1, at.y1, lv_area_get_width(&at), lv_area_get_height(&at)};
+}
+inline void alert_live_stop() {
+  if (alert_live >= 0) live_view::close(alert_live);
+  alert_live = -1;
+  alert_live_asked = false;
+}
+inline void alert_live_ask() {
+#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)
+  if (alert_live_asked || alert_camera.empty() || !alert_frame || lv_obj_has_flag(alert_frame, LV_OBJ_FLAG_HIDDEN) ||
+      !alert_picture || camera_root || !live_view::straight())
+    return;
+  const live_view::Rect room = alert_live_room();
+  if (room.w < 64 || room.h < 64) return;
+  picture_question::Question q;
+  picture_question::Place place;
+  q.owner = picture_question::Owner::ALERT;
+  q.dark = theme::dark;
+  q.cap = picture_cap().bytes;
+  q.sources = {picture_question::camera_source(alert_camera)};
+  q.w = place.w = room.w;
+  q.h = place.h = room.h;
+  place.fit = picture_question::Fit::SHRINK;
+  q.places = {place};
+  q.formats = {"bmp16", "bmp24"};
+  q.live_w = room.w;
+  q.live_h = room.h;
+  q.exact = true;
+  alert_live_asked = true;
+  picture_ask(q, "alive", alert_camera, ++alert_live_view_id);
+  ESP_LOGI("camera", "asked for %s live in the alert, %dx%d", alert_camera.c_str(), room.w, room.h);
+#endif
+}
+// The app's answer: a stream for the alert on the glass, or a still from an app without streams for it (kept as it is).
+inline void alert_live_answer(const std::string &entity, const std::string &url) {
+  if (camera_root) {  // a view opened over the alert since it asked: asked again once the view closes
+    alert_live_asked = false;
+    return;
+  }
+  if (entity != alert_camera || !alert_frame || lv_obj_has_flag(alert_frame, LV_OBJ_FLAG_HIDDEN) || alert_live >= 0 ||
+      !live_view::is_stream(url))
+    return;
+  live_view::Look look;
+  look.radius = lv_obj_get_style_radius(alert_frame, LV_PART_MAIN);
+  alert_live = live_view::open(url, alert_live_room(), look, false);
+  ESP_LOGI("camera", "alert live %s", alert_live >= 0 ? "opened" : "not opened, the still stays");
+}
+
 inline void alert_picture_clear() {
+  alert_live_stop();
   if (alert_picture) { lv_obj_delete(alert_picture); alert_picture = nullptr; }
   if (alert_frame_icon) lv_obj_remove_flag(alert_frame_icon, LV_OBJ_FLAG_HIDDEN);
   // Its picture goes with it, a download on its way breaks off, and the frame's buffer is freed.
@@ -12269,10 +12342,40 @@ inline void alert_picture_clear() {
   if (camera_thumb.release) camera_thumb.release();
 }
 
+// ---- The alert comes and goes in a short fade (firmware 0.84.0) ----
+// `opa` of the whole overlay, the scrim and the card together: LVGL 9 applies it to each of their draws, with no layer of
+// its own (tests/test_layer_free.py). Closing, the overlay is hidden once it faded; an alert that comes meanwhile takes
+// it over where it is.
+constexpr uint32_t ALERT_FADE_IN_MS = 180, ALERT_FADE_OUT_MS = 240;
+inline void alert_fade_opa(void *overlay, int32_t opa) { lv_obj_set_style_opa(static_cast<lv_obj_t *>(overlay), opa, 0); }
+inline void alert_fade(lv_obj_t *overlay, bool in) {
+  if (!overlay) return;
+  lv_anim_delete(overlay, alert_fade_opa);
+  const int32_t from = lv_obj_has_flag(overlay, LV_OBJ_FLAG_HIDDEN) ? 0 : lv_obj_get_style_opa(overlay, LV_PART_MAIN);
+  if (!in && lv_obj_has_flag(overlay, LV_OBJ_FLAG_HIDDEN)) return;
+  lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_set_style_opa(overlay, from, 0);
+  lv_anim_t a;
+  lv_anim_init(&a);
+  lv_anim_set_var(&a, overlay);
+  lv_anim_set_values(&a, from, in ? LV_OPA_COVER : LV_OPA_TRANSP);
+  lv_anim_set_duration(&a, in ? ALERT_FADE_IN_MS : ALERT_FADE_OUT_MS);
+  lv_anim_set_exec_cb(&a, alert_fade_opa);
+  lv_anim_set_path_cb(&a, in ? lv_anim_path_ease_out : lv_anim_path_ease_in);
+  if (!in) {
+    lv_anim_set_completed_cb(&a, [](lv_anim_t *done) {
+      auto *o = static_cast<lv_obj_t *>(done->var);
+      lv_obj_add_flag(o, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_set_style_opa(o, LV_OPA_COVER, 0);
+    });
+  }
+  lv_anim_start(&a);
+}
+
 // alert_show: the card gets its frame when the app announced a camera for it just before. A new alert closes the camera.
 inline void alert_prepare() {
+  alert_picture_clear();  // first, so the camera that closes asks nothing for the alert before
   camera_close();
-  alert_picture_clear();
   const bool with_image = camera_supported() && alert_frame && !alert_announced.empty() &&
                           esphome::millis() - alert_announced_at < camera_view::PENDING_MS;
   alert_camera = with_image ? alert_announced : std::string();
@@ -12321,6 +12424,9 @@ inline void camera_answer(const std::string &view, const std::string &entity, co
     if (url.empty()) ESP_LOGI("camera", "no map for %s", entity.c_str());
     loader.answer("vmap|" + entity, url, now);
 #endif
+  } else if (view == "alive") {  // the alert's picture live (firmware 0.84.0)
+    alert_live_answer(entity, url);
+    return;
   } else if (view == "lib") {  // the covers of a page of a player's library (firmware 0.24.0+)
     media_library::art_answer(entity, url);
   } else if (view == "backdrop") {  // a page's own background (firmware 0.65.0), by its page's index
@@ -12481,6 +12587,7 @@ inline void alert_done(picture_loader::Outcome outcome) {
   camera_show(alert_frame, alert_picture, source, outcome == picture_loader::Outcome::LOADED, lv_obj_get_style_radius(alert_frame, LV_PART_MAIN));
   if (alert_picture && alert_frame_icon) lv_obj_add_flag(alert_frame_icon, LV_OBJ_FLAG_HIDDEN);
   ESP_LOGI("camera", "alert picture shown");
+  alert_live_ask();
 }
 // A slot's download let go (another picture lands in it, or the download broke off): a picture drawn from it goes first.
 // Only where the store did not keep it (a board without the store, or no room).

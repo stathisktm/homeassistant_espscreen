@@ -68,6 +68,7 @@ extern "C" esp_err_t __wrap_esp_lcd_new_rgb_panel(const esp_lcd_rgb_panel_config
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <cmath>
 #include <cstring>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -151,6 +152,7 @@ struct Stream {
   // Straight to the panel: where the last picture lies (`armed` once the first is there), under `spot_lock`, and the
   // pictures copied there with the time it took.
   bool direct = false;
+  int radius = 0;  // the corners the picture keeps clear of (an alert's card, firmware 0.84.0)
   portMUX_TYPE spot_lock = portMUX_INITIALIZER_UNLOCKED;
   Rect spot;
   bool armed = false;
@@ -276,8 +278,18 @@ static void put(Stream &s, const Frame &f) {
     s.spot = Rect{x, y, f.w, f.h};
     s.armed = true;
     portEXIT_CRITICAL(&s.spot_lock);
-    for (int row = 0; row < f.h; ++row)
-      memcpy(glass_px + static_cast<size_t>(y + row) * rgb_w + x, f.px + static_cast<size_t>(row) * f.w, f.w * 2);
+    // Rounded corners (an alert's picture): the rows within `radius` of the top and the bottom leave out what lies
+    // outside the corner's arc, where LVGL's card and its still's own rounded corners stay.
+    const int r = std::min({s.radius, f.w / 2, f.h / 2});
+    for (int row = 0; row < f.h; ++row) {
+      int inset = 0;
+      if (r > 0 && (row < r || row >= f.h - r)) {
+        const float d = row < r ? r - row - 0.5f : row - (f.h - r) + 0.5f;
+        inset = r - static_cast<int>(sqrtf(static_cast<float>(r * r) - d * d) + 0.5f);
+      }
+      memcpy(glass_px + static_cast<size_t>(y + row) * rgb_w + x + inset, f.px + static_cast<size_t>(row) * f.w + inset,
+             (f.w - 2 * inset) * 2);
+    }
     s.copy_us += static_cast<uint32_t>(esp_timer_get_time() - began);
     s.copied++;
   }
@@ -312,6 +324,7 @@ static void render_event(lv_event_t *e) {
 }
 
 bool available() { return soft_parent != nullptr; }
+bool straight();
 
 // ---- Decoding: TJpgDec reads the JPEG from memory and hands back blocks of RGB888, written here as RGB565 ----
 struct Source {
@@ -597,6 +610,15 @@ static void free_stream(Stream *s) {
   delete s;
 }
 
+// Whether a stream opened now goes straight to the panel: a picture outside the camera view (an alert's) needs it.
+bool straight() {
+#ifdef USE_SOFT_LIVE_PANEL
+  return available() && direct_ready();
+#else
+  return false;
+#endif
+}
+
 size_t held_bytes() {
   size_t held = 0;
   for (auto *s : streams)
@@ -615,6 +637,7 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   if (!s) return -1;
   s->url = url;
   s->area = area;
+  s->radius = look.radius;
   s->frame_bytes = static_cast<size_t>(area.w) * area.h * 2;
   for (auto &input : s->inputs) input = static_cast<uint8_t *>(heap_caps_malloc(INPUT, MALLOC_CAP_SPIRAM));
   s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_SPIRAM));

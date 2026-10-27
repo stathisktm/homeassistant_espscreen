@@ -16,7 +16,7 @@
 # fonts/materialdesignicons-webfont.ttf (Apache 2.0, github.com/Templarian/MaterialDesign-Webfont).
 ############################################################
 substitutions:
-  SCREEN_FIRMWARE_VERSION: "0.83.0"
+  SCREEN_FIRMWARE_VERSION: "0.84.0"
   DASHBOARD_INBOX_INTERNAL: "false"
   CALIBRATION_ON_BOOT: "false"                     # a bench build: start on the touch test page
   ROOM_NAME: ""                                    # top left until ESP Screens sends the screen name
@@ -2908,7 +2908,8 @@ script:
           ESP_LOGI("alert", "show \"%s\" timeout=%d flash=%d buttons=%d", alert.title.c_str(), alert.timeout_seconds, (int) alert.flash,
                    alert.button2.empty() ? 1 : 2);
       - script.execute: wake_display
-      - lvgl.widget.show: alert_overlay
+      # In a short fade (firmware 0.84.0, runtime_tiles::alert_fade).
+      - lambda: 'runtime_tiles::alert_fade(id(alert_overlay), true);'
       - script.stop: alert_timeout
       - if:
           condition:

@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.134: alerts fade in and out, and an alert's camera plays live.** An alert came and went at once; it now fades
+  in and, when its button is pressed or its time is up, fades out. And on a screen that shows a live camera straight on
+  its panel (the Guition 4848S040), the camera of an alert plays live in its card, where it was one still: the still
+  shows first, then the stream takes its place, without sound. Screens need firmware 0.84.0.
+
 - **0.4.133: the live camera on the ESP32-S3 screens no longer restarts the screen now and then.** The live view's
   tasks and buffers took some 21 KB of the memory inside the chip, which the Wi-Fi and the rest of the screen need, and
   the Guition 4848S040 now and then stopped and restarted while a camera streamed. The reader's and the copier's stacks

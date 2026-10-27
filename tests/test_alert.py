@@ -118,8 +118,11 @@ class AlertTests(unittest.TestCase):
             show = script(text, 'alert_show')
             self.assertIn('id(alert_report).execute("replaced")', show, name)
             self.assertIn('screen_alert::make(title, subtitle, icon, color, button_text, timeout, flash, ${ALERT_TITLE_MAX}, ${ALERT_SUBTITLE_MAX}, ${ALERT_BUTTON_MAX}, button2_text, button_color, button2_color)', show, name)
-            self.assertLess(show.index('script.execute: wake_display'), show.index('lvgl.widget.show: alert_overlay'), name)
-            self.assertLess(show.index('lvgl.widget.show: alert_overlay'), show.index('script.execute: alert_flash'), name)
+            # The overlay comes in a short fade (firmware 0.84.0), and goes in one.
+            shown = "runtime_tiles::alert_fade(id(alert_overlay), true);"
+            self.assertLess(show.index('script.execute: wake_display'), show.index(shown), name)
+            self.assertLess(show.index(shown), show.index('script.execute: alert_flash'), name)
+            self.assertIn('runtime_tiles::alert_fade(id(alert_overlay), false);', script(text, 'alert_dismiss'), name)
             self_test = section(text, '  - id: ui_self_test\n', '\n  - id: ')
             self.assertIn('lvgl.widget.show: alert_overlay', self_test, name)
             self.assertIn('lvgl.widget.hide: alert_overlay', self_test, name)

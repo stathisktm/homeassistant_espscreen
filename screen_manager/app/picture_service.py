@@ -101,8 +101,11 @@ class Service:
         """A stream's link for a question of one place that may stream: the full view of a camera, or a camera tile set
         to Live, on a screen that names the rectangle it streams into. '' when the source is no camera that streams."""
         source, owner = question.sources[0], question.owner
-        if source.kind == 'camera' and owner.kind == 'view' and source.ref.startswith('camera.'):
-            token = self.stream.link(source.ref, question.live, sound=question.sound, screen=inbox, exact=question.exact)
+        # The full view's camera, and an alert's (app 0.4.134, firmware 0.84.0: a screen that streams straight to its
+        # panel plays the alert's camera live in its card, at the frame's size exactly, without sound).
+        if source.kind == 'camera' and owner.kind in ('view', 'alert') and source.ref.startswith('camera.'):
+            sound = question.sound and owner.kind == 'view'
+            token = self.stream.link(source.ref, question.live, sound=sound, screen=inbox, exact=question.exact)
             return url_of(token, 'mjpeg')
         if source.kind == 'tile' and owner.kind == 'tile':
             tile = self.sources._tile(inbox, source)

@@ -694,6 +694,15 @@ class Service(unittest.IsolatedAsyncioTestCase):
         found = await self.service.answer('text.hall', self.manager.player, other)
         self.assertTrue(found.problem and not found.url)
 
+    async def test_an_alerts_camera_streams_without_sound(self):
+        # App 0.4.134 (firmware 0.84.0): a screen that streams straight to its panel plays an alert's camera live in the
+        # card, at the frame's size exactly; an alert's camera needs not be on the layout, and has no sound.
+        question = Question(Owner('alert'), (Source('camera', 'camera.drive'),), (392, 220), (Place(0, 0, 392, 220),),
+                            live=(392, 220), sound=True, exact=True)
+        found = await self.service.answer('text.hall', self.manager.player, question)
+        self.assertTrue(found.stream and found.url.endswith('.mjpeg'), found)
+        self.assertEqual(self.stream.calls[-1], ('camera.drive', (392, 220), {'sound': False, 'screen': 'text.hall', 'exact': True}))
+
     async def test_a_camera_that_streams(self):
         found = await self.service.answer('text.hall', self.manager.player, self.read({'entity': 'camera.porch', 'live': '1280x744', 'sound': '1'}))
         self.assertEqual((found.url, found.stream, found.shown), (f'http://192.168.1.57:8098/camera/{"S" * 24}.mjpeg', True, ('camera.porch',)))

@@ -400,7 +400,7 @@ data:
   `gray`, the same pastel shades as the tiles. Empty gives the white card.
 - **`button_text`**: the text on the button; empty is "OK".
 - **`timeout`**: seconds after which the card disappears on its own; `0` means it waits for the button,
-  however long that takes. The button always closes the card immediately, even with a timeout. Standby and
+  however long that takes. The button always closes the card at once, even with a timeout. The card fades in and out in a fraction of a second (firmware 0.84.0). Standby and
   night mode wait as long as the card is showing.
 - **`flash`**: `true` makes the backlight blink four times when the alert arrives.
 
@@ -472,7 +472,7 @@ actions:
 
 From app 0.2.66, the event takes one more field: **`camera`**, a `camera.*` or `image.*` entity.
 Every screen but the CYD, with firmware 0.2.57+, shows that camera's picture of the moment on the
-card; a tap on it opens the camera full screen over the alert, and Back returns to the alert. Since
+card; a tap on it opens the camera full screen over the alert, and Back returns to the alert. On a screen that shows a live camera straight on its panel (the Guition 4848S040, firmware 0.84.0) the picture in the card plays live, without sound, once its still is there. Since
 firmware 0.2.103 the picture keeps the camera's own proportions: a wide camera across the top of the
 card, a square or standing doorbell camera on the left of the words where the glass is wide and low
 ([details](docs/CAMERA.md)). The CYD, which has no memory for pictures, shows the same alert without it. The

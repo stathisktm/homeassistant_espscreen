@@ -23,7 +23,8 @@
 namespace picture_question {
 // Who asks (picture_question.OWNERS in the app).
 // PAGE (firmware 0.65.0): a page's own background picture, `index` the page.
-enum class Owner : uint8_t { TILE, VIEW, CARD, SAVER, LIBRARY, PLUGIN_TILE, PLUGIN_CARD, PLUGIN_SAVER, PAGE };
+// ALERT (firmware 0.84.0): the live picture in an alert's card, on a screen that streams straight to its panel.
+enum class Owner : uint8_t { TILE, VIEW, CARD, SAVER, LIBRARY, PLUGIN_TILE, PLUGIN_CARD, PLUGIN_SAVER, PAGE, ALERT };
 inline const char *owner_text(Owner o) {
   switch (o) {
     case Owner::TILE: return "tile";
@@ -34,6 +35,7 @@ inline const char *owner_text(Owner o) {
     case Owner::PLUGIN_TILE: return "plugin_tile";
     case Owner::PLUGIN_CARD: return "plugin_card";
     case Owner::PAGE: return "page";
+    case Owner::ALERT: return "alert";
     default: return "plugin_saver";
   }
 }

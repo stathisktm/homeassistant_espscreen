@@ -420,6 +420,9 @@ inline uint8_t *decode_still(const uint8_t *, size_t, Still &) { return nullptr;
 // The object the view's picture goes into: the camera view (runtime_tiles binds it). Until then nothing streams.
 inline void *(*soft_parent)() = nullptr;
 bool available();
+// Whether a stream opened now goes straight to the panel (soft_live.cpp): only then may one lie outside the camera
+// view, as an alert's picture does (firmware 0.84.0).
+bool straight();
 inline bool tiles_stream() { return false; }
 Handle open(const std::string &url, const Rect &area, const Look &look = Look{}, bool sound = false);
 inline bool has_speaker() { return false; }
