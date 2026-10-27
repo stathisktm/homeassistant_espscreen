@@ -58,7 +58,7 @@ async def to_code(config):
     if _esp32_p4():
         await _p4(config)
     elif _esp32_s3():
-        _s3(config)
+        await _s3(config)
     _tier(config)
 
 
@@ -127,7 +127,7 @@ def _esp32_s3():
     return get_esp32_variant() == VARIANT_ESP32S3
 
 
-def _s3(config):
+async def _s3(config):
     """An ESP32-S3 with LVGL streams its camera full screen too, each picture decoded in software (soft_live.cpp,
     firmware 0.74.0); soft_live.cpp builds only where the board shows pictures (SCREEN_PICTURES)."""
     lvgl = CORE.config.get("lvgl")
@@ -139,6 +139,18 @@ def _s3(config):
         from esphome.components.esp32 import add_idf_component
 
         add_idf_component(name="espressif/esp_new_jpeg", ref="1.0.2")
+        # Straight to the panel (firmware 0.79.0): where the glass is an RGB panel of ESPHome's st7701s (the Guition
+        # 4848S040), LVGL took 98 ms to draw each picture; the decoded picture goes into the panel's frame buffer past
+        # LVGL instead, as on a P4. The panel's handle is picked up as ESP-IDF makes it.
+        displays = CORE.config.get("display") or []
+        if any(display.get("platform") == "st7701s" for display in displays):
+            from esphome.const import CONF_ID
+
+            cg.add_define("USE_SOFT_LIVE_PANEL")
+            cg.add_build_flag("-Wl,--wrap=esp_lcd_new_rgb_panel")
+            first = lvgl[0] if isinstance(lvgl, list) else lvgl
+            component = await cg.get_variable(first[CONF_ID])
+            cg.add(cg.RawExpression(f"live_view::soft_bind({component})"))
 
 
 def p4_network_options(own):

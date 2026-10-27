@@ -264,6 +264,13 @@ never older ones: the app sends the next once the last has left its host. Every 
 many pictures a second were decoded, shown and skipped, their size, how long one took to decode and how long LVGL took
 to draw. Live tiles stay stills on an S3.
 
+Where the glass is an RGB panel of ESPHome's `st7701s` (the Guition 4848S040) and LVGL does not turn it, each decoded
+picture goes straight into the panel's frame buffer instead (firmware 0.79.0), as on a P4: LVGL took about 98 ms to
+draw each 480 x 272 picture there, which held the glass to 8 a second. The panel's handle is picked up as ESP-IDF makes
+it (`-Wl,--wrap=esp_lcd_new_rgb_panel`), the copy starts as the panel starts a frame, LVGL holds the glass while it
+refreshes and keeps out of the picture's spot, and once the stream closes LVGL draws there again. The log then says how
+long each copy took.
+
 ## Live on the P4 boards
 
 A camera opened full screen on a board with an ESP32-P4 (the reTerminal D1001, the M5Stack Tab5, the Waveshare

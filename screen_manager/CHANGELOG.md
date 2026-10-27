@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.128: the live camera straight to the glass on the Guition 4848S040.** LVGL took about 98 ms to draw each
+  picture of a live camera, which held the glass to 8 pictures a second while a picture decoded in 21 ms. On an S3
+  screen whose display is an RGB panel of ESPHome's st7701s (the Guition 4848S040), each picture now goes straight into
+  the panel's memory, past LVGL, as on the P4 screens, at the start of the panel's frame. Other S3 screens, and a turned
+  glass, keep the LVGL image. Screens need firmware 0.79.0.
+
 - **0.4.127: the live camera on the ESP32-S3 screens keeps the pictures it decoded.** 0.4.126 skipped a picture that
   came while the last one still waited for the glass, as it should, but took the waiting one back too, so both were
   lost: the Guition decoded 15 pictures a second and showed 6. The waiting picture now stays. Screens need firmware

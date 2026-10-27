@@ -381,7 +381,9 @@ class SoftLive(unittest.TestCase):
         component = ROOT / 'components/smart_display'
         init = (component / '__init__.py').read_text()
         self.assertIn('return get_esp32_variant() == VARIANT_ESP32S3', init)
-        self.assertRegex(init, r'elif _esp32_s3\(\):\n\s+_s3\(config\)')
+        self.assertRegex(init, r'elif _esp32_s3\(\):\n\s+await _s3\(config\)')
+        # Straight to the panel on an st7701s (firmware 0.79.0): its handle picked up as ESP-IDF makes it.
+        self.assertIn('cg.add_build_flag("-Wl,--wrap=esp_lcd_new_rgb_panel")', init)
         self.assertIn('cg.add_define("USE_SOFT_LIVE")', init)
         soft = (component / 'soft_live.cpp').read_text()
         self.assertIn('#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)', soft)
@@ -393,10 +395,15 @@ class SoftLive(unittest.TestCase):
         self.assertIn('heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM)', soft)
         # The glass sets the pace (firmware 0.77.0): LVGL's own timer shows each picture, and one that comes while the
         # last still waits is read past, not decoded for nothing.
-        self.assertIn('if (!pacer) pacer = lv_timer_create(pace, 5, nullptr);', soft)
+        self.assertIn('if (!pacer && !s->direct) pacer = lv_timer_create(pace, 5, nullptr);', soft)
         self.assertIn('const bool waits = s.ready >= 0, skip = waits && !still;', soft)
         self.assertIn('if (!skip && s.ready == target) s.ready = -1;', soft)
         self.assertIn('LV_EVENT_RENDER_READY', soft)
+        # Straight to the panel: one writer on the glass, LVGL out of the picture's spot, nothing written after close.
+        self.assertIn('extern "C" esp_err_t __wrap_esp_lcd_new_rgb_panel(', soft)
+        self.assertIn('lv_display_add_event_cb(display, keep_out, LV_EVENT_RENDER_START, nullptr);', soft)
+        self.assertIn('xSemaphoreTakeRecursive(glass, portMAX_DELAY);\n  if (!s.stopping) {', soft)
+        self.assertIn('if (streams[handle]->direct) disarm(*streams[handle]);', soft)
         # A page's picture fetched ahead only where it fits beside what the store holds: one that does not was let go
         # and fetched again every half second.
         tiles = (component / 'runtime_tiles.h').read_text()

@@ -446,6 +446,17 @@ inline uint32_t misses() { return 0; }
 
 }  // namespace live_view
 
+// An S3 whose glass is an RGB panel of ESPHome's st7701s (USE_SOFT_LIVE_PANEL, firmware 0.79.0): its live picture goes
+// straight into the panel's frame buffer, past LVGL, unless LVGL turns the glass (smart_display/__init__.py binds it).
+#ifdef USE_SOFT_LIVE_PANEL
+namespace esphome::lvgl {
+class LvglComponent;
+}
+namespace live_view {
+void soft_bind(esphome::lvgl::LvglComponent *lvgl);
+}
+#endif
+
 // The speaker a live camera's sound plays on (features/audio.yaml binds the board's ts_speaker at boot); a board
 // without the live view takes it and does nothing with it.
 #ifdef USE_SPEAKER
