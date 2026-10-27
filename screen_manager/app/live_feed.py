@@ -87,7 +87,10 @@ def size_exact(width, height, box):
     0.4.123): as large as fits the room, larger or smaller than the frame, its proportions kept, even sides."""
     bw, bh = box
     scale = min(bw / width, bh / height)
-    return max(16, min(bw, int(width * scale)) // 2 * 2), max(16, min(bh, int(height * scale)) // 2 * 2)
+    # Whole JPEG blocks (16 pixels for 4:2:0), as Espressif's decoder writes a picture without padding then (firmware
+    # 0.76.0): the nearest multiple of 16 within the room, which shifts the proportions by a pixel or two at most.
+    side = lambda n, room: max(16, min(room // 16 * 16, int(round(n / 16)) * 16))
+    return side(width * scale, bw), side(height * scale, bh)
 
 
 def sizing_of(cover=False, exact=False):

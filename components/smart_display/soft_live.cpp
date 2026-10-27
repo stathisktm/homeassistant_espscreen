@@ -27,6 +27,12 @@
 #include <freertos/task.h>
 
 #include "esp32s3/rom/tjpgd.h"
+// Espressif's decoder with the S3's SIMD (smart_display/__init__.py adds it, firmware 0.76.0): three to four times the
+// ROM's TJpgDec. A build without it decodes with TJpgDec alone.
+#if __has_include("esp_jpeg_dec.h")
+#include "esp_jpeg_dec.h"
+#define SOFT_LIVE_NEW_JPEG 1
+#endif
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 #include "lvgl.h"
@@ -67,7 +73,8 @@ struct Stream {
   std::atomic<bool> live{false};
   // The main loop's own.
   lv_obj_t *image = nullptr;
-  uint32_t shown = 0, started_at = 0, reported_at = 0, reported_decoded = 0, reported_bytes = 0, reported_decode = 0;
+  uint32_t shown = 0, started_at = 0, reported_at = 0, reported_decoded = 0, reported_bytes = 0, reported_decode = 0,
+           reported_shown = 0;
   bool told_first = false, told_live = false;
 };
 static Stream *streams[SOFT_STREAMS] = {};
@@ -102,18 +109,53 @@ static UINT write_block(JDEC *jd, void *bitmap, JRECT *r) {
   }
   return 1;
 }
-// A JPEG into frame `index`; false for one TJpgDec cannot read or larger than the room (the app sends neither).
+#ifdef SOFT_LIVE_NEW_JPEG
+// Espressif's decoder, straight into the frame as RGB565 in LVGL's order. 0 when it decoded, 1 when this picture is
+// one for TJpgDec (a whole-picture output of another size than w x h), -1 when it is no picture to show.
+static int decode_fast(Stream &s, size_t length, Frame &f) {
+  jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
+  config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;
+  jpeg_dec_handle_t dec = nullptr;
+  if (jpeg_dec_open(&config, &dec) != JPEG_ERR_OK || !dec) return 1;
+  jpeg_dec_io_t io{};
+  io.inbuf = s.input;
+  io.inbuf_len = static_cast<int>(length);
+  jpeg_dec_header_info_t info{};
+  int result = -1, out = 0;
+  if (jpeg_dec_parse_header(dec, &io, &info) == JPEG_ERR_OK && info.width <= s.area.w && info.height <= s.area.h &&
+      jpeg_dec_get_outbuf_len(dec, &out) == JPEG_ERR_OK) {
+    result = 1;
+    if (out == static_cast<int>(info.width) * info.height * 2 && static_cast<size_t>(out) <= s.frame_bytes) {
+      f.w = info.width;
+      f.h = info.height;
+      io.outbuf = reinterpret_cast<uint8_t *>(f.px);
+      result = jpeg_dec_process(dec, &io) == JPEG_ERR_OK ? 0 : -1;
+    }
+  }
+  jpeg_dec_close(dec);
+  return result;
+}
+#endif
+// A JPEG into frame `index`; false for one that cannot be read or larger than the room (the app sends neither).
 static bool decode(Stream &s, size_t length, int index, bool still) {
   Frame &f = s.frames[index];
-  Source source{s.input, length, 0, &f};
-  JDEC jd;
-  if (jd_prepare(&jd, read_jpeg, s.work, WORK, &source) != JDR_OK) return false;
-  if (static_cast<int>(jd.width) > s.area.w || static_cast<int>(jd.height) > s.area.h) return false;
-  f.w = static_cast<int>(jd.width);
-  f.h = static_cast<int>(jd.height);
   f.still = still;
   const int64_t began = esp_timer_get_time();
-  if (jd_decomp(&jd, write_block, 0) != JDR_OK) return false;
+  bool done = false;
+#ifdef SOFT_LIVE_NEW_JPEG
+  const int fast = decode_fast(s, length, f);
+  if (fast < 0) return false;
+  done = fast == 0;
+#endif
+  if (!done) {
+    Source source{s.input, length, 0, &f};
+    JDEC jd;
+    if (jd_prepare(&jd, read_jpeg, s.work, WORK, &source) != JDR_OK) return false;
+    if (static_cast<int>(jd.width) > s.area.w || static_cast<int>(jd.height) > s.area.h) return false;
+    f.w = static_cast<int>(jd.width);
+    f.h = static_cast<int>(jd.height);
+    if (jd_decomp(&jd, write_block, 0) != JDR_OK) return false;
+  }
   s.decode_us += static_cast<uint32_t>(esp_timer_get_time() - began);
   f.dsc.header.magic = LV_IMAGE_HEADER_MAGIC;
   f.dsc.header.cf = LV_COLOR_FORMAT_RGB565;
@@ -241,7 +283,7 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   s->work = static_cast<uint8_t *>(heap_caps_malloc(WORK, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
   bool ok = s->input && s->work;
   for (auto &f : s->frames) {
-    f.px = static_cast<uint16_t *>(heap_caps_malloc(s->frame_bytes, MALLOC_CAP_SPIRAM));
+    f.px = static_cast<uint16_t *>(heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM));
     ok = ok && f.px;
   }
   if (!ok) {
@@ -329,9 +371,16 @@ void tick(const std::function<void(Handle, Event)> &tell) {
     if (now - s->reported_at >= REPORT_MS) {
       const uint32_t decoded = s->decoded - s->reported_decoded, bytes = s->bytes - s->reported_bytes;
       const uint32_t decode = s->decode_us - s->reported_decode, span = now - s->reported_at;
-      ESP_LOGI(TAG, "stream %d: %.1f pictures/s, %u KB each, decoded in %u ms, %u unreadable", slot,
-               decoded * 1000.0f / span, decoded ? (unsigned) (bytes / decoded / 1024) : 0u,
-               decoded ? (unsigned) (decode / decoded / 1000) : 0u, (unsigned) s->broken.load());
+      const uint32_t shown = s->shown - s->reported_shown;
+#ifdef SOFT_LIVE_NEW_JPEG
+      const char *decoder = "esp_new_jpeg";
+#else
+      const char *decoder = "TJpgDec";
+#endif
+      ESP_LOGI(TAG, "stream %d: %.1f pictures/s decoded, %.1f on the glass, %u KB each, decoded in %u ms (%s), %u unreadable",
+               slot, decoded * 1000.0f / span, shown * 1000.0f / span, decoded ? (unsigned) (bytes / decoded / 1024) : 0u,
+               decoded ? (unsigned) (decode / decoded / 1000) : 0u, decoder, (unsigned) s->broken.load());
+      s->reported_shown = s->shown;
       s->reported_at = now;
       s->reported_decoded = s->decoded;
       s->reported_bytes = s->bytes;

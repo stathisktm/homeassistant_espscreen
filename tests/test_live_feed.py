@@ -332,10 +332,12 @@ class SoftLive(unittest.TestCase):
     so each picture comes at its room's size exactly (`exact`), a baseline JPEG its ROM's TJpgDec reads."""
 
     def test_a_frame_is_made_the_room_s_size(self):
-        self.assertEqual(live_feed.size_exact(512, 288, (480, 418)), (480, 270))      # smaller
-        self.assertEqual(live_feed.size_exact(1920, 1080, (480, 418)), (480, 270))    # larger
-        self.assertEqual(live_feed.size_exact(320, 240, (480, 418)), (480, 360))      # scaled up, as the S3 cannot
-        self.assertEqual(live_feed.size_exact(480, 270, (480, 418)), (480, 270))
+        # Whole JPEG blocks of 16 (firmware 0.76.0's decoder), the nearest within the room.
+        self.assertEqual(live_feed.size_exact(512, 288, (480, 418)), (480, 272))      # smaller
+        self.assertEqual(live_feed.size_exact(1920, 1080, (480, 418)), (480, 272))    # larger
+        self.assertEqual(live_feed.size_exact(320, 240, (480, 418)), (480, 352))      # scaled up, as the S3 cannot
+        self.assertEqual(live_feed.size_exact(480, 270, (480, 404)), (480, 272))
+        self.assertEqual(live_feed.size_exact(1080, 1920, (480, 404)), (224, 400))   # standing, within the room
         self.assertIs(live_feed.sizing_of(exact=True), live_feed.size_exact)
         self.assertIs(live_feed.sizing_of(cover=True), live_feed.size_to_cover)
         self.assertIs(live_feed.sizing_of(), live_feed.size_for)
@@ -345,7 +347,7 @@ class SoftLive(unittest.TestCase):
         self.assertEqual(len(got), 3)
         for part in got:
             image = Image.open(io.BytesIO(part))
-            self.assertEqual((image.format, image.size), ('JPEG', (480, 270)))
+            self.assertEqual((image.format, image.size), ('JPEG', (480, 272)))
             self.assertFalse(image.info.get('progressive'), 'baseline, as TJpgDec reads it')
         # A P4's stream of the same camera keeps the camera's own JPEG.
         (head, got), picture, asked = Stream().run_stream()
@@ -360,7 +362,7 @@ class SoftLive(unittest.TestCase):
         frame = av.VideoFrame.from_image(Image.new('RGB', (320, 180), (200, 80, 30)))
         made, ms = live_feed.Encoder(*live_feed.size_exact(320, 180, (480, 418))).encode(frame)
         image = Image.open(io.BytesIO(made))
-        self.assertEqual(image.size, (480, 270))
+        self.assertEqual(image.size, (480, 272))
         self.assertFalse(image.info.get('progressive'))
 
     def test_the_question_says_it_and_the_link_keeps_it(self):
@@ -384,6 +386,11 @@ class SoftLive(unittest.TestCase):
         soft = (component / 'soft_live.cpp').read_text()
         self.assertIn('#if defined(USE_SOFT_LIVE) && defined(SCREEN_PICTURES)', soft)
         self.assertIn('jd_prepare(&jd, read_jpeg', soft)
+        # Espressif's decoder first (firmware 0.76.0), straight into a 16-byte aligned frame, TJpgDec where it is not.
+        self.assertIn('add_idf_component(name="espressif/esp_new_jpeg", ref="1.0.2")', init)
+        self.assertIn('#if __has_include("esp_jpeg_dec.h")', soft)
+        self.assertIn('config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;', soft)
+        self.assertIn('heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM)', soft)
         self.assertIn('if (look.tile || !available()', soft, 'a live tile keeps its stills')
         header = (component / 'live_view.h').read_text()
         self.assertIn('inline bool tiles_stream() { return false; }', header)

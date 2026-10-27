@@ -1,5 +1,11 @@
 ## Unreleased
 
+- **0.4.125: a faster live camera on the ESP32-S3 screens.** The screen decoded each picture of a live camera in 86 ms
+  (on the Guition 4848S040), which held it to about 11 pictures a second; Espressif's own JPEG decoder, which uses the
+  S3's vector instructions, takes about a quarter of that, so the picture follows the camera far more closely. The
+  screen's log now says how many pictures a second were decoded and how many reached the glass. Screens need firmware
+  0.76.0.
+
 - **0.4.124: the screensaver's title keeps its width on the wide screens.** On a screen much wider than tall (the 5, 7
   and 10-inch boards), where the title stands beside the cover, the previous and next keys of 0.4.122 took most of its
   room. They stand in the keys' column there now, over play and under the volume. Screens need firmware 0.75.0.

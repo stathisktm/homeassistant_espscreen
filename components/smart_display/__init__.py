@@ -133,6 +133,12 @@ def _s3(config):
     lvgl = CORE.config.get("lvgl")
     if lvgl:
         cg.add_define("USE_SOFT_LIVE")
+        # Espressif's JPEG decoder, with the S3's SIMD: some 24 ms for the 480 x 272 of a 4-inch screen's room, where the
+        # TJpgDec of the ROM took 86 (measured on the Guition 4848S040, 2026-10-27), so the decode no longer holds the
+        # pictures a second to eleven (firmware 0.76.0). soft_live.cpp falls back to TJpgDec without it.
+        from esphome.components.esp32 import add_idf_component
+
+        add_idf_component(name="espressif/esp_new_jpeg", ref="1.0.2")
 
 
 def p4_network_options(own):

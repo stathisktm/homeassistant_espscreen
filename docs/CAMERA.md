@@ -253,7 +253,10 @@ The stream is the P4's, from the same sources (WebRTC for a camera with a stream
 baseline JPEG of some 25 to 40 KB for a 4-inch screen's room, where its still was a BMP of 260 KB.
 
 On the screen (`components/smart_display/soft_live.cpp`) a task of its own on the second core reads the stream with the
-P4's reader and decodes each picture with the TJpgDec in the S3's ROM into one of two RGB565 pictures in PSRAM; the main
+P4's reader and decodes each picture into one of two RGB565 pictures in PSRAM: with Espressif's `esp_new_jpeg`, which
+uses the S3's SIMD (firmware 0.76.0, about 24 ms for 480 x 272), or with the TJpgDec in the S3's ROM (86 ms on the
+Guition 4848S040, which held the stream to 11 pictures a second) where the build lacks it. The app makes each picture's
+sides whole blocks of 16 pixels for it. The main
 loop shows the newest through an LVGL image in the camera view, while the task writes the other. A slow decode gets
 fewer pictures, never older ones: the app sends the next once the last has left its host. Every ten seconds the screen's
 log says how many pictures a second came, their size and how long one took to decode. Live tiles stay stills on an S3.
