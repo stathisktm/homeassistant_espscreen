@@ -433,7 +433,9 @@ class SoftLive(unittest.TestCase):
         self.assertNotIn('MALLOC_CAP_INTERNAL', soft)
         self.assertIn('while (i == s.pending || i == s.decoding) ++i;', soft)
         # And a copier on the other core, straight to the panel (firmware 0.82.0), while the next picture is decoded.
-        self.assertIn('xTaskCreatePinnedToCoreWithCaps(putter_main, "soft_put", 4096, s, 2, &s->putter, 1, MALLOC_CAP_SPIRAM)', soft)
+        self.assertIn('xTaskCreatePinnedToCoreWithCaps(putter_main, "soft_put", 4096, s, copier_priority, &s->putter, 1,', soft)
+        # Over QSPI the glass is held a strip at a time, and the copier shares the main loop's priority (firmware 0.85.2).
+        self.assertIn('if (spi_display) copier_priority = 1;', soft)
         self.assertIn('LV_EVENT_RENDER_READY', soft)
         # Straight to the panel: one writer on the glass, LVGL out of the picture's spot, nothing written after close.
         self.assertIn('extern "C" esp_err_t __wrap_esp_lcd_new_rgb_panel(', soft)

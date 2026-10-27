@@ -1,5 +1,9 @@
 ## Unreleased
 
+- **0.4.139: the JC3248W535 stays responsive while a camera plays.** Sending each picture to its panel takes some
+  35 ms, and the rest of the screen waited for every one (the screen's log showed pauses of up to half a second). The
+  screen now sends a picture in parts and lets the rest of the screen run in between. Screens need firmware 0.85.2.
+
 - **0.4.138: the live camera on the JC3248W535 shows again.** 0.4.137 had the JPEG decoder turn each picture for the
   upright panel, which needs memory the screen does not have, so no picture could be read and the camera stayed
   empty. The screen now turns the picture itself as it sends it. Screens need firmware 0.85.1.

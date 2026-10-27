@@ -362,14 +362,21 @@ static void send_to_panel(Stream &s, const Frame &f, int x, int y, int r) {
       if (inset > 0) send(px + inset, py + top + k, pw - 2 * inset, 1, from + static_cast<size_t>(k) * pw, inset);
     }
   };
-  if (s.quarter == 0 || !s.strip) {
-    rows_out(f.px, 0, ph);
-    return;
-  }
+  // The glass held a strip at a time (firmware 0.85.2): a whole picture takes some 35 ms over QSPI, and LVGL, held
+  // for that long at every picture, stalled the screen (ui_refresh 522 ms, intervals of 200 ms). LVGL draws nothing in
+  // the picture's spot meanwhile (keep_out), and nothing is sent once the stream stopped (close, under the glass).
   for (int top = 0; top < ph; top += STRIP) {
     const int rows = std::min(STRIP, ph - top);
-    turn_strip(s, f, s.strip, top, rows);
-    rows_out(s.strip, top, rows);
+    xSemaphoreTakeRecursive(glass, portMAX_DELAY);
+    if (!s.stopping) {
+      if (s.quarter == 0 || !s.strip) {
+        rows_out(f.px + static_cast<size_t>(top) * pw, top, rows);
+      } else {
+        turn_strip(s, f, s.strip, top, rows);
+        rows_out(s.strip, top, rows);
+      }
+    }
+    xSemaphoreGiveRecursive(glass);
   }
 }
 #endif
@@ -409,7 +416,11 @@ static void put(Stream &s, const Frame &f) {
     }
 #endif
 #ifdef USE_SOFT_LIVE_SPI
-    if (spi_display) send_to_panel(s, f, x, y, r);
+    if (spi_display) {
+      xSemaphoreGiveRecursive(glass);  // held a strip at a time from here (send_to_panel)
+      send_to_panel(s, f, x, y, r);
+      xSemaphoreTakeRecursive(glass, portMAX_DELAY);
+    }
 #endif
     s.copy_us += static_cast<uint32_t>(esp_timer_get_time() - began);
     s.copied++;
@@ -818,8 +829,14 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
 #ifdef USE_SOFT_LIVE_PANEL
   // The reader's and the copier's stacks in PSRAM (firmware 0.83.0), with room to spare; the decoder's stays inside the
   // chip, where esp_new_jpeg's working rows are fastest.
-  if (s->direct &&
-      xTaskCreatePinnedToCoreWithCaps(putter_main, "soft_put", 4096, s, 2, &s->putter, 1, MALLOC_CAP_SPIRAM) != pdPASS) {
+  // Over QSPI the copier sends for some 35 ms a picture: at the main loop's own priority there (firmware 0.85.2), so the
+  // two take turns, where above it the main loop waited for every picture.
+  int copier_priority = 2;
+#ifdef USE_SOFT_LIVE_SPI
+  if (spi_display) copier_priority = 1;
+#endif
+  if (s->direct && xTaskCreatePinnedToCoreWithCaps(putter_main, "soft_put", 4096, s, copier_priority, &s->putter, 1,
+                                                   MALLOC_CAP_SPIRAM) != pdPASS) {
     streams[slot] = nullptr;
     free_stream(s);
     return -1;
