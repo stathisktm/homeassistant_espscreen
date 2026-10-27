@@ -133,8 +133,12 @@ struct Stream {
   bool stills[INPUTS] = {};
   int filling = 0, pending = -1, decoding = -1;
   TaskHandle_t decoder = nullptr;
-  std::atomic<int> running{0};    // the tasks still running; `done` once neither is
-  std::atomic<bool> read_done{false};
+  // Straight to the panel, a third task copies each decoded picture onto the glass (firmware 0.82.0), on the other core,
+  // while the next is decoded: a decode of 24 ms, the wait for the panel's frame and a copy of 14 ms one after the other
+  // held the glass to 19 a second where 25 came in.
+  TaskHandle_t putter = nullptr;
+  std::atomic<int> running{0};    // the tasks still running; `done` once none is
+  std::atomic<bool> read_done{false}, decode_done{false};
   Frame frames[2];
   size_t frame_bytes = 0;
   // The hand-over between the task and the main loop, under `lock`: the task decodes into the frame that is not on the
@@ -399,16 +403,16 @@ static bool decode(Stream &s, const uint8_t *data, size_t length, int index, boo
 // second and showed 6, and every picture decoded for nothing took the memory bus the panel and LVGL share with it.
 static void arrived(Stream &s, const uint8_t *data, size_t length, bool still) {
 #ifdef USE_SOFT_LIVE_PANEL
-  // Straight to the panel: decoded into the one frame and copied at once; the app sends the next once this left.
+  // Straight to the panel: the copier takes each picture within a frame of the panel, so the decoder waits for it to take
+  // the last rather than read this one past; the newest still wins among the inputs (`pending`).
   if (s.direct) {
-    if (!decode(s, data, length, 0, still)) {
-      s.broken++;
-      return;
+    for (;;) {
+      portENTER_CRITICAL(&s.lock);
+      const bool waits = s.ready >= 0;
+      portEXIT_CRITICAL(&s.lock);
+      if (!waits || s.stopping) break;
+      vTaskDelay(1);
     }
-    s.decoded++;
-    put(s, s.frames[0]);
-    if (!still) s.live = true;
-    return;
   }
 #endif
   int target;
@@ -432,6 +436,7 @@ static void arrived(Stream &s, const uint8_t *data, size_t length, bool still) {
   portEXIT_CRITICAL(&s.lock);
   s.decoded++;
   if (!still) s.live = true;
+  if (s.putter) xTaskNotifyGive(s.putter);
 }
 
 // ---- The reading task: the stream as live_view.cpp reads it, each picture handed to the decoding task ----
@@ -527,7 +532,6 @@ static void task_main(void *arg) {
 static void decoder_main(void *arg) {
   auto *s = static_cast<Stream *>(arg);
   for (;;) {
-    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
     portENTER_CRITICAL(&s->lock);
     const int i = s->stopping ? -1 : s->pending;
     s->pending = -1;
@@ -538,13 +542,38 @@ static void decoder_main(void *arg) {
       portENTER_CRITICAL(&s->lock);
       s->decoding = -1;
       portEXIT_CRITICAL(&s->lock);
-    } else if (s->read_done) {
-      break;
+      continue;
     }
+    if (s->read_done) break;
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
+  }
+  // The copier runs until the decoder is done, so this, its last word to it, never reaches a task that has gone.
+  s->decode_done = true;
+  if (s->putter) xTaskNotifyGive(s->putter);
+  finish(s);
+  vTaskDelete(nullptr);
+}
+#ifdef USE_SOFT_LIVE_PANEL
+// ---- The copying task: each decoded picture onto the glass, while the next is decoded ----
+static void putter_main(void *arg) {
+  auto *s = static_cast<Stream *>(arg);
+  for (;;) {
+    portENTER_CRITICAL(&s->lock);
+    const int index = s->ready;
+    s->ready = -1;
+    if (index >= 0) s->showing = index;
+    portEXIT_CRITICAL(&s->lock);
+    if (index >= 0) {
+      put(*s, s->frames[index]);
+      continue;
+    }
+    if (s->decode_done) break;
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
   }
   finish(s);
   vTaskDelete(nullptr);
 }
+#endif
 
 static void free_stream(Stream *s) {
   if (!s) return;
@@ -567,7 +596,7 @@ static void free_stream(Stream *s) {
 size_t held_bytes() {
   size_t held = 0;
   for (auto *s : streams)
-    if (s) held += INPUTS * INPUT + (s->direct ? 1 : 2) * s->frame_bytes;
+    if (s) held += INPUTS * INPUT + 2 * s->frame_bytes;
   return held;
 }
 
@@ -588,13 +617,12 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
 #ifdef USE_SOFT_LIVE_PANEL
   s->direct = direct_ready();
 #if defined(LV_COLOR_16_SWAP) && LV_COLOR_16_SWAP
-  s->frames[0].swap = s->direct;
+  s->frames[0].swap = s->frames[1].swap = s->direct;
 #endif
 #endif
   bool ok = s->work != nullptr;
   for (auto *input : s->inputs) ok = ok && input;
-  for (int i = 0; i < (s->direct ? 1 : 2); ++i) {
-    Frame &f = s->frames[i];
+  for (auto &f : s->frames) {
     f.px = static_cast<uint16_t *>(heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM));
     ok = ok && f.px;
   }
@@ -617,14 +645,31 @@ Handle open(const std::string &url, const Rect &area, const Look &look, bool) {
   reported_render_us = render_us;
   // Core 0, below the Wi-Fi and the network's own tasks: the main loop on core 1 keeps touch and LVGL as they were. The
   // reader a step above the decoder, so a picture comes in while the last is decoded.
-  s->running = 2;
-  if (xTaskCreatePinnedToCore(decoder_main, "soft_decode", 6144, s, 2, &s->decoder, 0) != pdPASS) {
+  // The copier, straight to the panel, on core 1 above the main loop: 14 ms a picture.
+  s->running = s->direct ? 3 : 2;
+#ifdef USE_SOFT_LIVE_PANEL
+  if (s->direct && xTaskCreatePinnedToCore(putter_main, "soft_put", 3072, s, 2, &s->putter, 1) != pdPASS) {
     streams[slot] = nullptr;
     free_stream(s);
     return -1;
   }
-  if (xTaskCreatePinnedToCore(task_main, "soft_live", 4096, s, 3, nullptr, 0) != pdPASS) {
-    // The decoder ends by itself, and tick() tells the view the stream failed.
+#endif
+  if (xTaskCreatePinnedToCore(decoder_main, "soft_decode", 6144, s, 2, &s->decoder, 0) != pdPASS) {
+    if (!s->putter) {
+      streams[slot] = nullptr;
+      free_stream(s);
+      return -1;
+    }
+    // The copier ends by itself, and tick() tells the view the stream failed.
+    s->failed = true;
+    s->stopping = true;
+    s->read_done = true;
+    s->decode_done = true;
+    finish(s);  // the decoder's and the reader's turns, neither started
+    finish(s);
+    xTaskNotifyGive(s->putter);
+  } else if (xTaskCreatePinnedToCore(task_main, "soft_live", 4096, s, 3, nullptr, 0) != pdPASS) {
+    // The decoder (and the copier) end by themselves, and tick() tells the view the stream failed.
     s->failed = true;
     s->stopping = true;
     finish(s);

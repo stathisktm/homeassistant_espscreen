@@ -411,7 +411,7 @@ class SoftLive(unittest.TestCase):
         self.assertIn('#if __has_include("esp_jpeg_dec.h")', soft)
         # The panel's frame buffer holds LVGL's pixels byte-swapped (LV_COLOR_16_SWAP): a picture for it is decoded so.
         self.assertIn('config.output_type = f.swap ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;', soft)
-        self.assertIn('s->frames[0].swap = s->direct;', soft)
+        self.assertIn('s->frames[0].swap = s->frames[1].swap = s->direct;', soft)
         self.assertIn('heap_caps_aligned_alloc(16, s->frame_bytes, MALLOC_CAP_SPIRAM)', soft)
         # The glass sets the pace (firmware 0.77.0): LVGL's own timer shows each picture, and one that comes while the
         # last still waits is read past, not decoded for nothing.
@@ -422,6 +422,8 @@ class SoftLive(unittest.TestCase):
         self.assertIn('xTaskCreatePinnedToCore(decoder_main, "soft_decode", 6144, s, 2, &s->decoder, 0)', soft)
         self.assertIn('xTaskCreatePinnedToCore(task_main, "soft_live", 4096, s, 3, nullptr, 0)', soft)
         self.assertIn('while (i == s.pending || i == s.decoding) ++i;', soft)
+        # And a copier on the other core, straight to the panel (firmware 0.82.0), while the next picture is decoded.
+        self.assertIn('xTaskCreatePinnedToCore(putter_main, "soft_put", 3072, s, 2, &s->putter, 1)', soft)
         self.assertIn('LV_EVENT_RENDER_READY', soft)
         # Straight to the panel: one writer on the glass, LVGL out of the picture's spot, nothing written after close.
         self.assertIn('extern "C" esp_err_t __wrap_esp_lcd_new_rgb_panel(', soft)

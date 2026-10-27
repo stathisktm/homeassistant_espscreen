@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.132: the live camera copied onto the glass while the next picture decodes.** On the Guition 4848S040 all 25
+  pictures a second came in, but the screen decoded each, waited for the panel and copied it one after the other, and
+  showed 19. A third task now copies each picture on the screen's other core while the next one decodes. Screens need
+  firmware 0.82.0.
+
 - **0.4.131: the sharper live camera at full pace on the ESP32-S3 screens.** With 0.4.130's sharper pictures the screen
   showed 18 a second where it showed 24: it read the next picture only after it had decoded and shown the last. It now
   reads and decodes at the same time, in two tasks. Screens need firmware 0.81.0.
