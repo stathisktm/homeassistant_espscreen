@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **0.4.140: the app's data no longer grows by gigabytes from old downloads.** ESPHome keeps a copy of the screens'
+  packages for every version it was asked to build, some 200 MB each, and never removes one, so the app's data could
+  reach tens of gigabytes. Before a build the app now removes the copies unused for two weeks, keeping the eight newest
+  in any case; a build that needs a removed one downloads it again.
+
 - **0.4.139: the JC3248W535 stays responsive while a camera plays.** Sending each picture to its panel takes some
   35 ms, and the rest of the screen waited for every one (the screen's log showed pauses of up to half a second). The
   screen now sends a picture in parts and lets the rest of the screen run in between. Screens need firmware 0.85.2.

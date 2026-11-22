@@ -1193,6 +1193,44 @@ packages:
             self.logs.append('Removing PlatformIO from before ESPHome 2026.7: the screens build with ESP-IDF now.')
             await asyncio.to_thread(shutil.rmtree, old, True)
 
+    FETCHED_KEEP = 8
+    FETCHED_DAYS = 14
+
+    @staticmethod
+    def _last_used(folder):
+        """When ESPHome last fetched or checked out this clone (it fetches a used ref about once a day)."""
+        times = [folder.stat().st_mtime]
+        for name in ('FETCH_HEAD', 'HEAD', 'index'):
+            try:
+                times.append((folder / '.git' / name).stat().st_mtime)
+            except OSError:
+                pass
+        return max(times)
+
+    def prune_fetched(self, now=None):
+        """ESPHome keeps a clone of this repository per `ref:` it was asked for, under esphome/external_components and
+        esphome/packages, and never removes one; every release and dev rebuild adds two (some 200 MB each), so the app's
+        data grew by gigabytes. A clone unused for FETCHED_DAYS goes, but the FETCHED_KEEP newest always stay, and a
+        build that needs a removed one simply fetches it again. Returns the folders removed."""
+        now = now or time.time()
+        removed = []
+        for kind in ('external_components', 'packages'):
+            root = self.data / 'esphome' / kind
+            if not root.is_dir():
+                continue
+            clones = sorted((p for p in root.iterdir() if p.is_dir()), key=self._last_used, reverse=True)
+            for clone in clones[self.FETCHED_KEEP:]:
+                if now - self._last_used(clone) < self.FETCHED_DAYS * 86400:
+                    continue
+                shutil.rmtree(clone, True)
+                lock = clone.with_name(clone.name + '.lock')
+                if lock.is_file():
+                    lock.unlink(missing_ok=True)
+                removed.append(clone)
+        if removed:
+            self.logs.append(f'Removed {len(removed)} old copies of the packages ESPHome had fetched.')
+        return removed
+
     async def seed_cache(self, profile, env):
         """The board's compile cache from GitHub before a build (build_cache, app 0.4.49); without one, or past five
         minutes of downloading, the build runs as it always did."""
@@ -1272,6 +1310,7 @@ packages:
         try:
             if action not in ('validate', 'widen'):
                 await self.retire_platformio()
+                await asyncio.to_thread(self.prune_fetched)
                 # A build the server makes needs no compile cache here; one that falls back gets it then.
                 if not (self.server and self.server.wanted()):
                     await self.seed_cache(profile, env)
